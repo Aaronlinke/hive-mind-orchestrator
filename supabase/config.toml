@@ -1,0 +1,4 @@
+project_id = "rmhnmvbnvyssnampsjhd"
+
+[functions.hierarchical-ai]
+verify_jwt = false
