@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { TrendingUp, Zap, Database } from "lucide-react";
 
 const StatsPanel = () => {
   const [stats, setStats] = useState({
@@ -21,35 +20,26 @@ const StatsPanel = () => {
   }, []);
 
   return (
-    <div className="flex gap-6 items-center">
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-          <Zap className="w-4 h-4 text-primary" />
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground">Aktive KIs</p>
-          <p className="text-sm font-bold">{stats.activeAIs}</p>
-        </div>
+    <div className="flex gap-8 text-sm">
+      <div className="text-center group">
+        <p className="text-muted-foreground text-xs mb-1 font-medium">Aktive KIs</p>
+        <p className="text-3xl font-bold text-primary tabular-nums group-hover:scale-110 transition-transform">
+          {stats.activeAIs}
+        </p>
       </div>
-
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-lg bg-secondary/20 flex items-center justify-center">
-          <Database className="w-4 h-4 text-secondary" />
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground">Tasks</p>
-          <p className="text-sm font-bold">{stats.totalTasks}</p>
-        </div>
+      <div className="w-px bg-border/50" />
+      <div className="text-center group">
+        <p className="text-muted-foreground text-xs mb-1 font-medium">Tasks</p>
+        <p className="text-3xl font-bold text-accent tabular-nums group-hover:scale-110 transition-transform">
+          {stats.totalTasks}
+        </p>
       </div>
-
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center">
-          <TrendingUp className="w-4 h-4 text-accent" />
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground">Effizienz</p>
-          <p className="text-sm font-bold">{stats.efficiency.toFixed(1)}%</p>
-        </div>
+      <div className="w-px bg-border/50" />
+      <div className="text-center group">
+        <p className="text-muted-foreground text-xs mb-1 font-medium">Effizienz</p>
+        <p className="text-3xl font-bold text-secondary tabular-nums group-hover:scale-110 transition-transform">
+          {stats.efficiency.toFixed(1)}%
+        </p>
       </div>
     </div>
   );

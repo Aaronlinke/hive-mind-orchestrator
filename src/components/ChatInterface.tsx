@@ -2,33 +2,20 @@ import { useState, useRef, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Bot, User } from "lucide-react";
+import { Send, Bot, User, Trash2, Copy, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-interface Message {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  timestamp: Date;
-}
+import { useChat } from "@/hooks/useChat";
 
 interface ChatInterfaceProps {
   activeAI: string | null;
 }
 
 const ChatInterface = ({ activeAI }: ChatInterfaceProps) => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      role: "assistant",
-      content: "Hallo! Ich bin der KI-Orchestrator. Wähle eine KI aus der Hierarchie aus, um mit ihr zu interagieren.",
-      timestamp: new Date(),
-    },
-  ]);
   const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { messages, isLoading, sendMessage, clearChat, setMessages } = useChat({ activeAI });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -54,223 +41,120 @@ const ChatInterface = ({ activeAI }: ChatInterfaceProps) => {
 
   const handleSend = async () => {
     if (!input.trim()) return;
-
-    if (!activeAI) {
-      toast({
-        title: "Keine KI ausgewählt",
-        description: "Bitte wähle eine KI aus der Hierarchie aus.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: "user",
-      content: input,
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
+    await sendMessage(input);
     setInput("");
-    setIsLoading(true);
+  };
 
+  const handleClearChat = () => {
+    clearChat();
+    toast({
+      title: "Chat gelöscht",
+      description: "Die Konversation wurde zurückgesetzt.",
+    });
+  };
+
+  const copyToClipboard = async (text: string, id: string) => {
     try {
-      // Get AI node details from activeAI ID
-      const nodeMap: Record<string, { type: string; name: string }> = {
-        "director-1": { type: "director", name: "Direktor KI" },
-        "manager-1": { type: "manager", name: "Projektmanager KI-A" },
-        "manager-2": { type: "manager", name: "Projektmanager KI-B" },
-        "specialist-1": { type: "specialist", name: "Spezialist: Storytelling" },
-        "specialist-2": { type: "specialist", name: "Spezialist: Game Design" },
-        "specialist-3": { type: "specialist", name: "Spezialist: Grafik" },
-        "specialist-4": { type: "specialist", name: "Spezialist: Weltenbau" },
-      };
-
-      const nodeInfo = nodeMap[activeAI] || { type: "specialist", name: activeAI };
-
-      // Build conversation history for context
-      const conversationHistory = messages
-        .filter((m) => m.role !== "assistant" || !m.content.startsWith("Verbunden mit"))
-        .map((m) => ({ role: m.role, content: m.content }));
-
-      const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/hierarchical-ai`;
-
-      const response = await fetch(CHAT_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({
-          aiNodeId: activeAI,
-          aiNodeType: nodeInfo.type,
-          aiNodeName: nodeInfo.name,
-          message: input,
-          conversationHistory,
-        }),
+      await navigator.clipboard.writeText(text);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+      toast({
+        title: "Kopiert!",
+        description: "Nachricht in Zwischenablage kopiert.",
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "Fehler bei der AI-Anfrage");
-      }
-
-      if (!response.body) {
-        throw new Error("Keine Antwort vom Server");
-      }
-
-      // Stream the response
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let textBuffer = "";
-      let streamDone = false;
-      let assistantContent = "";
-
-      // Create initial assistant message
-      const assistantId = (Date.now() + 1).toString();
-
-      while (!streamDone) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        textBuffer += decoder.decode(value, { stream: true });
-
-        let newlineIndex: number;
-        while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
-          let line = textBuffer.slice(0, newlineIndex);
-          textBuffer = textBuffer.slice(newlineIndex + 1);
-
-          if (line.endsWith("\r")) line = line.slice(0, -1);
-          if (line.startsWith(":") || line.trim() === "") continue;
-          if (!line.startsWith("data: ")) continue;
-
-          const jsonStr = line.slice(6).trim();
-          if (jsonStr === "[DONE]") {
-            streamDone = true;
-            break;
-          }
-
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-            if (content) {
-              assistantContent += content;
-              // Update or create assistant message
-              setMessages((prev) => {
-                const lastMsg = prev[prev.length - 1];
-                if (lastMsg?.id === assistantId) {
-                  return prev.map((m) =>
-                    m.id === assistantId ? { ...m, content: assistantContent } : m
-                  );
-                }
-                return [
-                  ...prev,
-                  {
-                    id: assistantId,
-                    role: "assistant" as const,
-                    content: assistantContent,
-                    timestamp: new Date(),
-                  },
-                ];
-              });
-            }
-          } catch {
-            textBuffer = line + "\n" + textBuffer;
-            break;
-          }
-        }
-      }
-
-      // Final flush
-      if (textBuffer.trim()) {
-        for (let raw of textBuffer.split("\n")) {
-          if (!raw || raw.startsWith(":") || raw.trim() === "") continue;
-          if (!raw.startsWith("data: ")) continue;
-          const jsonStr = raw.slice(6).trim();
-          if (jsonStr === "[DONE]") continue;
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-            if (content) {
-              assistantContent += content;
-              setMessages((prev) =>
-                prev.map((m) =>
-                  m.id === assistantId ? { ...m, content: assistantContent } : m
-                )
-              );
-            }
-          } catch {
-            // ignore
-          }
-        }
-      }
-    } catch (error) {
-      console.error("AI Error:", error);
+    } catch (err) {
       toast({
         title: "Fehler",
-        description: error instanceof Error ? error.message : "Konnte keine Antwort generieren.",
+        description: "Kopieren fehlgeschlagen.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
   return (
-    <Card className="flex flex-col h-[600px] bg-card/50 backdrop-blur-sm border-border">
-      <div className="p-4 border-b border-border">
-        <h2 className="text-lg font-bold flex items-center gap-2">
-          <Bot className="w-5 h-5 text-primary" />
-          Chat Interface
-        </h2>
-        {activeAI && (
-          <p className="text-xs text-muted-foreground mt-1">Aktiv: {activeAI}</p>
-        )}
+    <Card className="flex flex-col h-[600px] glass-card">
+      <div className="p-4 border-b border-border/50 bg-gradient-to-r from-primary/5 to-accent/5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Bot className="w-6 h-6 text-primary animate-pulse-glow" />
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-success rounded-full border-2 border-background" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-foreground">Chat Interface</h2>
+              {activeAI && (
+                <p className="text-xs text-primary font-medium">🟢 Aktiv: {activeAI}</p>
+              )}
+            </div>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleClearChat}
+            className="hover:bg-destructive/10 hover:text-destructive transition-all"
+            title="Chat löschen"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth">
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`flex gap-3 ${
+            className={`flex gap-3 group ${
               message.role === "user" ? "justify-end" : "justify-start"
-            }`}
+            } animate-in fade-in slide-in-from-bottom-4 duration-500`}
           >
             {message.role === "assistant" && (
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0">
-                <Bot className="w-4 h-4" />
+              <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center flex-shrink-0 shadow-lg animate-float">
+                <Bot className="w-5 h-5 text-background" />
               </div>
             )}
             <div
-              className={`max-w-[80%] rounded-lg p-3 ${
+              className={`max-w-[80%] rounded-2xl p-4 backdrop-blur-sm relative ${
                 message.role === "user"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-foreground"
+                  ? "gradient-accent text-background shadow-lg"
+                  : "glass-card text-foreground"
               }`}
             >
-              <p className="text-sm">{message.content}</p>
-              <p className="text-xs opacity-70 mt-1">
-                {message.timestamp.toLocaleTimeString()}
-              </p>
+              <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+              <div className="flex items-center justify-between mt-2 gap-2">
+                <p className="text-xs opacity-70 font-medium tabular-nums">
+                  {message.timestamp.toLocaleTimeString()}
+                </p>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={() => copyToClipboard(message.content, message.id)}
+                >
+                  {copiedId === message.id ? (
+                    <Check className="w-3 h-3 text-success" />
+                  ) : (
+                    <Copy className="w-3 h-3" />
+                  )}
+                </Button>
+              </div>
             </div>
             {message.role === "user" && (
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-primary flex items-center justify-center flex-shrink-0">
-                <User className="w-4 h-4" />
+              <div className="w-10 h-10 rounded-full gradient-accent flex items-center justify-center flex-shrink-0 shadow-lg">
+                <User className="w-5 h-5 text-background" />
               </div>
             )}
           </div>
         ))}
         {isLoading && (
-          <div className="flex gap-3">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-              <Bot className="w-4 h-4 animate-pulse" />
+          <div className="flex gap-3 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center shadow-lg animate-pulse-glow">
+              <Bot className="w-5 h-5 text-background animate-pulse" />
             </div>
-            <div className="bg-muted rounded-lg p-3">
-              <div className="flex gap-1">
-                <div className="w-2 h-2 rounded-full bg-primary animate-bounce" />
-                <div className="w-2 h-2 rounded-full bg-primary animate-bounce delay-100" />
-                <div className="w-2 h-2 rounded-full bg-primary animate-bounce delay-200" />
+            <div className="glass-card rounded-2xl p-4">
+              <div className="flex gap-2">
+                <div className="w-3 h-3 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />
+                <div className="w-3 h-3 rounded-full bg-accent animate-bounce" style={{ animationDelay: '150ms' }} />
+                <div className="w-3 h-3 rounded-full bg-secondary animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
             </div>
           </div>
@@ -278,21 +162,21 @@ const ChatInterface = ({ activeAI }: ChatInterfaceProps) => {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-4 border-t border-border">
+      <div className="p-4 border-t border-border/50 bg-background-elevated">
         <div className="flex gap-2">
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && handleSend()}
+            onKeyPress={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
             placeholder="Nachricht eingeben..."
             disabled={isLoading}
-            className="flex-1"
+            className="flex-1 glass-card border-primary/30 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
           />
           <Button
             onClick={handleSend}
             disabled={isLoading || !input.trim()}
             size="icon"
-            className="bg-primary hover:bg-primary/90"
+            className="gradient-primary hover:scale-105 transition-transform shadow-lg glow-primary disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="w-4 h-4" />
           </Button>
