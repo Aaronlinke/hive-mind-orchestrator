@@ -14,7 +14,105 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      ai_learning_history: {
+        Row: {
+          ai_node_id: string
+          ai_node_type: string
+          context: Json | null
+          created_at: string | null
+          id: string
+          prompt: string
+          response: string
+          success_score: number | null
+          user_feedback: number | null
+        }
+        Insert: {
+          ai_node_id: string
+          ai_node_type: string
+          context?: Json | null
+          created_at?: string | null
+          id?: string
+          prompt: string
+          response: string
+          success_score?: number | null
+          user_feedback?: number | null
+        }
+        Update: {
+          ai_node_id?: string
+          ai_node_type?: string
+          context?: Json | null
+          created_at?: string | null
+          id?: string
+          prompt?: string
+          response?: string
+          success_score?: number | null
+          user_feedback?: number | null
+        }
+        Relationships: []
+      }
+      generated_code: {
+        Row: {
+          ai_node_id: string
+          code_content: string
+          code_language: string
+          created_at: string | null
+          description: string | null
+          execution_success: boolean | null
+          id: string
+        }
+        Insert: {
+          ai_node_id: string
+          code_content: string
+          code_language: string
+          created_at?: string | null
+          description?: string | null
+          execution_success?: boolean | null
+          id?: string
+        }
+        Update: {
+          ai_node_id?: string
+          code_content?: string
+          code_language?: string
+          created_at?: string | null
+          description?: string | null
+          execution_success?: boolean | null
+          id?: string
+        }
+        Relationships: []
+      }
+      optimized_prompts: {
+        Row: {
+          ai_node_type: string
+          avg_success_score: number | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          prompt_content: string
+          prompt_version: number | null
+          usage_count: number | null
+        }
+        Insert: {
+          ai_node_type: string
+          avg_success_score?: number | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          prompt_content: string
+          prompt_version?: number | null
+          usage_count?: number | null
+        }
+        Update: {
+          ai_node_type?: string
+          avg_success_score?: number | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          prompt_content?: string
+          prompt_version?: number | null
+          usage_count?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
