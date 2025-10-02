@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Send, Bot, User, Trash2, Copy, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useChat } from "@/hooks/useChat";
+import SelfImprovementPanel from "./SelfImprovementPanel";
 
 interface ChatInterfaceProps {
   activeAIs: string[];
@@ -78,7 +79,8 @@ const ChatInterface = ({ activeAIs, multiSelectMode }: ChatInterfaceProps) => {
   };
 
   return (
-    <Card className="flex flex-col h-[600px] glass-card">
+    <div className="space-y-4">
+      <Card className="flex flex-col h-[600px] glass-card">
       <div className="p-4 border-b border-border/50 bg-gradient-to-r from-primary/5 to-accent/5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -192,6 +194,14 @@ const ChatInterface = ({ activeAIs, multiSelectMode }: ChatInterfaceProps) => {
         </div>
       </div>
     </Card>
+
+    <SelfImprovementPanel 
+      lastMessageId={messages[messages.length - 1]?.id || null}
+      lastAIResponse={messages[messages.length - 1]?.role === "assistant" ? messages[messages.length - 1].content : ""}
+      aiNodeId={activeAIs[0] || null}
+      aiNodeType={activeAIs[0] ? (activeAIs[0].includes("director") ? "director" : activeAIs[0].includes("manager") ? "manager" : "specialist") : null}
+    />
+    </div>
   );
 };
 
