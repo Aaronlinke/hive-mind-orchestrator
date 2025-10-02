@@ -4,7 +4,39 @@ import ChatInterface from "@/components/ChatInterface";
 import StatsPanel from "@/components/StatsPanel";
 
 const Index = () => {
-  const [activeAI, setActiveAI] = useState<string | null>(null);
+  const [activeAIs, setActiveAIs] = useState<string[]>([]);
+  const [multiSelectMode, setMultiSelectMode] = useState(false);
+
+  const handleSelectAI = (aiId: string) => {
+    if (multiSelectMode) {
+      // Toggle-Logik für Mehrfachauswahl
+      setActiveAIs((prev) =>
+        prev.includes(aiId) ? prev.filter((id) => id !== aiId) : [...prev, aiId]
+      );
+    } else {
+      // Einzelauswahl
+      setActiveAIs([aiId]);
+    }
+  };
+
+  const handleToggleMultiSelect = () => {
+    setMultiSelectMode((prev) => !prev);
+    if (!multiSelectMode) {
+      // Beim Aktivieren alle KIs auswählen
+      setActiveAIs([
+        "director-1",
+        "manager-1",
+        "manager-2",
+        "specialist-1",
+        "specialist-2",
+        "specialist-3",
+        "specialist-4",
+      ]);
+    } else {
+      // Beim Deaktivieren nur die erste behalten
+      setActiveAIs((prev) => (prev.length > 0 ? [prev[0]] : []));
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background-deep to-background text-foreground relative">
@@ -47,8 +79,13 @@ const Index = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-          <AIHierarchyDashboard onSelectAI={setActiveAI} activeAI={activeAI} />
-          <ChatInterface activeAI={activeAI} />
+          <AIHierarchyDashboard 
+            onSelectAI={handleSelectAI} 
+            activeAIs={activeAIs}
+            onToggleMultiSelect={handleToggleMultiSelect}
+            multiSelectMode={multiSelectMode}
+          />
+          <ChatInterface activeAIs={activeAIs} multiSelectMode={multiSelectMode} />
         </div>
       </main>
     </div>

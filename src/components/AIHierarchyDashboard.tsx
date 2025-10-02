@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import AINodeCard from "./AINodeCard";
 
 interface AINode {
@@ -16,10 +17,12 @@ interface AINode {
 
 interface AIHierarchyDashboardProps {
   onSelectAI: (id: string) => void;
-  activeAI: string | null;
+  activeAIs: string[];
+  onToggleMultiSelect: () => void;
+  multiSelectMode: boolean;
 }
 
-const AIHierarchyDashboard = ({ onSelectAI, activeAI }: AIHierarchyDashboardProps) => {
+const AIHierarchyDashboard = ({ onSelectAI, activeAIs, onToggleMultiSelect, multiSelectMode }: AIHierarchyDashboardProps) => {
   const [nodes, setNodes] = useState<AINode[]>([
     {
       id: "director-1",
@@ -109,18 +112,34 @@ const AIHierarchyDashboard = ({ onSelectAI, activeAI }: AIHierarchyDashboardProp
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none" />
       
       <div className="relative">
-        <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-glow" />
-          KI-Hierarchie
-        </h2>
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-glow" />
+              KI-Hierarchie
+            </h2>
+            <p className="text-xs text-muted-foreground mt-1">
+              {multiSelectMode ? "🔗 Mehrere KIs gleichzeitig befragen" : "Einzelne KI auswählen"}
+            </p>
+          </div>
+          <Button
+            onClick={onToggleMultiSelect}
+            variant={multiSelectMode ? "default" : "outline"}
+            className={multiSelectMode ? "gradient-primary shadow-lg glow-primary" : ""}
+            size="sm"
+          >
+            {multiSelectMode ? "🔗 Multi" : "📋 Einzel"}
+          </Button>
+        </div>
 
         {/* Director Level */}
         {directorNode && (
           <div className="mb-8 flex justify-center">
             <AINodeCard
               node={directorNode}
-              isActive={activeAI === directorNode.id}
+              isActive={activeAIs.includes(directorNode.id)}
               onClick={() => onSelectAI(directorNode.id)}
+              multiSelectMode={multiSelectMode}
             />
           </div>
         )}
@@ -136,8 +155,9 @@ const AIHierarchyDashboard = ({ onSelectAI, activeAI }: AIHierarchyDashboardProp
             <div key={manager.id} className="flex flex-col items-center">
               <AINodeCard
                 node={manager}
-                isActive={activeAI === manager.id}
+                isActive={activeAIs.includes(manager.id)}
                 onClick={() => onSelectAI(manager.id)}
+                multiSelectMode={multiSelectMode}
               />
             </div>
           ))}
@@ -156,8 +176,9 @@ const AIHierarchyDashboard = ({ onSelectAI, activeAI }: AIHierarchyDashboardProp
             <AINodeCard
               key={specialist.id}
               node={specialist}
-              isActive={activeAI === specialist.id}
+              isActive={activeAIs.includes(specialist.id)}
               onClick={() => onSelectAI(specialist.id)}
+              multiSelectMode={multiSelectMode}
             />
           ))}
         </div>

@@ -7,15 +7,16 @@ import { useToast } from "@/hooks/use-toast";
 import { useChat } from "@/hooks/useChat";
 
 interface ChatInterfaceProps {
-  activeAI: string | null;
+  activeAIs: string[];
+  multiSelectMode: boolean;
 }
 
-const ChatInterface = ({ activeAI }: ChatInterfaceProps) => {
+const ChatInterface = ({ activeAIs, multiSelectMode }: ChatInterfaceProps) => {
   const [input, setInput] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const { messages, isLoading, sendMessage, clearChat, setMessages } = useChat({ activeAI });
+  const { messages, isLoading, sendMessage, clearChat, setMessages } = useChat({ activeAIs, multiSelectMode });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -26,18 +27,23 @@ const ChatInterface = ({ activeAI }: ChatInterfaceProps) => {
   }, [messages]);
 
   useEffect(() => {
-    if (activeAI) {
+    if (activeAIs.length > 0) {
+      const aiNames = activeAIs.join(", ");
+      const message = multiSelectMode && activeAIs.length > 1
+        ? `Verbunden mit mehreren KIs: ${aiNames}. Alle werden deine Frage beantworten!`
+        : `Verbunden mit ${aiNames}. Wie kann ich dir helfen?`;
+      
       setMessages((prev) => [
         ...prev,
         {
           id: Date.now().toString(),
           role: "assistant",
-          content: `Verbunden mit ${activeAI}. Wie kann ich dir helfen?`,
+          content: message,
           timestamp: new Date(),
         },
       ]);
     }
-  }, [activeAI]);
+  }, [activeAIs, multiSelectMode]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -82,8 +88,11 @@ const ChatInterface = ({ activeAI }: ChatInterfaceProps) => {
             </div>
             <div>
               <h2 className="text-lg font-bold text-foreground">Chat Interface</h2>
-              {activeAI && (
-                <p className="text-xs text-primary font-medium">🟢 Aktiv: {activeAI}</p>
+              {activeAIs.length > 0 && (
+                <p className="text-xs text-primary font-medium">
+                  🟢 Aktiv: {activeAIs.length} KI{activeAIs.length > 1 ? "s" : ""} 
+                  {multiSelectMode && activeAIs.length > 1 && " (Kombiniert)"}
+                </p>
               )}
             </div>
           </div>

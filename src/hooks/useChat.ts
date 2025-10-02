@@ -9,15 +9,16 @@ export interface Message {
 }
 
 interface UseChatProps {
-  activeAI: string | null;
+  activeAIs: string[];
+  multiSelectMode: boolean;
 }
 
-export const useChat = ({ activeAI }: UseChatProps) => {
+export const useChat = ({ activeAIs, multiSelectMode }: UseChatProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
       role: "assistant",
-      content: "Hallo! Ich bin der KI-Orchestrator. Wähle eine KI aus der Hierarchie aus, um mit ihr zu interagieren.",
+      content: "Hallo! Ich bin der KI-Orchestrator. Wähle eine oder mehrere KIs aus der Hierarchie aus, um mit ihnen zu interagieren.",
       timestamp: new Date(),
     },
   ]);
@@ -29,7 +30,7 @@ export const useChat = ({ activeAI }: UseChatProps) => {
       {
         id: "1",
         role: "assistant",
-        content: "Hallo! Ich bin der KI-Orchestrator. Wähle eine KI aus der Hierarchie aus, um mit ihr zu interagieren.",
+        content: "Hallo! Ich bin der KI-Orchestrator. Wähle eine oder mehrere KIs aus der Hierarchie aus, um mit ihnen zu interagieren.",
         timestamp: new Date(),
       },
     ]);
@@ -39,10 +40,10 @@ export const useChat = ({ activeAI }: UseChatProps) => {
     async (input: string) => {
       if (!input.trim()) return;
 
-      if (!activeAI) {
+      if (activeAIs.length === 0) {
         toast({
           title: "Keine KI ausgewählt",
-          description: "Bitte wähle eine KI aus der Hierarchie aus.",
+          description: "Bitte wähle mindestens eine KI aus der Hierarchie aus.",
           variant: "destructive",
         });
         return;
@@ -69,116 +70,202 @@ export const useChat = ({ activeAI }: UseChatProps) => {
           "specialist-4": { type: "specialist", name: "Spezialist: Weltenbau" },
         };
 
-        const nodeInfo = nodeMap[activeAI] || { type: "specialist", name: activeAI };
-
         const conversationHistory = messages
           .filter((m) => m.role !== "assistant" || !m.content.startsWith("Verbunden mit"))
           .map((m) => ({ role: m.role, content: m.content }));
 
         const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/hierarchical-ai`;
 
-        const response = await fetch(CHAT_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({
-            aiNodeId: activeAI,
-            aiNodeType: nodeInfo.type,
-            aiNodeName: nodeInfo.name,
-            message: input,
-            conversationHistory,
-          }),
-        });
+        // Multi-KI-Modus: Alle KIs parallel befragen
+        if (multiSelectMode && activeAIs.length > 1) {
+          const promises = activeAIs.map(async (aiId) => {
+            const nodeInfo = nodeMap[aiId] || { type: "specialist", name: aiId };
+            
+            const response = await fetch(CHAT_URL, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+              },
+              body: JSON.stringify({
+                aiNodeId: aiId,
+                aiNodeType: nodeInfo.type,
+                aiNodeName: nodeInfo.name,
+                message: input,
+                conversationHistory,
+              }),
+            });
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.error || "Fehler bei der AI-Anfrage");
-        }
-
-        if (!response.body) {
-          throw new Error("Keine Antwort vom Server");
-        }
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let textBuffer = "";
-        let streamDone = false;
-        let assistantContent = "";
-
-        const assistantId = (Date.now() + 1).toString();
-
-        while (!streamDone) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          textBuffer += decoder.decode(value, { stream: true });
-
-          let newlineIndex: number;
-          while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
-            let line = textBuffer.slice(0, newlineIndex);
-            textBuffer = textBuffer.slice(newlineIndex + 1);
-
-            if (line.endsWith("\r")) line = line.slice(0, -1);
-            if (line.startsWith(":") || line.trim() === "") continue;
-            if (!line.startsWith("data: ")) continue;
-
-            const jsonStr = line.slice(6).trim();
-            if (jsonStr === "[DONE]") {
-              streamDone = true;
-              break;
+            if (!response.ok || !response.body) {
+              throw new Error(`Fehler bei ${nodeInfo.name}`);
             }
 
-            try {
-              const parsed = JSON.parse(jsonStr);
-              const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-              if (content) {
-                assistantContent += content;
-                setMessages((prev) => {
-                  const lastMsg = prev[prev.length - 1];
-                  if (lastMsg?.id === assistantId) {
-                    return prev.map((m) =>
-                      m.id === assistantId ? { ...m, content: assistantContent } : m
-                    );
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let textBuffer = "";
+            let streamDone = false;
+            let assistantContent = "";
+
+            while (!streamDone) {
+              const { done, value } = await reader.read();
+              if (done) break;
+
+              textBuffer += decoder.decode(value, { stream: true });
+
+              let newlineIndex: number;
+              while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
+                let line = textBuffer.slice(0, newlineIndex);
+                textBuffer = textBuffer.slice(newlineIndex + 1);
+
+                if (line.endsWith("\r")) line = line.slice(0, -1);
+                if (line.startsWith(":") || line.trim() === "") continue;
+                if (!line.startsWith("data: ")) continue;
+
+                const jsonStr = line.slice(6).trim();
+                if (jsonStr === "[DONE]") {
+                  streamDone = true;
+                  break;
+                }
+
+                try {
+                  const parsed = JSON.parse(jsonStr);
+                  const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+                  if (content) {
+                    assistantContent += content;
                   }
-                  return [
-                    ...prev,
-                    {
-                      id: assistantId,
-                      role: "assistant" as const,
-                      content: assistantContent,
-                      timestamp: new Date(),
-                    },
-                  ];
-                });
+                } catch {
+                  textBuffer = line + "\n" + textBuffer;
+                  break;
+                }
               }
-            } catch {
-              textBuffer = line + "\n" + textBuffer;
-              break;
+            }
+
+            return { aiName: nodeInfo.name, content: assistantContent };
+          });
+
+          const results = await Promise.all(promises);
+          
+          // Kombinierte Antwort erstellen
+          const combinedContent = results
+            .map((r) => `### 🤖 ${r.aiName}\n\n${r.content}`)
+            .join("\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n");
+
+          const assistantMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            role: "assistant",
+            content: combinedContent,
+            timestamp: new Date(),
+          };
+
+          setMessages((prev) => [...prev, assistantMessage]);
+        } else {
+          // Einzelner KI-Modus
+          const activeAI = activeAIs[0];
+          const nodeInfo = nodeMap[activeAI] || { type: "specialist", name: activeAI };
+
+          const response = await fetch(CHAT_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+            body: JSON.stringify({
+              aiNodeId: activeAI,
+              aiNodeType: nodeInfo.type,
+              aiNodeName: nodeInfo.name,
+              message: input,
+              conversationHistory,
+            }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || "Fehler bei der AI-Anfrage");
+          }
+
+          if (!response.body) {
+            throw new Error("Keine Antwort vom Server");
+          }
+
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let textBuffer = "";
+          let streamDone = false;
+          let assistantContent = "";
+
+          const assistantId = (Date.now() + 1).toString();
+
+          while (!streamDone) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            textBuffer += decoder.decode(value, { stream: true });
+
+            let newlineIndex: number;
+            while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
+              let line = textBuffer.slice(0, newlineIndex);
+              textBuffer = textBuffer.slice(newlineIndex + 1);
+
+              if (line.endsWith("\r")) line = line.slice(0, -1);
+              if (line.startsWith(":") || line.trim() === "") continue;
+              if (!line.startsWith("data: ")) continue;
+
+              const jsonStr = line.slice(6).trim();
+              if (jsonStr === "[DONE]") {
+                streamDone = true;
+                break;
+              }
+
+              try {
+                const parsed = JSON.parse(jsonStr);
+                const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+                if (content) {
+                  assistantContent += content;
+                  setMessages((prev) => {
+                    const lastMsg = prev[prev.length - 1];
+                    if (lastMsg?.id === assistantId) {
+                      return prev.map((m) =>
+                        m.id === assistantId ? { ...m, content: assistantContent } : m
+                      );
+                    }
+                    return [
+                      ...prev,
+                      {
+                        id: assistantId,
+                        role: "assistant" as const,
+                        content: assistantContent,
+                        timestamp: new Date(),
+                      },
+                    ];
+                  });
+                }
+              } catch {
+                textBuffer = line + "\n" + textBuffer;
+                break;
+              }
             }
           }
-        }
 
-        if (textBuffer.trim()) {
-          for (let raw of textBuffer.split("\n")) {
-            if (!raw || raw.startsWith(":") || raw.trim() === "") continue;
-            if (!raw.startsWith("data: ")) continue;
-            const jsonStr = raw.slice(6).trim();
-            if (jsonStr === "[DONE]") continue;
-            try {
-              const parsed = JSON.parse(jsonStr);
-              const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-              if (content) {
-                assistantContent += content;
-                setMessages((prev) =>
-                  prev.map((m) =>
-                    m.id === assistantId ? { ...m, content: assistantContent } : m
-                  )
-                );
+          if (textBuffer.trim()) {
+            for (let raw of textBuffer.split("\n")) {
+              if (!raw || raw.startsWith(":") || raw.trim() === "") continue;
+              if (!raw.startsWith("data: ")) continue;
+              const jsonStr = raw.slice(6).trim();
+              if (jsonStr === "[DONE]") continue;
+              try {
+                const parsed = JSON.parse(jsonStr);
+                const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+                if (content) {
+                  assistantContent += content;
+                  setMessages((prev) =>
+                    prev.map((m) =>
+                      m.id === assistantId ? { ...m, content: assistantContent } : m
+                    )
+                  );
+                }
+              } catch {
+                // ignore
               }
-            } catch {
-              // ignore
             }
           }
         }
@@ -193,7 +280,7 @@ export const useChat = ({ activeAI }: UseChatProps) => {
         setIsLoading(false);
       }
     },
-    [activeAI, messages, toast]
+    [activeAIs, multiSelectMode, messages, toast]
   );
 
   return {

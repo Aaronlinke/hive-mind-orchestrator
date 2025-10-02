@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Activity, Brain, Sparkles } from "lucide-react";
+import { Activity, Brain, Sparkles, Check } from "lucide-react";
 
 interface AINode {
   id: string;
@@ -17,9 +17,10 @@ interface AINodeCardProps {
   node: AINode;
   isActive: boolean;
   onClick: () => void;
+  multiSelectMode?: boolean;
 }
 
-const AINodeCard = ({ node, isActive, onClick }: AINodeCardProps) => {
+const AINodeCard = ({ node, isActive, onClick, multiSelectMode = false }: AINodeCardProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
@@ -54,6 +55,13 @@ const AINodeCard = ({ node, isActive, onClick }: AINodeCardProps) => {
       }`}
       onClick={onClick}
     >
+      {/* Checkmark for multi-select mode */}
+      {multiSelectMode && isActive && (
+        <div className="absolute top-2 right-2 z-10 bg-primary text-background rounded-full w-6 h-6 flex items-center justify-center shadow-lg animate-pulse-glow">
+          <Check className="w-4 h-4" />
+        </div>
+      )}
+
       {/* Animated background gradient on hover */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       
