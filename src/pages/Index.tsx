@@ -5,6 +5,7 @@ import StatsPanel from "@/components/StatsPanel";
 import { ImageGenerator } from "@/components/ImageGenerator";
 import { AdvancedAnalytics } from "@/components/AdvancedAnalytics";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Index = () => {
   const [activeAIs, setActiveAIs] = useState<string[]>([]);
@@ -74,7 +75,10 @@ const Index = () => {
                 <p className="text-sm text-muted-foreground font-medium">Hierarchisches Multi-KI-System der Zukunft</p>
               </div>
             </div>
-            <StatsPanel />
+            <div className="flex items-center gap-3">
+              <ThemeToggle />
+              <StatsPanel />
+            </div>
           </div>
         </div>
       </header>
@@ -82,10 +86,25 @@ const Index = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 relative z-10">
         <Tabs defaultValue="chat" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
-            <TabsTrigger value="chat">Chat & AI</TabsTrigger>
-            <TabsTrigger value="image">Bildgenerierung</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 mb-6 glass-card p-2 h-auto">
+            <TabsTrigger 
+              value="chat" 
+              className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
+            >
+              Chat & AI
+            </TabsTrigger>
+            <TabsTrigger 
+              value="image" 
+              className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
+            >
+              Bildgenerierung
+            </TabsTrigger>
+            <TabsTrigger 
+              value="analytics" 
+              className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
+            >
+              Analytics
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="chat" className="space-y-6">
