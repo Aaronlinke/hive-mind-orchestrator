@@ -2,6 +2,9 @@ import { useState } from "react";
 import AIHierarchyDashboard from "@/components/AIHierarchyDashboard";
 import ChatInterface from "@/components/ChatInterface";
 import StatsPanel from "@/components/StatsPanel";
+import { ImageGenerator } from "@/components/ImageGenerator";
+import { AdvancedAnalytics } from "@/components/AdvancedAnalytics";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Index = () => {
   const [activeAIs, setActiveAIs] = useState<string[]>([]);
@@ -78,15 +81,33 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-          <AIHierarchyDashboard 
-            onSelectAI={handleSelectAI} 
-            activeAIs={activeAIs}
-            onToggleMultiSelect={handleToggleMultiSelect}
-            multiSelectMode={multiSelectMode}
-          />
-          <ChatInterface activeAIs={activeAIs} multiSelectMode={multiSelectMode} />
-        </div>
+        <Tabs defaultValue="chat" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 mb-6">
+            <TabsTrigger value="chat">Chat & AI</TabsTrigger>
+            <TabsTrigger value="image">Bildgenerierung</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="chat" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+              <AIHierarchyDashboard 
+                onSelectAI={handleSelectAI} 
+                activeAIs={activeAIs}
+                onToggleMultiSelect={handleToggleMultiSelect}
+                multiSelectMode={multiSelectMode}
+              />
+              <ChatInterface activeAIs={activeAIs} multiSelectMode={multiSelectMode} />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="image">
+            <ImageGenerator />
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <AdvancedAnalytics />
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );

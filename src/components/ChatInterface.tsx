@@ -6,6 +6,10 @@ import { Send, Bot, User, Trash2, Copy, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useChat } from "@/hooks/useChat";
 import SelfImprovementPanel from "./SelfImprovementPanel";
+import { VoiceInput } from "./VoiceInput";
+import { PromptTemplates } from "./PromptTemplates";
+import { ExportPanel } from "./ExportPanel";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ChatInterfaceProps {
   activeAIs: string[];
@@ -15,9 +19,40 @@ interface ChatInterfaceProps {
 const ChatInterface = ({ activeAIs, multiSelectMode }: ChatInterfaceProps) => {
   const [input, setInput] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [codeSnippets, setCodeSnippets] = useState<any[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { messages, isLoading, sendMessage, clearChat, setMessages } = useChat({ activeAIs, multiSelectMode });
+
+  useEffect(() => {
+    loadCodeSnippets();
+
+    const channel = supabase
+      .channel("code-updates")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "generated_code",
+        },
+        () => loadCodeSnippets()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const loadCodeSnippets = async () => {
+    const { data } = await supabase
+      .from("generated_code")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(50);
+    setCodeSnippets(data || []);
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -80,6 +115,8 @@ const ChatInterface = ({ activeAIs, multiSelectMode }: ChatInterfaceProps) => {
 
   return (
     <div className="space-y-4">
+      <PromptTemplates onSelectTemplate={(content) => setInput(content)} />
+      
       <Card className="flex flex-col h-[600px] glass-card">
       <div className="p-4 border-b border-border/50 bg-gradient-to-r from-primary/5 to-accent/5">
         <div className="flex items-center justify-between">
@@ -183,6 +220,7 @@ const ChatInterface = ({ activeAIs, multiSelectMode }: ChatInterfaceProps) => {
             disabled={isLoading}
             className="flex-1 glass-card border-primary/30 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
           />
+          <VoiceInput onTranscription={(text) => setInput(text)} />
           <Button
             onClick={handleSend}
             disabled={isLoading || !input.trim()}
@@ -195,12 +233,16 @@ const ChatInterface = ({ activeAIs, multiSelectMode }: ChatInterfaceProps) => {
       </div>
     </Card>
 
-    <SelfImprovementPanel 
-      lastMessageId={messages[messages.length - 1]?.id || null}
-      lastAIResponse={messages[messages.length - 1]?.role === "assistant" ? messages[messages.length - 1].content : ""}
-      aiNodeId={activeAIs[0] || null}
-      aiNodeType={activeAIs[0] ? (activeAIs[0].includes("director") ? "director" : activeAIs[0].includes("manager") ? "manager" : "specialist") : null}
-    />
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <SelfImprovementPanel 
+        lastMessageId={messages[messages.length - 1]?.id || null}
+        lastAIResponse={messages[messages.length - 1]?.role === "assistant" ? messages[messages.length - 1].content : ""}
+        aiNodeId={activeAIs[0] || null}
+        aiNodeType={activeAIs[0] ? (activeAIs[0].includes("director") ? "director" : activeAIs[0].includes("manager") ? "manager" : "specialist") : null}
+      />
+      
+      <ExportPanel messages={messages} codeSnippets={codeSnippets} />
+    </div>
     </div>
   );
 };

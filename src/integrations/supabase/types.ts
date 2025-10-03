@@ -80,6 +80,33 @@ export type Database = {
         }
         Relationships: []
       }
+      generated_images: {
+        Row: {
+          ai_node_id: string
+          created_at: string | null
+          generation_time_ms: number | null
+          id: string
+          image_url: string
+          prompt: string
+        }
+        Insert: {
+          ai_node_id: string
+          created_at?: string | null
+          generation_time_ms?: number | null
+          id?: string
+          image_url: string
+          prompt: string
+        }
+        Update: {
+          ai_node_id?: string
+          created_at?: string | null
+          generation_time_ms?: number | null
+          id?: string
+          image_url?: string
+          prompt?: string
+        }
+        Relationships: []
+      }
       optimized_prompts: {
         Row: {
           ai_node_type: string
@@ -110,6 +137,96 @@ export type Database = {
           prompt_content?: string
           prompt_version?: number | null
           usage_count?: number | null
+        }
+        Relationships: []
+      }
+      prompt_templates: {
+        Row: {
+          ai_node_type: string
+          category: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_public: boolean | null
+          name: string
+          template_content: string
+          updated_at: string | null
+          usage_count: number | null
+        }
+        Insert: {
+          ai_node_type: string
+          category: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name: string
+          template_content: string
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Update: {
+          ai_node_type?: string
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name?: string
+          template_content?: string
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Relationships: []
+      }
+      user_exports: {
+        Row: {
+          content: Json
+          created_at: string | null
+          export_format: string
+          export_type: string
+          id: string
+        }
+        Insert: {
+          content: Json
+          created_at?: string | null
+          export_format: string
+          export_type: string
+          id?: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string | null
+          export_format?: string
+          export_type?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      voice_recordings: {
+        Row: {
+          ai_node_id: string | null
+          audio_url: string | null
+          created_at: string | null
+          duration_seconds: number | null
+          id: string
+          transcription: string | null
+        }
+        Insert: {
+          ai_node_id?: string | null
+          audio_url?: string | null
+          created_at?: string | null
+          duration_seconds?: number | null
+          id?: string
+          transcription?: string | null
+        }
+        Update: {
+          ai_node_id?: string | null
+          audio_url?: string | null
+          created_at?: string | null
+          duration_seconds?: number | null
+          id?: string
+          transcription?: string | null
         }
         Relationships: []
       }
