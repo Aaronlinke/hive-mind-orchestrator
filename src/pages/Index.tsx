@@ -4,6 +4,7 @@ import ChatInterface from "@/components/ChatInterface";
 import StatsPanel from "@/components/StatsPanel";
 import { ImageGenerator } from "@/components/ImageGenerator";
 import { AdvancedAnalytics } from "@/components/AdvancedAnalytics";
+import { EnhancedAIPanel } from "@/components/EnhancedAIPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -86,12 +87,18 @@ const Index = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 relative z-10">
         <Tabs defaultValue="chat" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6 glass-card p-2 h-auto">
+          <TabsList className="grid w-full grid-cols-4 mb-6 glass-card p-2 h-auto">
             <TabsTrigger 
               value="chat" 
               className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
             >
               Chat & AI
+            </TabsTrigger>
+            <TabsTrigger 
+              value="enhanced" 
+              className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
+            >
+              Enhanced AI
             </TabsTrigger>
             <TabsTrigger 
               value="image" 
@@ -117,6 +124,10 @@ const Index = () => {
               />
               <ChatInterface activeAIs={activeAIs} multiSelectMode={multiSelectMode} />
             </div>
+          </TabsContent>
+
+          <TabsContent value="enhanced" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            <EnhancedAIPanel />
           </TabsContent>
 
           <TabsContent value="image">

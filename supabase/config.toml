@@ -8,3 +8,24 @@ verify_jwt = false
 
 [functions.voice-to-text]
 verify_jwt = false
+
+[functions.semantic-reasoning]
+verify_jwt = false
+
+[functions.resource-orchestration]
+verify_jwt = false
+
+[functions.skill-manager]
+verify_jwt = false
+
+[functions.decision-engine]
+verify_jwt = false
+
+[functions.knowledge-manager]
+verify_jwt = false
+
+[functions.web-interaction]
+verify_jwt = false
+
+[functions.visual-concept-generator]
+verify_jwt = false
