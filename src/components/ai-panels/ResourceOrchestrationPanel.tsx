@@ -5,14 +5,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useResourceOrchestration } from "@/hooks/useResourceOrchestration";
-import { Network, Zap } from "lucide-react";
+import { Network, Zap, Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export const ResourceOrchestrationPanel = () => {
   const [resourceType, setResourceType] = useState<string>("API");
   const [endpoint, setEndpoint] = useState("");
+  const [copied, setCopied] = useState(false);
   const { executeResource, isExecuting, result } = useResourceOrchestration();
   const { toast } = useToast();
+
+  const copyToClipboard = async () => {
+    if (result) {
+      await navigator.clipboard.writeText(JSON.stringify(result, null, 2));
+      setCopied(true);
+      toast({ title: "In Zwischenablage kopiert!" });
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   const handleExecute = async () => {
     if (!endpoint.trim()) {
@@ -74,7 +84,15 @@ export const ResourceOrchestrationPanel = () => {
       </div>
 
       {result && (
-        <Card className="p-4 mt-4">
+        <Card className="p-4 mt-4 relative">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={copyToClipboard}
+            className="absolute top-2 right-2"
+          >
+            <Copy className={`h-4 w-4 ${copied ? "text-primary" : ""}`} />
+          </Button>
           <h3 className="font-semibold mb-2">Ergebnis:</h3>
           <div className="text-sm space-y-1">
             <p>Latenz: {result.metrics?.latency}ms</p>

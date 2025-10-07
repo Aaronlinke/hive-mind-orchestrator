@@ -5,13 +5,23 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useDecisionEngine } from "@/hooks/useDecisionEngine";
-import { Brain, Target } from "lucide-react";
+import { Brain, Target, Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export const DecisionEnginePanel = () => {
   const [request, setRequest] = useState("");
+  const [copied, setCopied] = useState(false);
   const { makeDecision, isDeciding, decision } = useDecisionEngine();
   const { toast } = useToast();
+
+  const copyToClipboard = async () => {
+    if (decision) {
+      await navigator.clipboard.writeText(JSON.stringify(decision, null, 2));
+      setCopied(true);
+      toast({ title: "In Zwischenablage kopiert!" });
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   const handleDecide = async () => {
     if (!request.trim()) {
@@ -49,7 +59,15 @@ export const DecisionEnginePanel = () => {
       </Button>
 
       {decision && (
-        <Card className="p-4 space-y-4">
+        <Card className="p-4 space-y-4 relative">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={copyToClipboard}
+            className="absolute top-2 right-2"
+          >
+            <Copy className={`h-4 w-4 ${copied ? "text-primary" : ""}`} />
+          </Button>
           <div>
             <h3 className="font-semibold mb-2">Entscheidung:</h3>
             <Badge>{decision.delegationStrategy}</Badge>

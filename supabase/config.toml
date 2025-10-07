@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.visual-concept-generator]
 verify_jwt = false
+
+[functions.fusion-chat]
+verify_jwt = false

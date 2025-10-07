@@ -3,14 +3,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useWebInteraction } from "@/hooks/useWebInteraction";
-import { Globe, Download } from "lucide-react";
+import { Globe, Download, Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export const WebInteractionPanel = () => {
   const [url, setUrl] = useState("");
   const [result, setResult] = useState<any>(null);
+  const [copied, setCopied] = useState(false);
   const { fetchWebContent, extractContent, isInteracting } = useWebInteraction();
   const { toast } = useToast();
+
+  const copyToClipboard = async () => {
+    if (result) {
+      await navigator.clipboard.writeText(JSON.stringify(result, null, 2));
+      setCopied(true);
+      toast({ title: "In Zwischenablage kopiert!" });
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   const handleFetch = async () => {
     if (!url.trim()) {
@@ -70,7 +80,15 @@ export const WebInteractionPanel = () => {
       </div>
 
       {result && (
-        <Card className="p-4">
+        <Card className="p-4 relative">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={copyToClipboard}
+            className="absolute top-2 right-2"
+          >
+            <Copy className={`h-4 w-4 ${copied ? "text-primary" : ""}`} />
+          </Button>
           <h3 className="font-semibold mb-2">Ergebnis:</h3>
           {result.statusCode && (
             <p className="text-sm mb-2">Status: {result.statusCode}</p>

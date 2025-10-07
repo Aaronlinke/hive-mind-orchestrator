@@ -3,14 +3,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useKnowledgeManager } from "@/hooks/useKnowledgeManager";
-import { Database, Search } from "lucide-react";
+import { Database, Search, Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export const KnowledgeManagerPanel = () => {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<any>(null);
+  const [copied, setCopied] = useState(false);
   const { searchKnowledge, isLoading } = useKnowledgeManager();
   const { toast } = useToast();
+
+  const copyToClipboard = async (content: any) => {
+    await navigator.clipboard.writeText(JSON.stringify(content, null, 2));
+    setCopied(true);
+    toast({ title: "In Zwischenablage kopiert!" });
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const handleSearch = async () => {
     if (!query.trim()) {
@@ -54,8 +62,16 @@ export const KnowledgeManagerPanel = () => {
             <div>
               <h3 className="font-semibold mb-2">Wissenseinträge:</h3>
               {results.entries.map((entry: any) => (
-                <Card key={entry.id} className="p-3 mb-2">
-                  <h4 className="font-medium">{entry.title}</h4>
+                <Card key={entry.id} className="p-3 mb-2 relative">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => copyToClipboard(entry)}
+                    className="absolute top-1 right-1"
+                  >
+                    <Copy className={`h-3 w-3 ${copied ? "text-primary" : ""}`} />
+                  </Button>
+                  <h4 className="font-medium pr-8">{entry.title}</h4>
                   <p className="text-sm text-muted-foreground line-clamp-2">
                     {entry.content}
                   </p>

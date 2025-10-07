@@ -4,13 +4,23 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useSemanticReasoning } from "@/hooks/useSemanticReasoning";
-import { Brain, Sparkles } from "lucide-react";
+import { Brain, Sparkles, Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export const SemanticReasoningPanel = () => {
   const [request, setRequest] = useState("");
+  const [copied, setCopied] = useState(false);
   const { analyzeRequest, isAnalyzing, analysis } = useSemanticReasoning();
   const { toast } = useToast();
+
+  const copyToClipboard = async () => {
+    if (analysis) {
+      await navigator.clipboard.writeText(JSON.stringify(analysis, null, 2));
+      setCopied(true);
+      toast({ title: "In Zwischenablage kopiert!" });
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   const handleAnalyze = async () => {
     if (!request.trim()) {
@@ -47,7 +57,15 @@ export const SemanticReasoningPanel = () => {
       </Button>
 
       {analysis && (
-        <Card className="p-4 space-y-4 mt-4">
+        <Card className="p-4 space-y-4 mt-4 relative">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={copyToClipboard}
+            className="absolute top-2 right-2"
+          >
+            <Copy className={`h-4 w-4 ${copied ? "text-primary" : ""}`} />
+          </Button>
           <div>
             <h3 className="font-semibold flex items-center gap-2 mb-2">
               <Sparkles className="h-4 w-4" />
