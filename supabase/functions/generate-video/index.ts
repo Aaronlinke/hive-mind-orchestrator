@@ -76,7 +76,7 @@ serve(async (req) => {
   } catch (error) {
     console.error("❌ Error in generate-video function:", error)
     return new Response(JSON.stringify({ 
-      error: error.message || "Ein unbekannter Fehler ist aufgetreten" 
+      error: error instanceof Error ? error.message : "Ein unbekannter Fehler ist aufgetreten" 
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
