@@ -237,6 +237,11 @@ export const AIGridSystem = () => {
         console.log("⚠️ No specific keywords found, using default workers");
         relevantTypes.add('semantic');
         relevantTypes.add('decision');
+        relevantTypes.add('knowledge');
+        relevantTypes.add('web');
+        relevantTypes.add('resource');
+        relevantTypes.add('visual');
+        relevantTypes.add('skill');
         relevantTypes.add('fusion');
       } else {
         console.log(`🎯 Found ${relevantTypes.size} relevant worker types:`, Array.from(relevantTypes));
@@ -245,7 +250,7 @@ export const AIGridSystem = () => {
       // Setze Worker auf "working" Status für visuelle Rückmeldung
       const selectedWorkerIds = workers
         .filter(w => relevantTypes.has(w.type))
-        .slice(0, 4) // Max 4 Worker gleichzeitig
+        .slice(0, 8) // Max 8 Worker gleichzeitig
         .map(w => w.id);
 
       console.log(`🤖 Selected ${selectedWorkerIds.length} workers for execution`);
@@ -258,7 +263,7 @@ export const AIGridSystem = () => {
 
       // Rufe Edge Functions parallel auf
       console.log("🔄 Starting parallel edge function calls");
-      const workerPromises = Array.from(relevantTypes).slice(0, 4).map(async (type) => {
+      const workerPromises = Array.from(relevantTypes).slice(0, 8).map(async (type) => {
         const functionName = getEdgeFunctionForType(type);
         if (!functionName) {
           console.warn(`⚠️ No edge function found for type: ${type}`);
@@ -266,8 +271,66 @@ export const AIGridSystem = () => {
         }
 
         console.log(`📞 Calling edge function: ${functionName} (type: ${type})`);
-        
         try {
+          // Special handling for fusion-chat: stream SSE and aggregate
+          if (functionName === 'fusion-chat') {
+            const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fusion-chat`;
+            const resp = await fetch(CHAT_URL, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+              },
+              body: JSON.stringify({
+                request: messageText,
+                context: {
+                  gridStatus: {
+                    totalProgress,
+                    activeWorkers: workers.filter(w => w.status === 'working').length,
+                  },
+                  conversationHistory: messages.slice(-5).map(m => ({ role: m.role, content: m.content })),
+                },
+                activeNodes: Array.from(relevantTypes).filter(t => t !== 'fusion'),
+              }),
+            });
+
+            if (!resp.ok || !resp.body) {
+              const t = await resp.text().catch(() => 'No details');
+              throw new Error(`fusion-chat failed: ${resp.status} - ${t}`);
+            }
+
+            const reader = resp.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+            let assistant = '';
+            let done = false;
+            while (!done) {
+              const { done: d, value } = await reader.read();
+              if (d) break;
+              buffer += decoder.decode(value, { stream: true });
+              let idx: number;
+              while ((idx = buffer.indexOf('\n')) !== -1) {
+                let line = buffer.slice(0, idx);
+                buffer = buffer.slice(idx + 1);
+                if (line.endsWith('\r')) line = line.slice(0, -1);
+                if (line.startsWith(':') || line.trim() === '') continue;
+                if (!line.startsWith('data: ')) continue;
+                const jsonStr = line.slice(6).trim();
+                if (jsonStr === '[DONE]') { done = true; break; }
+                try {
+                  const parsed = JSON.parse(jsonStr);
+                  const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+                  if (content) assistant += content;
+                } catch {
+                  buffer = line + '\n' + buffer;
+                  break;
+                }
+              }
+            }
+
+            return { type, result: { response: assistant } };
+          }
+
           const { data, error } = await supabase.functions.invoke(functionName, {
             body: { 
               request: messageText,
@@ -276,10 +339,7 @@ export const AIGridSystem = () => {
                   totalProgress,
                   activeWorkers: workers.filter(w => w.status === 'working').length,
                 },
-                conversationHistory: messages.slice(-5).map(m => ({
-                  role: m.role,
-                  content: m.content,
-                })),
+                conversationHistory: messages.slice(-5).map(m => ({ role: m.role, content: m.content })),
               }
             }
           });
@@ -288,9 +348,7 @@ export const AIGridSystem = () => {
             console.error(`❌ Error calling ${functionName}:`, error);
             return { type, error: error.message };
           }
-          
           console.log(`✅ Success from ${functionName}:`, data);
-
           return { type, result: data };
         } catch (err) {
           console.error(`❌ Exception calling ${functionName}:`, err);
