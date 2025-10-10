@@ -4,8 +4,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Brain, Zap, Activity, Download, RotateCcw } from "lucide-react";
+import { ArrowLeft, Brain, Zap, Activity, Download, RotateCcw, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useMultiAgentOrchestrator } from "@/hooks/useMultiAgentOrchestrator";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 
 interface Brain {
   id: number;
@@ -32,6 +35,7 @@ export default function SwarmIntelligence() {
   const [consensusLevel, setConsensusLevel] = useState(0);
   const [isActive, setIsActive] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const { agentResults, isOrchestrating, orchestrateAnalysis, resetOrchestration } = useMultiAgentOrchestrator();
 
   const brainTypes = ['Technologie', 'Wissenschaft', 'Wirtschaft', 'Philosophie', 'Kreativ', 'Logik', 'Quantenphysik'];
   const specializations = ['Energie', 'Nachhaltigkeit', 'Urbanistik', 'Innovation', 'Ökonomie', 'Soziologie', 'Kybernetik'];
@@ -70,27 +74,39 @@ export default function SwarmIntelligence() {
     setConsensusLevel(0);
     setLogs([]);
     setProblemInput("");
+    resetOrchestration();
   };
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     if (!problemInput.trim()) return;
     
     setIsAnalyzing(true);
     addLog(`Analyse gestartet: "${problemInput}"`);
-    addLog("Schwarm beginnt mit Lösungsfindung...");
+    addLog("🧠 Multi-Agent-System aktiviert - Alle Spezialisten arbeiten parallel...");
 
-    // Simuliere Konsensbildung
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += Math.random() * 10;
-      if (progress >= 87) {
-        progress = 87;
-        clearInterval(interval);
-        addLog("Konsens erreicht: 87% - Lösung gefunden");
-        setIsAnalyzing(false);
-      }
-      setConsensusLevel(Math.min(progress, 100));
-    }, 300);
+    try {
+      // Start real multi-agent analysis
+      const results = await orchestrateAnalysis(problemInput);
+      
+      // Log each agent's completion
+      results.forEach(result => {
+        if (result.status === 'completed') {
+          addLog(`✅ ${result.agentName} abgeschlossen (${result.processingTime}ms) - Confidence: ${(result.confidence * 100).toFixed(1)}%`);
+        } else if (result.status === 'error') {
+          addLog(`❌ ${result.agentName} fehlgeschlagen`);
+        }
+      });
+
+      // Calculate consensus from agent results
+      const avgConfidence = results.reduce((sum, r) => sum + r.confidence, 0) / results.length;
+      setConsensusLevel(avgConfidence * 100);
+      
+      addLog(`🎯 Konsens erreicht: ${(avgConfidence * 100).toFixed(1)}% - Fusion abgeschlossen`);
+    } catch (error) {
+      addLog(`⚠️ Fehler bei der Analyse: ${error}`);
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   return (
@@ -344,6 +360,51 @@ export default function SwarmIntelligence() {
 
         {/* Bottom Section */}
         <div className="grid lg:grid-cols-2 gap-6">
+          {/* Multi-Agent Status Panel */}
+          <Card className="backdrop-blur-sm bg-card/50">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Brain className="h-5 w-5 text-primary" />
+                KI-Spezialisten Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {agentResults.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">
+                  Keine aktive Analyse. Starten Sie eine Analyse, um alle Spezialisten zu aktivieren.
+                </p>
+              ) : (
+                agentResults.map((agent) => (
+                  <div key={agent.agentId} className="p-4 rounded-lg bg-background/50 border border-border space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {agent.status === 'processing' && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
+                        {agent.status === 'completed' && <CheckCircle2 className="h-4 w-4 text-success" />}
+                        {agent.status === 'error' && <AlertCircle className="h-4 w-4 text-destructive" />}
+                        <span className="font-semibold text-sm">{agent.agentName}</span>
+                      </div>
+                      <Badge variant={agent.status === 'completed' ? 'default' : 'secondary'}>
+                        {agent.status === 'processing' && 'Arbeitet...'}
+                        {agent.status === 'completed' && 'Fertig'}
+                        {agent.status === 'error' && 'Fehler'}
+                        {agent.status === 'idle' && 'Bereit'}
+                      </Badge>
+                    </div>
+                    {agent.status === 'completed' && (
+                      <>
+                        <Progress value={agent.confidence * 100} className="h-2" />
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>Confidence: {(agent.confidence * 100).toFixed(1)}%</span>
+                          {agent.processingTime && <span>{agent.processingTime}ms</span>}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+
           {/* Communication Log */}
           <Card className="backdrop-blur-sm bg-card/50">
             <CardHeader>

@@ -4,61 +4,61 @@
 
 @layer base {
   :root {
-    /* === Professional Business Design System === */
+    /* === Ultra-Professional Business Design System === */
     
-    /* Refined dark backgrounds */
-    --background: 220 18% 12%;
-    --background-deep: 220 20% 8%;
-    --background-elevated: 220 16% 16%;
+    /* Deep, sophisticated backgrounds */
+    --background: 222 20% 10%;
+    --background-deep: 222 22% 6%;
+    --background-elevated: 222 18% 14%;
     
-    /* Clean, readable text */
-    --foreground: 210 20% 96%;
+    /* Refined text hierarchy */
+    --foreground: 210 15% 92%;
     
-    /* Elegant card surfaces */
-    --card: 220 18% 14%;
-    --card-hover: 220 18% 18%;
-    --card-foreground: 210 20% 96%;
+    /* Premium card surfaces */
+    --card: 222 20% 12%;
+    --card-hover: 222 18% 15%;
+    --card-foreground: 210 15% 92%;
     
-    --popover: 220 18% 16%;
-    --popover-foreground: 210 20% 96%;
+    --popover: 222 20% 14%;
+    --popover-foreground: 210 15% 92%;
     
-    /* Sophisticated neutrals */
-    --muted: 220 15% 18%;
-    --muted-foreground: 215 15% 70%;
+    /* Corporate neutrals */
+    --muted: 220 18% 16%;
+    --muted-foreground: 215 12% 65%;
     
-    /* Professional blue primary */
-    --primary: 210 100% 56%;
-    --primary-foreground: 220 18% 12%;
-    --primary-glow: 210 100% 66%;
-    --primary-dim: 210 80% 40%;
+    /* Subdued professional blue */
+    --primary: 217 70% 48%;
+    --primary-foreground: 222 20% 10%;
+    --primary-glow: 217 65% 55%;
+    --primary-dim: 217 50% 35%;
     
-    /* Refined slate secondary */
-    --secondary: 220 15% 20%;
-    --secondary-foreground: 210 20% 96%;
-    --secondary-glow: 220 20% 35%;
+    /* Corporate slate secondary */
+    --secondary: 220 18% 18%;
+    --secondary-foreground: 210 15% 92%;
+    --secondary-glow: 220 22% 30%;
     
-    /* Subtle cyan accent */
-    --accent: 195 85% 48%;
-    --accent-foreground: 210 20% 96%;
-    --accent-glow: 195 85% 58%;
+    /* Minimal accent */
+    --accent: 200 60% 42%;
+    --accent-foreground: 210 15% 92%;
+    --accent-glow: 200 55% 48%;
     
-    /* Professional red */
-    --destructive: 0 65% 50%;
-    --destructive-foreground: 210 20% 96%;
+    /* Muted destructive */
+    --destructive: 0 55% 48%;
+    --destructive-foreground: 210 15% 92%;
     
-    /* Business green */
-    --success: 160 65% 45%;
-    --success-glow: 160 70% 55%;
+    /* Professional teal success */
+    --success: 168 55% 42%;
+    --success-glow: 168 50% 48%;
     
-    /* Subtle amber warning */
-    --warning: 35 90% 55%;
-    --warning-glow: 35 95% 65%;
+    /* Soft amber warning */
+    --warning: 38 70% 50%;
+    --warning-glow: 38 65% 55%;
     
-    /* Refined borders */
-    --border: 220 15% 22%;
-    --border-glow: 210 80% 50%;
-    --input: 220 15% 20%;
-    --ring: 210 100% 56%;
+    /* Subtle borders */
+    --border: 220 18% 20%;
+    --border-glow: 217 50% 45%;
+    --input: 220 18% 18%;
+    --ring: 217 70% 48%;
     
     /* Professional chart palette */
     --chart-1: 210 100% 56%;
@@ -140,24 +140,24 @@
 }
 
 @layer utilities {
-  /* === Professional Utility Classes === */
+  /* === Corporate Utility Classes === */
   .glow-primary {
-    box-shadow: 0 0 30px hsl(var(--primary-glow) / 0.25), 0 8px 24px hsl(220 20% 8% / 0.5);
+    box-shadow: 0 0 20px hsl(var(--primary-glow) / 0.12), 0 6px 20px hsl(222 22% 6% / 0.6);
   }
 
   .glow-accent {
-    box-shadow: 0 0 30px hsl(var(--accent-glow) / 0.25), 0 8px 24px hsl(220 20% 8% / 0.5);
+    box-shadow: 0 0 20px hsl(var(--accent-glow) / 0.12), 0 6px 20px hsl(222 22% 6% / 0.6);
   }
 
   .glow-secondary {
-    box-shadow: 0 0 30px hsl(var(--secondary-glow) / 0.25), 0 8px 24px hsl(220 20% 8% / 0.5);
+    box-shadow: 0 0 20px hsl(var(--secondary-glow) / 0.12), 0 6px 20px hsl(222 22% 6% / 0.6);
   }
 
   .glass-card {
-    background: hsl(var(--card) / 0.5);
-    backdrop-filter: blur(16px) saturate(150%);
-    border: 1px solid hsl(var(--border) / 0.4);
-    box-shadow: 0 8px 24px hsl(220 20% 8% / 0.5);
+    background: hsl(var(--card) / 0.6);
+    backdrop-filter: blur(20px) saturate(120%);
+    border: 1px solid hsl(var(--border) / 0.5);
+    box-shadow: 0 4px 16px hsl(222 22% 6% / 0.4);
   }
 
   .glass-card-hover {
@@ -165,10 +165,10 @@
   }
 
   .glass-card-hover:hover {
-    background: hsl(var(--card-hover) / 0.7);
-    border-color: hsl(var(--primary) / 0.4);
-    box-shadow: 0 0 20px hsl(var(--primary-glow) / 0.2), 0 8px 32px hsl(220 20% 8% / 0.6);
-    transform: translateY(-2px);
+    background: hsl(var(--card-hover) / 0.8);
+    border-color: hsl(var(--primary) / 0.3);
+    box-shadow: 0 0 16px hsl(var(--primary-glow) / 0.15), 0 6px 24px hsl(222 22% 6% / 0.5);
+    transform: translateY(-1px);
   }
 
   .gradient-primary {
@@ -193,21 +193,21 @@
 
   @keyframes glow {
     from {
-      box-shadow: 0 0 15px hsl(var(--primary) / 0.2), 0 8px 24px hsl(220 20% 8% / 0.5);
+      box-shadow: 0 0 12px hsl(var(--primary) / 0.1), 0 4px 16px hsl(222 22% 6% / 0.4);
     }
     to {
-      box-shadow: 0 0 30px hsl(var(--primary) / 0.35), 0 0 40px hsl(var(--primary) / 0.2), 0 8px 32px hsl(220 20% 8% / 0.6);
+      box-shadow: 0 0 20px hsl(var(--primary) / 0.18), 0 0 24px hsl(var(--primary) / 0.12), 0 6px 20px hsl(222 22% 6% / 0.5);
     }
   }
 
   @keyframes pulseGlow {
     0%, 100% {
       opacity: 1;
-      box-shadow: 0 0 15px hsl(var(--primary-glow) / 0.3);
+      box-shadow: 0 0 10px hsl(var(--primary-glow) / 0.15);
     }
     50% {
-      opacity: 0.85;
-      box-shadow: 0 0 25px hsl(var(--primary-glow) / 0.4);
+      opacity: 0.92;
+      box-shadow: 0 0 16px hsl(var(--primary-glow) / 0.22);
     }
   }
 
