@@ -98,7 +98,7 @@ const Index = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 relative z-10">
         <Tabs defaultValue="chat" className="w-full">
-          <TabsList className="grid w-full grid-cols-8 mb-6 glass-card p-2 h-auto">
+          <TabsList className="grid w-full grid-cols-9 mb-6 glass-card p-2 h-auto">
             <TabsTrigger 
               value="chat" 
               className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
@@ -123,6 +123,13 @@ const Index = () => {
             >
               Enhanced AI
             </TabsTrigger>
+            <Button
+              variant="ghost"
+              className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift h-auto py-2"
+              onClick={() => window.location.href = '/swarm-intelligence'}
+            >
+              Schwarm-KI
+            </Button>
             <TabsTrigger 
               value="image" 
               className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
