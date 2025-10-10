@@ -9,8 +9,12 @@ import { FusionChat } from "@/components/FusionChat";
 import { AIGridSystem } from "@/components/AIGridSystem";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
 
 const Index = () => {
+  const { signOut } = useAuth();
   const [activeAIs, setActiveAIs] = useState<string[]>([]);
   const [multiSelectMode, setMultiSelectMode] = useState(false);
 
@@ -81,6 +85,9 @@ const Index = () => {
             <div className="flex items-center gap-3">
               <ThemeToggle />
               <StatsPanel />
+              <Button variant="outline" size="icon" onClick={signOut} title="Abmelden">
+                <LogOut className="h-5 w-5" />
+              </Button>
             </div>
           </div>
         </div>

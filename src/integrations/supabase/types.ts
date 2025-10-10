@@ -25,6 +25,7 @@ export type Database = {
           response: string
           success_score: number | null
           user_feedback: number | null
+          user_id: string | null
         }
         Insert: {
           ai_node_id: string
@@ -36,6 +37,7 @@ export type Database = {
           response: string
           success_score?: number | null
           user_feedback?: number | null
+          user_id?: string | null
         }
         Update: {
           ai_node_id?: string
@@ -47,6 +49,7 @@ export type Database = {
           response?: string
           success_score?: number | null
           user_feedback?: number | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -59,6 +62,7 @@ export type Database = {
           description: string | null
           execution_success: boolean | null
           id: string
+          user_id: string | null
         }
         Insert: {
           ai_node_id: string
@@ -68,6 +72,7 @@ export type Database = {
           description?: string | null
           execution_success?: boolean | null
           id?: string
+          user_id?: string | null
         }
         Update: {
           ai_node_id?: string
@@ -77,6 +82,7 @@ export type Database = {
           description?: string | null
           execution_success?: boolean | null
           id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -88,6 +94,7 @@ export type Database = {
           id: string
           image_url: string
           prompt: string
+          user_id: string | null
         }
         Insert: {
           ai_node_id: string
@@ -96,6 +103,7 @@ export type Database = {
           id?: string
           image_url: string
           prompt: string
+          user_id?: string | null
         }
         Update: {
           ai_node_id?: string
@@ -104,6 +112,7 @@ export type Database = {
           id?: string
           image_url?: string
           prompt?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -145,6 +154,7 @@ export type Database = {
           ai_node_type: string
           category: string
           created_at: string | null
+          created_by: string | null
           description: string | null
           id: string
           is_public: boolean | null
@@ -157,6 +167,7 @@ export type Database = {
           ai_node_type: string
           category: string
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           id?: string
           is_public?: boolean | null
@@ -169,6 +180,7 @@ export type Database = {
           ai_node_type?: string
           category?: string
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           id?: string
           is_public?: boolean | null
@@ -186,6 +198,7 @@ export type Database = {
           export_format: string
           export_type: string
           id: string
+          user_id: string | null
         }
         Insert: {
           content: Json
@@ -193,6 +206,7 @@ export type Database = {
           export_format: string
           export_type: string
           id?: string
+          user_id?: string | null
         }
         Update: {
           content?: Json
@@ -200,6 +214,7 @@ export type Database = {
           export_format?: string
           export_type?: string
           id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -211,6 +226,7 @@ export type Database = {
           duration_seconds: number | null
           id: string
           transcription: string | null
+          user_id: string | null
         }
         Insert: {
           ai_node_id?: string | null
@@ -219,6 +235,7 @@ export type Database = {
           duration_seconds?: number | null
           id?: string
           transcription?: string | null
+          user_id?: string | null
         }
         Update: {
           ai_node_id?: string | null
@@ -227,6 +244,7 @@ export type Database = {
           duration_seconds?: number | null
           id?: string
           transcription?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
