@@ -60,6 +60,8 @@ export const useChat = ({ activeAIs, multiSelectMode }: UseChatProps) => {
       setIsLoading(true);
 
       try {
+        console.log("📤 Sending message to hierarchical-ai:", { activeAIs, input });
+        
         const nodeMap: Record<string, { type: string; name: string }> = {
           "director-1": { type: "director", name: "Direktor KI" },
           "manager-1": { type: "manager", name: "Projektmanager KI-A" },
@@ -75,11 +77,14 @@ export const useChat = ({ activeAIs, multiSelectMode }: UseChatProps) => {
           .map((m) => ({ role: m.role, content: m.content }));
 
         const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/hierarchical-ai`;
+        console.log("📡 API URL:", CHAT_URL);
 
         // Multi-KI-Modus: Alle KIs parallel befragen
         if (multiSelectMode && activeAIs.length > 1) {
           const promises = activeAIs.map(async (aiId) => {
             const nodeInfo = nodeMap[aiId] || { type: "specialist", name: aiId };
+            
+            console.log(`🤖 Calling AI: ${nodeInfo.name} (${nodeInfo.type})`);
             
             const response = await fetch(CHAT_URL, {
               method: "POST",
@@ -95,9 +100,13 @@ export const useChat = ({ activeAIs, multiSelectMode }: UseChatProps) => {
                 conversationHistory,
               }),
             });
+            
+            console.log(`📥 Response status for ${nodeInfo.name}:`, response.status);
 
             if (!response.ok || !response.body) {
-              throw new Error(`Fehler bei ${nodeInfo.name}`);
+              const errorText = await response.text().catch(() => "Keine Details verfügbar");
+              console.error(`❌ Error from ${nodeInfo.name}:`, response.status, errorText);
+              throw new Error(`Fehler bei ${nodeInfo.name}: ${response.status} - ${errorText}`);
             }
 
             const reader = response.body.getReader();
@@ -144,11 +153,14 @@ export const useChat = ({ activeAIs, multiSelectMode }: UseChatProps) => {
           });
 
           const results = await Promise.all(promises);
+          console.log("✅ All AI responses received:", results.length);
           
           // Kombinierte Antwort erstellen
           const combinedContent = results
             .map((r) => `### 🤖 ${r.aiName}\n\n${r.content}`)
             .join("\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n");
+          
+          console.log("📝 Combined response length:", combinedContent.length);
 
           const assistantMessage: Message = {
             id: (Date.now() + 1).toString(),
@@ -160,8 +172,10 @@ export const useChat = ({ activeAIs, multiSelectMode }: UseChatProps) => {
           setMessages((prev) => [...prev, assistantMessage]);
         } else {
           // Einzelner KI-Modus
+          console.log("🎯 Single AI mode");
           const activeAI = activeAIs[0];
           const nodeInfo = nodeMap[activeAI] || { type: "specialist", name: activeAI };
+          console.log(`🤖 Calling single AI: ${nodeInfo.name}`);
 
           const response = await fetch(CHAT_URL, {
             method: "POST",
@@ -178,14 +192,20 @@ export const useChat = ({ activeAIs, multiSelectMode }: UseChatProps) => {
             }),
           });
 
+          console.log("📥 Single AI response status:", response.status);
+          
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
+            console.error("❌ Single AI error:", response.status, errorData);
             throw new Error(errorData.error || "Fehler bei der AI-Anfrage");
           }
 
           if (!response.body) {
+            console.error("❌ No response body");
             throw new Error("Keine Antwort vom Server");
           }
+          
+          console.log("✅ Starting stream processing...");
 
           const reader = response.body.getReader();
           const decoder = new TextDecoder();
@@ -270,14 +290,29 @@ export const useChat = ({ activeAIs, multiSelectMode }: UseChatProps) => {
           }
         }
       } catch (error) {
-        console.error("AI Error:", error);
+        console.error("❌ AI Error:", error);
+        console.error("Error details:", {
+          message: error instanceof Error ? error.message : "Unknown",
+          stack: error instanceof Error ? error.stack : undefined,
+        });
+        
         toast({
           title: "Fehler",
           description: error instanceof Error ? error.message : "Konnte keine Antwort generieren.",
           variant: "destructive",
         });
+        
+        // Add error message to chat
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content: `❌ **Fehler aufgetreten:**\n\n${error instanceof Error ? error.message : "Unbekannter Fehler"}\n\nBitte versuche es erneut oder wähle eine andere KI aus.`,
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, errorMessage]);
       } finally {
         setIsLoading(false);
+        console.log("🏁 Chat request completed");
       }
     },
     [activeAIs, multiSelectMode, messages, toast]

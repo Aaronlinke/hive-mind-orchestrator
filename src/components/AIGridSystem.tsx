@@ -211,6 +211,7 @@ export const AIGridSystem = () => {
     setIsLoading(true);
 
     try {
+      console.log("🚀 AIGridSystem: Processing message");
       // Bestimme relevante Worker basierend auf der Anfrage
       const relevantTypes = new Set<string>();
       const keywords: Record<string, string[]> = {
@@ -233,9 +234,12 @@ export const AIGridSystem = () => {
 
       // Falls keine spezifischen Keywords, nutze eine Auswahl von Workern
       if (relevantTypes.size === 0) {
+        console.log("⚠️ No specific keywords found, using default workers");
         relevantTypes.add('semantic');
         relevantTypes.add('decision');
         relevantTypes.add('fusion');
+      } else {
+        console.log(`🎯 Found ${relevantTypes.size} relevant worker types:`, Array.from(relevantTypes));
       }
 
       // Setze Worker auf "working" Status für visuelle Rückmeldung
@@ -244,6 +248,8 @@ export const AIGridSystem = () => {
         .slice(0, 4) // Max 4 Worker gleichzeitig
         .map(w => w.id);
 
+      console.log(`🤖 Selected ${selectedWorkerIds.length} workers for execution`);
+
       setWorkers(prev => prev.map(w => 
         selectedWorkerIds.includes(w.id) 
           ? { ...w, currentTask: 'Verarbeite Auftrag...', status: 'working' as const }
@@ -251,10 +257,16 @@ export const AIGridSystem = () => {
       ));
 
       // Rufe Edge Functions parallel auf
+      console.log("🔄 Starting parallel edge function calls");
       const workerPromises = Array.from(relevantTypes).slice(0, 4).map(async (type) => {
         const functionName = getEdgeFunctionForType(type);
-        if (!functionName) return null;
+        if (!functionName) {
+          console.warn(`⚠️ No edge function found for type: ${type}`);
+          return null;
+        }
 
+        console.log(`📞 Calling edge function: ${functionName} (type: ${type})`);
+        
         try {
           const { data, error } = await supabase.functions.invoke(functionName, {
             body: { 
@@ -273,22 +285,27 @@ export const AIGridSystem = () => {
           });
 
           if (error) {
-            console.error(`Error calling ${functionName}:`, error);
+            console.error(`❌ Error calling ${functionName}:`, error);
             return { type, error: error.message };
           }
+          
+          console.log(`✅ Success from ${functionName}:`, data);
 
           return { type, result: data };
         } catch (err) {
-          console.error(`Exception calling ${functionName}:`, err);
+          console.error(`❌ Exception calling ${functionName}:`, err);
           return { type, error: String(err) };
         }
       });
 
       const results = await Promise.all(workerPromises);
+      console.log(`📥 Received ${results.length} results from workers`);
       
       // Sammle erfolgreiche Antworten
       const successfulResults = results.filter(r => r && !r.error);
       const failedResults = results.filter(r => r && r.error);
+      
+      console.log(`✅ ${successfulResults.length} successful, ❌ ${failedResults.length} failed`);
 
       let responseContent = '';
       
@@ -314,7 +331,10 @@ export const AIGridSystem = () => {
       }
 
       if (!responseContent) {
+        console.warn("⚠️ No response content generated");
         responseContent = 'Keine Agenten konnten eine Antwort generieren. Bitte versuchen Sie es erneut.';
+      } else {
+        console.log("📝 Response content length:", responseContent.length);
       }
 
       const assistantMessage: Message = {
@@ -339,22 +359,28 @@ export const AIGridSystem = () => {
       });
 
     } catch (error) {
-      console.error('Chat error:', error);
-      toast({
-        title: "Fehler",
-        description: "Nachricht konnte nicht verarbeitet werden",
-        variant: "destructive",
+      console.error('❌ AIGridSystem Error:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown',
+        stack: error instanceof Error ? error.stack : undefined,
       });
-
-      const errorMessage: Message = {
+      
+      const errorMsg: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',
+        content: `❌ **AI Grid Fehler:**\n\n${error instanceof Error ? error.message : 'Unbekannter Fehler'}\n\nBitte versuche es erneut.`,
         timestamp: new Date(),
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prev => [...prev, errorMsg]);
+
+      toast({
+        title: "Fehler",
+        description: "Konnte keine Antwort von den Agenten erhalten.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
+      console.log("🏁 AIGridSystem request completed");
     }
   };
 

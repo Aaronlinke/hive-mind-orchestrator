@@ -25,7 +25,9 @@ export const useFusionChat = () => {
     setIsLoading(true);
 
     try {
+      console.log("🚀 Fusion Chat: Sending message with", activeNodes?.length || 0, "active nodes");
       const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fusion-chat`;
+      console.log("📡 Fusion Chat URL:", CHAT_URL);
       
       const response = await fetch(CHAT_URL, {
         method: 'POST',
@@ -42,9 +44,15 @@ export const useFusionChat = () => {
         }),
       });
 
+      console.log("📥 Fusion Chat response status:", response.status);
+      
       if (!response.ok || !response.body) {
-        throw new Error('Failed to start stream');
+        const errorText = await response.text().catch(() => "No details");
+        console.error("❌ Fusion Chat error:", response.status, errorText);
+        throw new Error(`Failed to start stream: ${response.status} - ${errorText}`);
       }
+      
+      console.log("✅ Fusion Chat stream started");
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
@@ -104,9 +112,23 @@ export const useFusionChat = () => {
         }
       }
     } catch (error) {
-      console.error('Fusion chat error:', error);
+      console.error('❌ Fusion chat error:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      
+      // Add error message to chat
+      const errorMessage: Message = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: `❌ **Fusion Chat Fehler:**\n\n${error instanceof Error ? error.message : 'Unbekannter Fehler'}\n\nBitte versuche es erneut.`,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
+      console.log("🏁 Fusion Chat request completed");
     }
   };
 
