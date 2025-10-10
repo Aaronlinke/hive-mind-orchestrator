@@ -37,8 +37,9 @@ export default function SwarmIntelligence() {
   const [consensusLevel, setConsensusLevel] = useState(0);
   const [isActive, setIsActive] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const { agentResults, isOrchestrating, orchestrateAnalysis, resetOrchestration } = useMultiAgentOrchestrator();
+  const { agentResults, collectiveResult, isOrchestrating, orchestrateAnalysis, resetOrchestration } = useMultiAgentOrchestrator();
   const systemMetrics = useSystemMetrics(agentResults);
+  const [metaAnalysis, setMetaAnalysis] = useState("");
 
   const brainTypes = ['Technologie', 'Wissenschaft', 'Wirtschaft', 'Philosophie', 'Kreativ', 'Logik', 'Quantenphysik'];
   const specializations = ['Energie', 'Nachhaltigkeit', 'Urbanistik', 'Innovation', 'Ökonomie', 'Soziologie', 'Kybernetik'];
@@ -77,6 +78,7 @@ export default function SwarmIntelligence() {
     setConsensusLevel(0);
     setLogs([]);
     setProblemInput("");
+    setMetaAnalysis("");
     resetOrchestration();
   };
 
@@ -84,29 +86,39 @@ export default function SwarmIntelligence() {
     if (!problemInput.trim()) return;
     
     setIsAnalyzing(true);
-    addLog(`Analyse gestartet: "${problemInput}"`);
-    addLog("🧠 Multi-Agent-System aktiviert - Alle Spezialisten arbeiten parallel...");
+    addLog(`Kollektive Analyse gestartet: "${problemInput}"`);
+    addLog("🧠 Schwarm-System aktiviert - Alle 8 Spezialisten verschmelzen...");
 
     try {
-      // Start real multi-agent analysis
-      const results = await orchestrateAnalysis(problemInput);
+      // Start collective intelligence analysis
+      const results = await orchestrateAnalysis(problemInput, brainCount, {
+        creativity: creativityLevel,
+        depth: analysisDepth,
+        speed: speedSetting
+      });
       
       // Log each agent's completion
       results.forEach(result => {
         if (result.status === 'completed') {
-          addLog(`✅ ${result.agentName} abgeschlossen (${result.processingTime}ms) - Confidence: ${(result.confidence * 100).toFixed(1)}%`);
+          addLog(`✅ ${result.agentName} abgeschlossen (${result.processingTime?.toFixed(0)}ms) - Confidence: ${(result.confidence * 100).toFixed(1)}%`);
         } else if (result.status === 'error') {
           addLog(`❌ ${result.agentName} fehlgeschlagen`);
         }
       });
 
-      // Calculate consensus from agent results
-      const avgConfidence = results.reduce((sum, r) => sum + r.confidence, 0) / results.length;
-      setConsensusLevel(avgConfidence * 100);
+      // Use collective metrics
+      if (collectiveResult) {
+        const { consensusLevel: collConsensus, activeAgents, convergenceRate } = collectiveResult.collectiveMetrics;
+        setConsensusLevel(collConsensus);
+        setMetaAnalysis(collectiveResult.metaAnalysis);
+        
+        addLog(`🎯 Kollektiver Konsens: ${collConsensus.toFixed(1)}%`);
+        addLog(`⚡ Konvergenz-Rate: ${convergenceRate.toFixed(1)}% (${activeAgents}/${brainCount} Agenten aktiv)`);
+        addLog(`🔮 Meta-Analyse abgeschlossen - ${collectiveResult.collectiveInsights.recommendations.length} Empfehlungen generiert`);
+      }
       
-      addLog(`🎯 Konsens erreicht: ${(avgConfidence * 100).toFixed(1)}% - Fusion abgeschlossen`);
     } catch (error) {
-      addLog(`⚠️ Fehler bei der Analyse: ${error}`);
+      addLog(`⚠️ Kollektive Analyse fehlgeschlagen: ${error}`);
     } finally {
       setIsAnalyzing(false);
     }
@@ -368,18 +380,71 @@ export default function SwarmIntelligence() {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Brain className="h-5 w-5 text-primary" />
-                Spezialisten-Ergebnisse
+                Kollektive Intelligenz
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 max-h-[600px] overflow-y-auto">
+            <CardContent className="space-y-4 max-h-[600px] overflow-y-auto">
               {agentResults.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8 text-sm">
-                  Keine aktive Analyse. Starten Sie eine Analyse.
+                  Keine aktive Analyse. Starten Sie eine kollektive Analyse.
                 </p>
               ) : (
-                agentResults.map((agent) => (
-                  <AgentResultCard key={agent.agentId} agent={agent} />
-                ))
+                <>
+                  <div className="grid grid-cols-2 gap-2">
+                    {agentResults.map((agent) => (
+                      <AgentResultCard key={agent.agentId} agent={agent} />
+                    ))}
+                  </div>
+                  
+                  {metaAnalysis && (
+                    <Card className="bg-gradient-to-br from-primary/10 to-accent/10 border-primary/20">
+                      <CardHeader>
+                        <CardTitle className="text-sm">Meta-Analyse</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="prose prose-sm max-w-none text-foreground whitespace-pre-wrap">
+                          {metaAnalysis}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {collectiveResult && (
+                    <Card className="bg-background/80">
+                      <CardHeader>
+                        <CardTitle className="text-sm">Kollektive Erkenntnisse</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {collectiveResult.collectiveInsights.recommendations.length > 0 && (
+                          <div>
+                            <h4 className="font-semibold text-xs mb-2">Empfehlungen</h4>
+                            <ul className="space-y-1">
+                              {collectiveResult.collectiveInsights.recommendations.map((rec, i) => (
+                                <li key={i} className="text-xs flex items-start gap-2">
+                                  <span className="text-primary">→</span>
+                                  <span>{rec}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {collectiveResult.collectiveInsights.immediateNeeds.length > 0 && (
+                          <div>
+                            <h4 className="font-semibold text-xs mb-2">Unmittelbare Bedürfnisse</h4>
+                            <div className="flex flex-wrap gap-1">
+                              {collectiveResult.collectiveInsights.immediateNeeds.map((need, i) => (
+                                <span key={i} className="text-xs px-2 py-1 bg-accent/20 text-accent rounded-full">
+                                  {need}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>

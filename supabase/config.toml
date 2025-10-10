@@ -5,6 +5,9 @@ project_id = "rmhnmvbnvyssnampsjhd"
 [functions.chat-analysis]
 verify_jwt = true
 
+[functions.collective-intelligence]
+verify_jwt = true
+
 [functions.fusion-chat]
 verify_jwt = true
 
