@@ -96,8 +96,6 @@ export const AIGridSystem = () => {
 
   const simulateWork = () => {
     setWorkers(prev => prev.map(worker => {
-      if (worker.status === 'completed') return worker;
-      
       const newProgress = Math.min(100, worker.progress + Math.random() * 8);
       const tasks = [
         'Analysiere Daten...',
@@ -108,11 +106,21 @@ export const AIGridSystem = () => {
         'Validiere Output...',
       ];
       
+      // Bei 100% wieder von vorne beginnen für kontinuierlichen Betrieb
+      if (newProgress >= 100) {
+        return {
+          ...worker,
+          status: 'working',
+          progress: 0,
+          currentTask: 'Nächster Zyklus...',
+        };
+      }
+      
       return {
         ...worker,
-        status: newProgress >= 100 ? 'completed' : 'working',
+        status: 'working',
         progress: newProgress,
-        currentTask: newProgress < 100 ? tasks[Math.floor(Math.random() * tasks.length)] : 'Abgeschlossen!',
+        currentTask: tasks[Math.floor(Math.random() * tasks.length)],
       };
     }));
   };
@@ -151,10 +159,9 @@ export const AIGridSystem = () => {
       intervalRef.current = null;
     }
     
-    const completedCount = workers.filter(w => w.status === 'completed').length;
     toast({
-      title: "KI-Grid gestoppt",
-      description: `${completedCount} von ${workers.length} Aufgaben abgeschlossen (${totalProgress}%)`,
+      title: "KI-Grid pausiert",
+      description: `Grid läuft weiter bei Aufträgen`,
     });
   };
 
@@ -173,6 +180,21 @@ export const AIGridSystem = () => {
     setTotalProgress(0);
   };
 
+  const getEdgeFunctionForType = (type: string): string | null => {
+    const mapping: Record<string, string> = {
+      'semantic': 'semantic-reasoning',
+      'decision': 'decision-engine',
+      'resource': 'resource-orchestration',
+      'knowledge': 'knowledge-manager',
+      'web': 'web-interaction',
+      'visual': 'visual-concept-generator',
+      'skill': 'skill-manager',
+      'fusion': 'fusion-chat',
+      'meta': 'hierarchical-ai',
+    };
+    return mapping[type] || null;
+  };
+
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
 
@@ -184,42 +206,153 @@ export const AIGridSystem = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const messageText = input;
     setInput("");
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('fusion-chat', {
-        body: { 
-          messages: [...messages, userMessage].map(m => ({
-            role: m.role,
-            content: m.content,
-          })),
-          activeNodes: workers.filter(w => w.status === 'completed').map(w => w.type),
-          context: {
-            totalProgress,
-            completedWorkers: workers.filter(w => w.status === 'completed').length,
-            activeWorkers: workers.filter(w => w.status === 'working').length,
+      // Bestimme relevante Worker basierend auf der Anfrage
+      const relevantTypes = new Set<string>();
+      const keywords: Record<string, string[]> = {
+        'semantic': ['bedeutung', 'kontext', 'semantisch', 'verstehen', 'analyse'],
+        'decision': ['entscheidung', 'wählen', 'option', 'empfehlung', 'auswahl'],
+        'resource': ['ressource', 'optimierung', 'verteilung', 'allokation'],
+        'knowledge': ['wissen', 'information', 'daten', 'speichern', 'abrufen'],
+        'web': ['web', 'internet', 'suche', 'website', 'online'],
+        'visual': ['bild', 'visual', 'grafik', 'konzept', 'visualisierung'],
+        'skill': ['fähigkeit', 'skill', 'kompetenz', 'können'],
+        'fusion': ['koordination', 'zusammenfassung', 'synthese', 'fusion'],
+      };
+
+      const lowerMessage = messageText.toLowerCase();
+      for (const [type, words] of Object.entries(keywords)) {
+        if (words.some(word => lowerMessage.includes(word))) {
+          relevantTypes.add(type);
+        }
+      }
+
+      // Falls keine spezifischen Keywords, nutze eine Auswahl von Workern
+      if (relevantTypes.size === 0) {
+        relevantTypes.add('semantic');
+        relevantTypes.add('decision');
+        relevantTypes.add('fusion');
+      }
+
+      // Setze Worker auf "working" Status für visuelle Rückmeldung
+      const selectedWorkerIds = workers
+        .filter(w => relevantTypes.has(w.type))
+        .slice(0, 4) // Max 4 Worker gleichzeitig
+        .map(w => w.id);
+
+      setWorkers(prev => prev.map(w => 
+        selectedWorkerIds.includes(w.id) 
+          ? { ...w, currentTask: 'Verarbeite Auftrag...', status: 'working' as const }
+          : w
+      ));
+
+      // Rufe Edge Functions parallel auf
+      const workerPromises = Array.from(relevantTypes).slice(0, 4).map(async (type) => {
+        const functionName = getEdgeFunctionForType(type);
+        if (!functionName) return null;
+
+        try {
+          const { data, error } = await supabase.functions.invoke(functionName, {
+            body: { 
+              request: messageText,
+              context: {
+                gridStatus: {
+                  totalProgress,
+                  activeWorkers: workers.filter(w => w.status === 'working').length,
+                },
+                conversationHistory: messages.slice(-5).map(m => ({
+                  role: m.role,
+                  content: m.content,
+                })),
+              }
+            }
+          });
+
+          if (error) {
+            console.error(`Error calling ${functionName}:`, error);
+            return { type, error: error.message };
           }
+
+          return { type, result: data };
+        } catch (err) {
+          console.error(`Exception calling ${functionName}:`, err);
+          return { type, error: String(err) };
         }
       });
 
-      if (error) throw error;
+      const results = await Promise.all(workerPromises);
+      
+      // Sammle erfolgreiche Antworten
+      const successfulResults = results.filter(r => r && !r.error);
+      const failedResults = results.filter(r => r && r.error);
+
+      let responseContent = '';
+      
+      if (successfulResults.length > 0) {
+        responseContent = `**Grid-Antwort von ${successfulResults.length} Agenten:**\n\n`;
+        successfulResults.forEach((result, idx) => {
+          const resultData = result.result;
+          let content = '';
+          
+          // Verschiedene Antwortformate behandeln
+          if (resultData?.response) content = resultData.response;
+          else if (resultData?.prognosis) content = JSON.stringify(resultData.prognosis, null, 2);
+          else if (resultData?.decision) content = JSON.stringify(resultData.decision, null, 2);
+          else if (resultData?.plan) content = JSON.stringify(resultData.plan, null, 2);
+          else content = JSON.stringify(resultData, null, 2);
+
+          responseContent += `**${result.type.toUpperCase()} Agent:**\n${content}\n\n`;
+        });
+      }
+
+      if (failedResults.length > 0) {
+        responseContent += `\n⚠️ ${failedResults.length} Agent(en) konnten nicht antworten.`;
+      }
+
+      if (!responseContent) {
+        responseContent = 'Keine Agenten konnten eine Antwort generieren. Bitte versuchen Sie es erneut.';
+      }
 
       const assistantMessage: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: data.response,
+        content: responseContent,
         timestamp: new Date(),
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+
+      // Setze Worker zurück
+      setWorkers(prev => prev.map(w => 
+        selectedWorkerIds.includes(w.id)
+          ? { ...w, status: 'completed' as const, currentTask: 'Auftrag abgeschlossen' }
+          : w
+      ));
+
+      toast({
+        title: "Antwort erhalten! ✓",
+        description: `${successfulResults.length} Agenten haben geantwortet`,
+      });
+
     } catch (error) {
       console.error('Chat error:', error);
       toast({
         title: "Fehler",
-        description: "Nachricht konnte nicht gesendet werden",
+        description: "Nachricht konnte nicht verarbeitet werden",
         variant: "destructive",
       });
+
+      const errorMessage: Message = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
