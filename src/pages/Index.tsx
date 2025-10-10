@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AIHierarchyDashboard from "@/components/AIHierarchyDashboard";
 import ChatInterface from "@/components/ChatInterface";
 import StatsPanel from "@/components/StatsPanel";
@@ -16,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 
 const Index = () => {
+  const navigate = useNavigate();
   const { signOut } = useAuth();
   const [activeAIs, setActiveAIs] = useState<string[]>([]);
   const [multiSelectMode, setMultiSelectMode] = useState(false);
@@ -126,7 +128,7 @@ const Index = () => {
             <Button
               variant="ghost"
               className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift h-auto py-2"
-              onClick={() => window.location.href = '/swarm-intelligence'}
+              onClick={() => navigate('/swarm-intelligence')}
             >
               Schwarm-KI
             </Button>
