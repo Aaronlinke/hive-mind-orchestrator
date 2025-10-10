@@ -11,7 +11,22 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, activeNodes = [] } = await req.json();
+    const body = await req.json();
+    console.log("📥 Received request:", JSON.stringify(body));
+    
+    // Handle both old format (messages) and new format (request + context)
+    let messages = body.messages || [];
+    const activeNodes = body.activeNodes || [];
+    
+    // If using new format with request and context
+    if (body.request && !body.messages) {
+      messages = [
+        ...(body.context?.conversationHistory || []),
+        { role: "user", content: body.request }
+      ];
+    }
+    
+    console.log("📝 Messages to process:", messages.length);
     
     // Build dynamic system prompt based on active nodes
     const nodeDescriptions = {

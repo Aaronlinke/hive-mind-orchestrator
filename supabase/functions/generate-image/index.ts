@@ -47,11 +47,16 @@ serve(async (req) => {
     }
 
     const data = await response.json();
+    console.log("🎨 AI Response received:", JSON.stringify(data, null, 2));
+    
     const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
     if (!imageUrl) {
-      throw new Error("No image generated");
+      console.error("❌ No image in response. Full response:", JSON.stringify(data));
+      throw new Error("Die KI hat kein Bild generiert. Bitte versuche es mit einem anderen Prompt.");
     }
+    
+    console.log("✅ Image generated successfully");
 
     const generationTime = Date.now() - startTime;
 
