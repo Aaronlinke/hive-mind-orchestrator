@@ -6,6 +6,7 @@ import { ImageGenerator } from "@/components/ImageGenerator";
 import { AdvancedAnalytics } from "@/components/AdvancedAnalytics";
 import { EnhancedAIPanel } from "@/components/EnhancedAIPanel";
 import { FusionChat } from "@/components/FusionChat";
+import { AIGridSystem } from "@/components/AIGridSystem";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -88,7 +89,7 @@ const Index = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 relative z-10">
         <Tabs defaultValue="chat" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-6 glass-card p-2 h-auto">
+          <TabsList className="grid w-full grid-cols-6 mb-6 glass-card p-2 h-auto">
             <TabsTrigger 
               value="chat" 
               className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
@@ -100,6 +101,12 @@ const Index = () => {
               className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
             >
               Fusion Chat
+            </TabsTrigger>
+            <TabsTrigger 
+              value="grid" 
+              className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
+            >
+              KI-Grid
             </TabsTrigger>
             <TabsTrigger 
               value="enhanced" 
@@ -135,6 +142,10 @@ const Index = () => {
 
           <TabsContent value="fusion" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
             <FusionChat />
+          </TabsContent>
+
+          <TabsContent value="grid" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            <AIGridSystem />
           </TabsContent>
 
           <TabsContent value="enhanced" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
