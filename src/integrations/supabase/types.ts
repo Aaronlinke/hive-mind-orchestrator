@@ -53,6 +53,36 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_analysis: {
+        Row: {
+          analysis_result: Json | null
+          analysis_type: string
+          created_at: string | null
+          id: string
+          input_data: Json | null
+          insights: string[] | null
+          user_id: string
+        }
+        Insert: {
+          analysis_result?: Json | null
+          analysis_type: string
+          created_at?: string | null
+          id?: string
+          input_data?: Json | null
+          insights?: string[] | null
+          user_id: string
+        }
+        Update: {
+          analysis_result?: Json | null
+          analysis_type?: string
+          created_at?: string | null
+          id?: string
+          input_data?: Json | null
+          insights?: string[] | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       generated_code: {
         Row: {
           ai_node_id: string

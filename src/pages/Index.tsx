@@ -7,6 +7,7 @@ import { AdvancedAnalytics } from "@/components/AdvancedAnalytics";
 import { EnhancedAIPanel } from "@/components/EnhancedAIPanel";
 import { FusionChat } from "@/components/FusionChat";
 import { AIGridSystem } from "@/components/AIGridSystem";
+import { VoiceAgent } from "@/components/VoiceAgent";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
@@ -96,7 +97,7 @@ const Index = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 relative z-10">
         <Tabs defaultValue="chat" className="w-full">
-          <TabsList className="grid w-full grid-cols-6 mb-6 glass-card p-2 h-auto">
+          <TabsList className="grid w-full grid-cols-7 mb-6 glass-card p-2 h-auto">
             <TabsTrigger 
               value="chat" 
               className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
@@ -133,6 +134,12 @@ const Index = () => {
             >
               Analytics
             </TabsTrigger>
+            <TabsTrigger 
+              value="voice" 
+              className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
+            >
+              Voice Agent
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="chat" className="space-y-6">
@@ -165,6 +172,10 @@ const Index = () => {
 
           <TabsContent value="analytics">
             <AdvancedAnalytics />
+          </TabsContent>
+
+          <TabsContent value="voice">
+            <VoiceAgent />
           </TabsContent>
         </Tabs>
       </main>

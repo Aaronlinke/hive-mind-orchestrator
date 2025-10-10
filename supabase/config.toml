@@ -2,3 +2,6 @@ project_id = "rmhnmvbnvyssnampsjhd"
 
 # All functions now require JWT authentication (verify_jwt = true is default)
 # Lines removed to enable authentication for all edge functions
+
+[functions.chat-analysis]
+verify_jwt = true
