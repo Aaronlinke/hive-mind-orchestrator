@@ -11,7 +11,7 @@ export const useFusionChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const sendMessage = async (input: string) => {
+  const sendMessage = async (input: string, activeNodes?: string[]) => {
     if (!input.trim()) return;
 
     const userMessage: Message = {
@@ -38,6 +38,7 @@ export const useFusionChat = () => {
             role: m.role,
             content: m.content,
           })),
+          activeNodes: activeNodes || [],
         }),
       });
 

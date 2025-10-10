@@ -2,13 +2,27 @@ import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Sparkles, Copy, Trash2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Send, Sparkles, Copy, Trash2, Brain, Settings } from "lucide-react";
 import { useFusionChat } from "@/hooks/useFusionChat";
 import { useToast } from "@/hooks/use-toast";
+
+const AI_NODES = [
+  { id: "semantic", name: "Semantisches Reasoning", description: "Analyse & Mustererkennung" },
+  { id: "decision", name: "Entscheidungs-Engine", description: "Strategische Planung" },
+  { id: "resource", name: "Ressourcen-Orchestrierung", description: "API & Cloud Services" },
+  { id: "knowledge", name: "Wissensmanagement", description: "Knowledge Graph" },
+  { id: "web", name: "Web-Interaktion", description: "Scraping & Browser" },
+  { id: "visual", name: "Visuelle Konzepte", description: "Bild-Generierung" },
+  { id: "skill", name: "Skill-Manager", description: "Code-Ausführung" },
+];
 
 export const FusionChat = () => {
   const [input, setInput] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const [activeNodes, setActiveNodes] = useState<string[]>(AI_NODES.map(n => n.id));
   const { messages, isLoading, sendMessage, clearChat } = useFusionChat();
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -23,9 +37,17 @@ export const FusionChat = () => {
 
   const handleSend = () => {
     if (input.trim() && !isLoading) {
-      sendMessage(input);
+      sendMessage(input, activeNodes);
       setInput("");
     }
+  };
+
+  const toggleNode = (nodeId: string) => {
+    setActiveNodes(prev => 
+      prev.includes(nodeId)
+        ? prev.filter(id => id !== nodeId)
+        : [...prev, nodeId]
+    );
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -60,24 +82,87 @@ export const FusionChat = () => {
           <div className="p-2 rounded-lg gradient-primary">
             <Sparkles className="h-6 w-6 text-background" />
           </div>
-          <div>
+          <div className="flex-1">
             <h2 className="text-2xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
               Fusion-KI Chat
             </h2>
             <p className="text-sm text-muted-foreground">
-              Alle Spezialisten arbeiten zusammen - Eine vereinte Antwort
+              {activeNodes.length} von {AI_NODES.length} Spezialisten aktiv
             </p>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowSettings(!showSettings)}
+            className="hover:bg-primary/10"
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            KI-Auswahl
+          </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={clearChat}
-            className="ml-auto hover:bg-destructive/10"
+            className="hover:bg-destructive/10"
           >
             <Trash2 className="h-4 w-4 mr-2" />
             Löschen
           </Button>
         </div>
+
+        {showSettings && (
+          <div className="mt-4 p-4 glass-card border-primary/20 rounded-lg space-y-3">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-semibold text-sm flex items-center gap-2">
+                <Brain className="h-4 w-4 text-primary" />
+                Aktive KI-Knoten
+              </h3>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setActiveNodes(AI_NODES.map(n => n.id))}
+                  className="text-xs"
+                >
+                  Alle
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setActiveNodes([])}
+                  className="text-xs"
+                >
+                  Keine
+                </Button>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {AI_NODES.map((node) => (
+                <div
+                  key={node.id}
+                  className="flex items-center space-x-3 p-3 rounded-lg hover:bg-accent/5 transition-colors"
+                >
+                  <Switch
+                    id={node.id}
+                    checked={activeNodes.includes(node.id)}
+                    onCheckedChange={() => toggleNode(node.id)}
+                  />
+                  <div className="flex-1">
+                    <Label
+                      htmlFor={node.id}
+                      className="text-sm font-medium cursor-pointer"
+                    >
+                      {node.name}
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      {node.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto p-6 space-y-4">
