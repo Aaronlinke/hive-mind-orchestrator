@@ -4,11 +4,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Brain, Zap, Activity, Download, RotateCcw, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, Brain, Zap, Activity, Download, RotateCcw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useMultiAgentOrchestrator } from "@/hooks/useMultiAgentOrchestrator";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { useSystemMetrics } from "@/hooks/useSystemMetrics";
+import { AgentResultCard } from "@/components/AgentResultCard";
+import { SwarmAnalysisHistory } from "@/components/SwarmAnalysisHistory";
+import { AgentMetricsPanel } from "@/components/AgentMetricsPanel";
 
 interface Brain {
   id: number;
@@ -36,6 +38,7 @@ export default function SwarmIntelligence() {
   const [isActive, setIsActive] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { agentResults, isOrchestrating, orchestrateAnalysis, resetOrchestration } = useMultiAgentOrchestrator();
+  const systemMetrics = useSystemMetrics(agentResults);
 
   const brainTypes = ['Technologie', 'Wissenschaft', 'Wirtschaft', 'Philosophie', 'Kreativ', 'Logik', 'Quantenphysik'];
   const specializations = ['Energie', 'Nachhaltigkeit', 'Urbanistik', 'Innovation', 'Ökonomie', 'Soziologie', 'Kybernetik'];
@@ -360,46 +363,22 @@ export default function SwarmIntelligence() {
 
         {/* Bottom Section */}
         <div className="grid lg:grid-cols-2 gap-6">
-          {/* Multi-Agent Status Panel */}
+          {/* Multi-Agent Results Display */}
           <Card className="backdrop-blur-sm bg-card/50">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Brain className="h-5 w-5 text-primary" />
-                KI-Spezialisten Status
+                Spezialisten-Ergebnisse
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 max-h-[600px] overflow-y-auto">
               {agentResults.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">
-                  Keine aktive Analyse. Starten Sie eine Analyse, um alle Spezialisten zu aktivieren.
+                <p className="text-muted-foreground text-center py-8 text-sm">
+                  Keine aktive Analyse. Starten Sie eine Analyse.
                 </p>
               ) : (
                 agentResults.map((agent) => (
-                  <div key={agent.agentId} className="p-4 rounded-lg bg-background/50 border border-border space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        {agent.status === 'processing' && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
-                        {agent.status === 'completed' && <CheckCircle2 className="h-4 w-4 text-success" />}
-                        {agent.status === 'error' && <AlertCircle className="h-4 w-4 text-destructive" />}
-                        <span className="font-semibold text-sm">{agent.agentName}</span>
-                      </div>
-                      <Badge variant={agent.status === 'completed' ? 'default' : 'secondary'}>
-                        {agent.status === 'processing' && 'Arbeitet...'}
-                        {agent.status === 'completed' && 'Fertig'}
-                        {agent.status === 'error' && 'Fehler'}
-                        {agent.status === 'idle' && 'Bereit'}
-                      </Badge>
-                    </div>
-                    {agent.status === 'completed' && (
-                      <>
-                        <Progress value={agent.confidence * 100} className="h-2" />
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>Confidence: {(agent.confidence * 100).toFixed(1)}%</span>
-                          {agent.processingTime && <span>{agent.processingTime}ms</span>}
-                        </div>
-                      </>
-                    )}
-                  </div>
+                  <AgentResultCard key={agent.agentId} agent={agent} />
                 ))
               )}
             </CardContent>
@@ -427,42 +406,36 @@ export default function SwarmIntelligence() {
           </Card>
 
           {/* Action Recommendations */}
+          <SwarmAnalysisHistory />
+
+          <AgentMetricsPanel metrics={systemMetrics} />
+        </div>
+
+        {/* Additional System Information */}
+        <div className="mt-6">
           <Card className="backdrop-blur-sm bg-card/50">
             <CardHeader>
-              <CardTitle className="text-lg">Aktionsempfehlungen</CardTitle>
+              <CardTitle className="text-lg">System-Konfiguration</CardTitle>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="shortterm">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="shortterm">Kurzfristig</TabsTrigger>
-                  <TabsTrigger value="midterm">Mittelfristig</TabsTrigger>
-                  <TabsTrigger value="longterm">Langfristig</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="shortterm" className="mt-4">
-                  <ul className="space-y-2 list-disc list-inside text-sm">
-                    <li>Pilotprojekt mit piezoelektrischen Gehwegen in ausgewählten Stadtteilen</li>
-                    <li>Analyse der Dachflächen für Solarnutzung</li>
-                    <li>Bürgerbefragung zu Akzeptanz von Energie-Sharing</li>
-                  </ul>
-                </TabsContent>
-
-                <TabsContent value="midterm" className="mt-4">
-                  <ul className="space-y-2 list-disc list-inside text-sm">
-                    <li>Umsetzung von Solar-Dachziegel-Installationen</li>
-                    <li>Implementierung dezentraler Energiespeicherlösungen</li>
-                    <li>Entwicklung der Blockchain-basierten Handelsplattform</li>
-                  </ul>
-                </TabsContent>
-
-                <TabsContent value="longterm" className="mt-4">
-                  <ul className="space-y-2 list-disc list-inside text-sm">
-                    <li>Vollständige Integration in Stadtplanung</li>
-                    <li>Ausweitung auf benachbarte Gemeinden</li>
-                    <li>Automatisierte Optimierung des Energienetzes durch KI</li>
-                  </ul>
-                </TabsContent>
-              </Tabs>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <p className="text-muted-foreground">Aktive Gehirne</p>
+                  <p className="font-semibold text-lg">{brainCount}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Kreativitäts-Level</p>
+                  <p className="font-semibold text-lg">{creativityLevel}/10</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Analyse-Tiefe</p>
+                  <p className="font-semibold text-lg">{analysisDepth}/5</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Geschwindigkeit</p>
+                  <p className="font-semibold text-lg">{speedSetting}/5</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>

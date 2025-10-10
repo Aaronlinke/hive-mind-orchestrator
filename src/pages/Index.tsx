@@ -10,6 +10,7 @@ import { EnhancedAIPanel } from "@/components/EnhancedAIPanel";
 import { FusionChat } from "@/components/FusionChat";
 import { AIGridSystem } from "@/components/AIGridSystem";
 import { VoiceAgent } from "@/components/VoiceAgent";
+import { AICapabilitiesGrid } from "@/components/AICapabilitiesGrid";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
@@ -99,8 +100,14 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 relative z-10">
-        <Tabs defaultValue="chat" className="w-full">
-          <TabsList className="grid w-full grid-cols-9 mb-6 glass-card p-2 h-auto">
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-10 mb-6 glass-card p-2 h-auto">
+            <TabsTrigger 
+              value="overview" 
+              className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
+            >
+              Übersicht
+            </TabsTrigger>
             <TabsTrigger 
               value="chat" 
               className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
@@ -157,6 +164,20 @@ const Index = () => {
               Voice Agent
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="overview" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            <div className="space-y-6">
+              <div className="glass-card p-6 rounded-xl">
+                <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  KI-Capabilities Übersicht
+                </h2>
+                <p className="text-muted-foreground mb-6">
+                  Vollständiges Multi-Agent-System mit hierarchischer Orchestrierung und adaptiver Entscheidungsfindung
+                </p>
+                <AICapabilitiesGrid />
+              </div>
+            </div>
+          </TabsContent>
 
           <TabsContent value="chat" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-8 duration-1000">
