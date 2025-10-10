@@ -22,13 +22,19 @@ serve(async (req) => {
     const { data: patterns } = await supabase
       .from('semantic_patterns')
       .select('*')
-      .gte('confidence', 0.7)
-      .order('confidence', { ascending: false });
+      .gte('confidence', 0.3)
+      .order('confidence', { ascending: false })
+      .limit(50);
 
-    // Analyze request against patterns
+    // Enhanced pattern matching with keyword extraction
     const implications: string[] = [];
     const matchedPatterns: any[] = [];
+    
+    // Extract keywords for better matching
+    const keywords = extractKeywords(request);
+    console.log("🔍 Extracted keywords:", keywords);
 
+    // Match against existing patterns
     for (const pattern of patterns || []) {
       const regex = new RegExp(pattern.pattern, 'i');
       if (regex.test(request)) {
@@ -37,25 +43,38 @@ serve(async (req) => {
       }
     }
 
+    // Dynamic pattern generation if no matches found
+    if (matchedPatterns.length === 0) {
+      console.log("⚡ Generating dynamic patterns from keywords...");
+      for (const keyword of keywords) {
+        const dynamicImplications = generateImplicationsFromKeyword(keyword);
+        implications.push(...dynamicImplications);
+      }
+    }
+
     // Analyze historical context
     const historicalInsights = await analyzeHistory(history || []);
     
-    // Generate prognostic analysis
+    // Generate prognostic analysis with improved confidence
     const prognosis = {
-      immediateNeeds: [...new Set(implications)],
+      immediateNeeds: [...new Set(implications.length > 0 ? implications : ["Informationsanfrage", "Problemlösung", "Wissenssuche"])],
       matchedPatterns,
       historicalInsights,
-      confidence: calculateConfidence(matchedPatterns),
-      recommendations: generateRecommendations(matchedPatterns, historicalInsights)
+      confidence: calculateConfidence(matchedPatterns, keywords.length),
+      recommendations: generateRecommendations(matchedPatterns, historicalInsights, keywords)
     };
 
-    // Store analysis
-    await supabase.from('semantic_patterns').insert({
-      pattern: request,
-      implications: prognosis.immediateNeeds,
-      confidence: prognosis.confidence,
-      context: { prognosis, context }
-    });
+    // Store analysis for learning
+    try {
+      await supabase.from('semantic_patterns').insert({
+        pattern: request.substring(0, 200),
+        implications: prognosis.immediateNeeds,
+        confidence: prognosis.confidence,
+        context: { prognosis, context, keywords }
+      }).select().single();
+    } catch (insertError) {
+      console.log("ℹ️ Pattern storage skipped:", insertError);
+    }
 
     return new Response(
       JSON.stringify(prognosis),
@@ -86,22 +105,58 @@ function analyzeHistory(history: any[]) {
   };
 }
 
-function calculateConfidence(patterns: any[]): number {
-  if (patterns.length === 0) return 0;
+function extractKeywords(text: string): string[] {
+  const stopwords = ['der', 'die', 'das', 'und', 'oder', 'aber', 'ist', 'sind', 'kann', 'wie', 'was'];
+  const words = text.toLowerCase()
+    .replace(/[^\wäöüß\s]/g, ' ')
+    .split(/\s+/)
+    .filter(w => w.length > 3 && !stopwords.includes(w));
+  return [...new Set(words)].slice(0, 10);
+}
+
+function generateImplicationsFromKeyword(keyword: string): string[] {
+  const implications: string[] = [];
+  
+  // Domain-specific mappings
+  if (['energie', 'solar', 'wind', 'strom'].some(k => keyword.includes(k))) {
+    implications.push("Energieeffizienz", "Nachhaltigkeit", "Technische Lösungen");
+  }
+  if (['geschäft', 'business', 'unternehmen', 'firma'].some(k => keyword.includes(k))) {
+    implications.push("Geschäftsoptimierung", "ROI-Analyse", "Strategische Planung");
+  }
+  if (['forschung', 'wissenschaft', 'studie', 'analyse'].some(k => keyword.includes(k))) {
+    implications.push("Wissenschaftliche Methodik", "Datenanalyse", "Hypothesenbildung");
+  }
+  if (['problem', 'lösung', 'help', 'hilfe'].some(k => keyword.includes(k))) {
+    implications.push("Problemlösung", "Lösungsfindung", "Handlungsempfehlung");
+  }
+  
+  return implications.length > 0 ? implications : ["Allgemeine Anfrage"];
+}
+
+function calculateConfidence(patterns: any[], keywordCount: number): number {
+  if (patterns.length === 0) {
+    // Base confidence on keyword extraction quality
+    return Math.min(0.5 + (keywordCount * 0.05), 0.75);
+  }
   const avgConfidence = patterns.reduce((sum, p) => sum + p.confidence, 0) / patterns.length;
   return Math.min(avgConfidence * 1.2, 1.0);
 }
 
-function generateRecommendations(patterns: any[], insights: any): string[] {
+function generateRecommendations(patterns: any[], insights: any, keywords: string[]): string[] {
   const recommendations: string[] = [];
   
   if (patterns.length > 0) {
-    recommendations.push(`Based on ${patterns.length} matched patterns, consider proactive preparation`);
+    recommendations.push(`Basierend auf ${patterns.length} erkannten Mustern: Proaktive Vorbereitung empfohlen`);
   }
   
   if (insights.frequentPatterns.length > 0) {
-    recommendations.push(`Historical data shows frequent ${insights.frequentPatterns[0][0]} requests`);
+    recommendations.push(`Häufigste Interaktionen: ${insights.frequentPatterns[0][0]} (${insights.frequentPatterns[0][1]}x)`);
   }
 
-  return recommendations;
+  if (keywords.length > 5) {
+    recommendations.push(`Komplexe Anfrage mit ${keywords.length} Schlüsselwörtern - Multi-Dimensionale Analyse erforderlich`);
+  }
+
+  return recommendations.length > 0 ? recommendations : ["Standard-Analyse durchführen"];
 }

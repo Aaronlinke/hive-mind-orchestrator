@@ -158,7 +158,9 @@ function selectBestStrategy(priority: number, resourceScores: any[], risk: numbe
 }
 
 function calculateDecisionConfidence(priority: number, risk: number, boost: number): number {
-  return Math.max(0, Math.min(1, (priority + boost) / (1 + risk)));
+  // Enhanced confidence with higher baseline - minimum 0.5, maximum 1.0
+  const baseConfidence = (priority * 0.5) + ((1 - risk) * 0.25) + (boost * 0.25);
+  return Math.max(0.5, Math.min(1.0, baseConfidence + 0.3));
 }
 
 function generateReasoning(priority: number, resourceScores: any[], risk: number): string[] {
