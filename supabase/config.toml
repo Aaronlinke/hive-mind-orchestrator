@@ -1,7 +1,42 @@
 project_id = "rmhnmvbnvyssnampsjhd"
 
-# All functions now require JWT authentication (verify_jwt = true is default)
-# Lines removed to enable authentication for all edge functions
+# All functions require JWT authentication
 
 [functions.chat-analysis]
+verify_jwt = true
+
+[functions.fusion-chat]
+verify_jwt = true
+
+[functions.hierarchical-ai]
+verify_jwt = true
+
+[functions.semantic-reasoning]
+verify_jwt = true
+
+[functions.decision-engine]
+verify_jwt = true
+
+[functions.knowledge-manager]
+verify_jwt = true
+
+[functions.resource-orchestration]
+verify_jwt = true
+
+[functions.skill-manager]
+verify_jwt = true
+
+[functions.visual-concept-generator]
+verify_jwt = true
+
+[functions.voice-to-text]
+verify_jwt = true
+
+[functions.web-interaction]
+verify_jwt = true
+
+[functions.generate-image]
+verify_jwt = true
+
+[functions.generate-video]
 verify_jwt = true

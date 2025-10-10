@@ -3,6 +3,7 @@ import AIHierarchyDashboard from "@/components/AIHierarchyDashboard";
 import ChatInterface from "@/components/ChatInterface";
 import StatsPanel from "@/components/StatsPanel";
 import { ImageGenerator } from "@/components/ImageGenerator";
+import { VideoGenerator } from "@/components/VideoGenerator";
 import { AdvancedAnalytics } from "@/components/AdvancedAnalytics";
 import { EnhancedAIPanel } from "@/components/EnhancedAIPanel";
 import { FusionChat } from "@/components/FusionChat";
@@ -97,7 +98,7 @@ const Index = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 relative z-10">
         <Tabs defaultValue="chat" className="w-full">
-          <TabsList className="grid w-full grid-cols-7 mb-6 glass-card p-2 h-auto">
+          <TabsList className="grid w-full grid-cols-8 mb-6 glass-card p-2 h-auto">
             <TabsTrigger 
               value="chat" 
               className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
@@ -126,7 +127,13 @@ const Index = () => {
               value="image" 
               className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
             >
-              Bildgenerierung
+              Bilder
+            </TabsTrigger>
+            <TabsTrigger 
+              value="video" 
+              className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
+            >
+              Videos
             </TabsTrigger>
             <TabsTrigger 
               value="analytics" 
@@ -168,6 +175,10 @@ const Index = () => {
 
           <TabsContent value="image">
             <ImageGenerator />
+          </TabsContent>
+
+          <TabsContent value="video">
+            <VideoGenerator />
           </TabsContent>
 
           <TabsContent value="analytics">
