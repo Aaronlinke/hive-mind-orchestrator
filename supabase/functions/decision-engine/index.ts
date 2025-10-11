@@ -74,6 +74,8 @@ serve(async (req) => {
 function evaluatePriority(request: any, source: string): number {
   let score = 0.5;
   
+  if (!request) return score;
+  
   const urgentKeywords = ['urgent', 'critical', 'emergency', 'asap', 'immediately'];
   const requestStr = JSON.stringify(request).toLowerCase();
   

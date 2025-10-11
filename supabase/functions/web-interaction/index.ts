@@ -38,6 +38,14 @@ serve(async (req) => {
         result = await fillForm(url, data);
         break;
       
+      case 'research':
+        result = await conductResearch(url, data);
+        break;
+      
+      case 'monitor':
+        result = await monitorWebsite(url, data);
+        break;
+      
       default:
         throw new Error(`Unknown action: ${action}`);
     }
@@ -122,5 +130,32 @@ async function fillForm(url: string, formData: any) {
     formData,
     filled: true,
     message: 'Form data prepared for submission'
+  };
+}
+
+async function conductResearch(url: string, query: any) {
+  // Conduct research on the given URL
+  const response = await fetch(url);
+  const content = await response.text();
+  
+  return {
+    url,
+    query,
+    findings: content.substring(0, 1000),
+    researched: true,
+    timestamp: new Date().toISOString()
+  };
+}
+
+async function monitorWebsite(url: string, config: any) {
+  // Monitor website for changes
+  const response = await fetch(url);
+  
+  return {
+    url,
+    config,
+    status: response.status,
+    monitored: true,
+    lastChecked: new Date().toISOString()
   };
 }

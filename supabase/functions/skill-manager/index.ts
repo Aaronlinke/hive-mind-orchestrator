@@ -100,6 +100,29 @@ serve(async (req) => {
       );
     }
 
+    if (action === 'analyze') {
+      // Analyze skill and provide insights
+      const { data: skills } = await supabase
+        .from('skill_modules')
+        .select('*')
+        .eq('is_active', true);
+
+      const analysis = {
+        totalSkills: skills?.length || 0,
+        activeSkills: skills?.filter(s => s.is_active).length || 0,
+        mostUsed: skills?.sort((a, b) => 
+          (b.performance_metrics?.totalExecutions || 0) - (a.performance_metrics?.totalExecutions || 0)
+        ).slice(0, 3) || [],
+        avgExecutionTime: skills?.reduce((acc, s) => 
+          acc + (s.performance_metrics?.avgExecutionTime || 0), 0) / (skills?.length || 1)
+      };
+
+      return new Response(
+        JSON.stringify({ analysis }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     throw new Error(`Unknown action: ${action}`);
   } catch (error) {
     console.error('Skill manager error:', error);

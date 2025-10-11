@@ -11,6 +11,10 @@ import { FusionChat } from "@/components/FusionChat";
 import { AIGridSystem } from "@/components/AIGridSystem";
 import { VoiceAgent } from "@/components/VoiceAgent";
 import { AICapabilitiesGrid } from "@/components/AICapabilitiesGrid";
+import { SystemDashboard } from "@/components/SystemDashboard";
+import { AIOrchestrationControl } from "@/components/AIOrchestrationControl";
+import { RealTimeActivityFeed } from "@/components/RealTimeActivityFeed";
+import { AIPerformanceMetrics } from "@/components/AIPerformanceMetrics";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
@@ -167,6 +171,19 @@ const Index = () => {
 
           <TabsContent value="overview" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
             <div className="space-y-6">
+              {/* System Dashboard */}
+              <SystemDashboard />
+
+              {/* Main Control and Activity */}
+              <div className="grid lg:grid-cols-2 gap-6">
+                <AIOrchestrationControl />
+                <RealTimeActivityFeed />
+              </div>
+
+              {/* Performance Metrics */}
+              <AIPerformanceMetrics />
+
+              {/* AI Capabilities Grid */}
               <div className="glass-card p-6 rounded-xl">
                 <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                   KI-Capabilities Übersicht

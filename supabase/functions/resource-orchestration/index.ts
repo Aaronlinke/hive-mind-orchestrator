@@ -12,7 +12,15 @@ serve(async (req) => {
   }
 
   try {
-    const { resourceType, endpoint, query, payload, costBudget, latencyTolerance } = await req.json();
+    const requestBody = await req.json();
+    const { resourceType, endpoint, query, payload, costBudget, latencyTolerance } = requestBody;
+    
+    if (!resourceType) {
+      return new Response(
+        JSON.stringify({ error: 'Missing resourceType parameter' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
