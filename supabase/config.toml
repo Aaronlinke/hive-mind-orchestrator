@@ -8,6 +8,15 @@ verify_jwt = true
 [functions.collective-intelligence]
 verify_jwt = true
 
+[functions.evolution-engine]
+verify_jwt = true
+
+[functions.consciousness-reflection]
+verify_jwt = true
+
+[functions.agent-genesis]
+verify_jwt = true
+
 [functions.fusion-chat]
 verify_jwt = true
 

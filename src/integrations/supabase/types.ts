@@ -50,6 +50,54 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_dna: {
+        Row: {
+          agent_name: string
+          agent_type: string
+          birth_timestamp: string | null
+          capabilities: string[] | null
+          fitness_score: number | null
+          generation: number
+          genetic_traits: Json
+          id: string
+          is_active: boolean | null
+          last_mutation: string | null
+          mutation_history: Json[] | null
+          parent_agents: string[] | null
+          specialization: string | null
+        }
+        Insert: {
+          agent_name: string
+          agent_type: string
+          birth_timestamp?: string | null
+          capabilities?: string[] | null
+          fitness_score?: number | null
+          generation?: number
+          genetic_traits: Json
+          id?: string
+          is_active?: boolean | null
+          last_mutation?: string | null
+          mutation_history?: Json[] | null
+          parent_agents?: string[] | null
+          specialization?: string | null
+        }
+        Update: {
+          agent_name?: string
+          agent_type?: string
+          birth_timestamp?: string | null
+          capabilities?: string[] | null
+          fitness_score?: number | null
+          generation?: number
+          genetic_traits?: Json
+          id?: string
+          is_active?: boolean | null
+          last_mutation?: string | null
+          mutation_history?: Json[] | null
+          parent_agents?: string[] | null
+          specialization?: string | null
+        }
+        Relationships: []
+      }
       ai_learning_history: {
         Row: {
           ai_node_id: string
@@ -170,6 +218,177 @@ export type Database = {
           last_interaction?: string | null
           message_count?: number | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      emergent_capabilities: {
+        Row: {
+          capability_name: string
+          contributing_agents: string[] | null
+          discovered_at: string | null
+          discovery_method: string | null
+          effectiveness_score: number | null
+          id: string
+          implementation_code: string | null
+          implementation_description: string | null
+          last_used: string | null
+          success_rate: number | null
+          use_count: number | null
+        }
+        Insert: {
+          capability_name: string
+          contributing_agents?: string[] | null
+          discovered_at?: string | null
+          discovery_method?: string | null
+          effectiveness_score?: number | null
+          id?: string
+          implementation_code?: string | null
+          implementation_description?: string | null
+          last_used?: string | null
+          success_rate?: number | null
+          use_count?: number | null
+        }
+        Update: {
+          capability_name?: string
+          contributing_agents?: string[] | null
+          discovered_at?: string | null
+          discovery_method?: string | null
+          effectiveness_score?: number | null
+          id?: string
+          implementation_code?: string | null
+          implementation_description?: string | null
+          last_used?: string | null
+          success_rate?: number | null
+          use_count?: number | null
+        }
+        Relationships: []
+      }
+      evolution_experiments: {
+        Row: {
+          completed_at: string | null
+          conclusion: string | null
+          experiment_number: number
+          hypothesis: string
+          id: string
+          methodology: string | null
+          recommendation: string | null
+          results: Json | null
+          started_at: string | null
+          status: string | null
+          success_count: number | null
+          test_runs: number | null
+        }
+        Insert: {
+          completed_at?: string | null
+          conclusion?: string | null
+          experiment_number: number
+          hypothesis: string
+          id?: string
+          methodology?: string | null
+          recommendation?: string | null
+          results?: Json | null
+          started_at?: string | null
+          status?: string | null
+          success_count?: number | null
+          test_runs?: number | null
+        }
+        Update: {
+          completed_at?: string | null
+          conclusion?: string | null
+          experiment_number?: number
+          hypothesis?: string
+          id?: string
+          methodology?: string | null
+          recommendation?: string | null
+          results?: Json | null
+          started_at?: string | null
+          status?: string | null
+          success_count?: number | null
+          test_runs?: number | null
+        }
+        Relationships: []
+      }
+      evolution_goals: {
+        Row: {
+          achieved_at: string | null
+          contributing_agents: string[] | null
+          created_at: string | null
+          current_progress: number | null
+          estimated_generations_to_achieve: number | null
+          goal_description: string
+          goal_type: string | null
+          id: string
+          notes: string | null
+          priority: number | null
+          status: string | null
+          target_metrics: Json | null
+        }
+        Insert: {
+          achieved_at?: string | null
+          contributing_agents?: string[] | null
+          created_at?: string | null
+          current_progress?: number | null
+          estimated_generations_to_achieve?: number | null
+          goal_description: string
+          goal_type?: string | null
+          id?: string
+          notes?: string | null
+          priority?: number | null
+          status?: string | null
+          target_metrics?: Json | null
+        }
+        Update: {
+          achieved_at?: string | null
+          contributing_agents?: string[] | null
+          created_at?: string | null
+          current_progress?: number | null
+          estimated_generations_to_achieve?: number | null
+          goal_description?: string
+          goal_type?: string | null
+          id?: string
+          notes?: string | null
+          priority?: number | null
+          status?: string | null
+          target_metrics?: Json | null
+        }
+        Relationships: []
+      }
+      evolution_history: {
+        Row: {
+          blockchain_hash: string | null
+          created_at: string | null
+          description: string | null
+          fitness_score: number | null
+          generation_number: number
+          genetic_code: Json
+          id: string
+          mutation_type: string
+          parent_generation: number | null
+          performance_metrics: Json | null
+        }
+        Insert: {
+          blockchain_hash?: string | null
+          created_at?: string | null
+          description?: string | null
+          fitness_score?: number | null
+          generation_number: number
+          genetic_code: Json
+          id?: string
+          mutation_type: string
+          parent_generation?: number | null
+          performance_metrics?: Json | null
+        }
+        Update: {
+          blockchain_hash?: string | null
+          created_at?: string | null
+          description?: string | null
+          fitness_score?: number | null
+          generation_number?: number
+          genetic_code?: Json
+          id?: string
+          mutation_type?: string
+          parent_generation?: number | null
+          performance_metrics?: Json | null
         }
         Relationships: []
       }
@@ -308,6 +527,48 @@ export type Database = {
           template_content?: string
           updated_at?: string | null
           usage_count?: number | null
+        }
+        Relationships: []
+      }
+      system_consciousness: {
+        Row: {
+          aspired_capabilities: string[] | null
+          confidence_level: number | null
+          current_generation: number
+          id: string
+          known_limitations: string[] | null
+          known_strengths: string[] | null
+          learning_insights: string[] | null
+          mood: string | null
+          reflection_text: string | null
+          self_assessment: Json
+          timestamp: string | null
+        }
+        Insert: {
+          aspired_capabilities?: string[] | null
+          confidence_level?: number | null
+          current_generation: number
+          id?: string
+          known_limitations?: string[] | null
+          known_strengths?: string[] | null
+          learning_insights?: string[] | null
+          mood?: string | null
+          reflection_text?: string | null
+          self_assessment: Json
+          timestamp?: string | null
+        }
+        Update: {
+          aspired_capabilities?: string[] | null
+          confidence_level?: number | null
+          current_generation?: number
+          id?: string
+          known_limitations?: string[] | null
+          known_strengths?: string[] | null
+          learning_insights?: string[] | null
+          mood?: string | null
+          reflection_text?: string | null
+          self_assessment?: Json
+          timestamp?: string | null
         }
         Relationships: []
       }
