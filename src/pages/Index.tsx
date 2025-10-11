@@ -15,11 +15,17 @@ import { SystemDashboard } from "@/components/SystemDashboard";
 import { AIOrchestrationControl } from "@/components/AIOrchestrationControl";
 import { RealTimeActivityFeed } from "@/components/RealTimeActivityFeed";
 import { AIPerformanceMetrics } from "@/components/AIPerformanceMetrics";
+import { CommandPalette } from "@/components/CommandPalette";
+import { QuickActions } from "@/components/QuickActions";
+import { OnboardingTour } from "@/components/OnboardingTour";
+import { AchievementSystem } from "@/components/AchievementSystem";
+import { WorkflowBuilder } from "@/components/WorkflowBuilder";
+import { ThemeCustomizer } from "@/components/ThemeCustomizer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import { LogOut, Workflow, Trophy, Palette } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -60,6 +66,15 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background-deep to-background text-foreground relative">
+      {/* Command Palette */}
+      <CommandPalette />
+      
+      {/* Quick Actions */}
+      <QuickActions />
+      
+      {/* Onboarding Tour */}
+      <OnboardingTour />
+      
       {/* Animated background effect */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div 
@@ -105,7 +120,7 @@ const Index = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 relative z-10">
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-9 mb-6 glass-card p-2 h-auto">
+          <TabsList className="grid w-full grid-cols-12 mb-6 glass-card p-2 h-auto">
             <TabsTrigger 
               value="overview" 
               className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
@@ -159,6 +174,27 @@ const Index = () => {
               className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
             >
               Voice Agent
+            </TabsTrigger>
+            <TabsTrigger 
+              value="workflows" 
+              className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
+            >
+              <Workflow className="h-4 w-4 mr-1" />
+              Workflows
+            </TabsTrigger>
+            <TabsTrigger 
+              value="achievements" 
+              className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
+            >
+              <Trophy className="h-4 w-4 mr-1" />
+              Erfolge
+            </TabsTrigger>
+            <TabsTrigger 
+              value="theme" 
+              className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
+            >
+              <Palette className="h-4 w-4 mr-1" />
+              Theme
             </TabsTrigger>
           </TabsList>
 
@@ -227,6 +263,23 @@ const Index = () => {
 
           <TabsContent value="voice">
             <VoiceAgent />
+          </TabsContent>
+
+          <TabsContent value="workflows" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <WorkflowBuilder />
+              <div className="space-y-6">
+                <AchievementSystem />
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="achievements" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            <AchievementSystem />
+          </TabsContent>
+
+          <TabsContent value="theme" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            <ThemeCustomizer />
           </TabsContent>
         </Tabs>
       </main>

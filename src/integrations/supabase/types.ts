@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          achievement_type: string
+          description: string | null
+          icon: string | null
+          id: string
+          progress: number | null
+          target: number | null
+          title: string
+          unlocked_at: string | null
+          user_id: string
+        }
+        Insert: {
+          achievement_type: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          progress?: number | null
+          target?: number | null
+          title: string
+          unlocked_at?: string | null
+          user_id: string
+        }
+        Update: {
+          achievement_type?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          progress?: number | null
+          target?: number | null
+          title?: string
+          unlocked_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_learning_history: {
         Row: {
           ai_node_id: string
@@ -53,6 +89,30 @@ export type Database = {
         }
         Relationships: []
       }
+      analytics_events: {
+        Row: {
+          created_at: string | null
+          event_data: Json | null
+          event_type: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       chat_analysis: {
         Row: {
           analysis_result: Json | null
@@ -79,6 +139,36 @@ export type Database = {
           id?: string
           input_data?: Json | null
           insights?: string[] | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      conversation_context: {
+        Row: {
+          ai_node_id: string
+          context_data: Json
+          created_at: string | null
+          id: string
+          last_interaction: string | null
+          message_count: number | null
+          user_id: string
+        }
+        Insert: {
+          ai_node_id: string
+          context_data: Json
+          created_at?: string | null
+          id?: string
+          last_interaction?: string | null
+          message_count?: number | null
+          user_id: string
+        }
+        Update: {
+          ai_node_id?: string
+          context_data?: Json
+          created_at?: string | null
+          id?: string
+          last_interaction?: string | null
+          message_count?: number | null
           user_id?: string
         }
         Relationships: []
@@ -248,6 +338,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_preferences: {
+        Row: {
+          created_at: string | null
+          custom_shortcuts: Json | null
+          dashboard_widgets: Json | null
+          favorite_ais: string[] | null
+          id: string
+          layout_preset: string | null
+          theme: Json | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          custom_shortcuts?: Json | null
+          dashboard_widgets?: Json | null
+          favorite_ais?: string[] | null
+          id?: string
+          layout_preset?: string | null
+          theme?: Json | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          custom_shortcuts?: Json | null
+          dashboard_widgets?: Json | null
+          favorite_ais?: string[] | null
+          id?: string
+          layout_preset?: string | null
+          theme?: Json | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       voice_recordings: {
         Row: {
           ai_node_id: string | null
@@ -275,6 +401,42 @@ export type Database = {
           id?: string
           transcription?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      workflows: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          steps: Json
+          updated_at: string | null
+          usage_count: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          steps: Json
+          updated_at?: string | null
+          usage_count?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          steps?: Json
+          updated_at?: string | null
+          usage_count?: number | null
+          user_id?: string
         }
         Relationships: []
       }

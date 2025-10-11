@@ -2,7 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Bot, User, Trash2, Copy, Check } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Send, Bot, User, Trash2, Copy, Check, Code, Lightbulb } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useChat } from "@/hooks/useChat";
 import SelfImprovementPanel from "./SelfImprovementPanel";
@@ -20,6 +21,8 @@ const ChatInterface = ({ activeAIs, multiSelectMode }: ChatInterfaceProps) => {
   const [input, setInput] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [codeSnippets, setCodeSnippets] = useState<any[]>([]);
+  const [smartSuggestions, setSmartSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { messages, isLoading, sendMessage, clearChat, setMessages } = useChat({ activeAIs, multiSelectMode });
@@ -60,7 +63,43 @@ const ChatInterface = ({ activeAIs, multiSelectMode }: ChatInterfaceProps) => {
 
   useEffect(() => {
     scrollToBottom();
+    // Generate smart suggestions after assistant response
+    if (messages.length > 0 && messages[messages.length - 1]?.role === "assistant") {
+      generateSmartSuggestions();
+    }
   }, [messages]);
+
+  const generateSmartSuggestions = () => {
+    const suggestions = [
+      "Erkläre das genauer",
+      "Zeige ein Beispiel",
+      "Was sind die Vorteile?",
+      "Gibt es Alternativen?",
+    ];
+    setSmartSuggestions(suggestions);
+    setShowSuggestions(true);
+  };
+
+  const detectCodeBlocks = (text: string) => {
+    const codeRegex = /```(\w+)?\n([\s\S]*?)```/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = codeRegex.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push({ type: "text", content: text.slice(lastIndex, match.index) });
+      }
+      parts.push({ type: "code", language: match[1] || "text", content: match[2] });
+      lastIndex = match.index + match[0].length;
+    }
+
+    if (lastIndex < text.length) {
+      parts.push({ type: "text", content: text.slice(lastIndex) });
+    }
+
+    return parts.length > 0 ? parts : [{ type: "text", content: text }];
+  };
 
   useEffect(() => {
     if (activeAIs.length > 0) {
@@ -83,8 +122,14 @@ const ChatInterface = ({ activeAIs, multiSelectMode }: ChatInterfaceProps) => {
 
   const handleSend = async () => {
     if (!input.trim()) return;
+    setShowSuggestions(false);
     await sendMessage(input);
     setInput("");
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setInput(suggestion);
+    setShowSuggestions(false);
   };
 
   const handleClearChat = () => {
@@ -167,7 +212,29 @@ const ChatInterface = ({ activeAIs, multiSelectMode }: ChatInterfaceProps) => {
                   : "glass-card text-foreground"
               }`}
             >
-              <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+              {message.role === "assistant" ? (
+                <div className="space-y-2">
+                  {detectCodeBlocks(message.content).map((part, idx) => (
+                    <div key={idx}>
+                      {part.type === "code" ? (
+                        <div className="relative group/code">
+                          <Badge className="absolute top-2 right-2 text-xs">
+                            <Code className="h-3 w-3 mr-1" />
+                            {part.language}
+                          </Badge>
+                          <pre className="bg-muted/50 p-4 rounded-lg overflow-x-auto border border-border/50">
+                            <code className="text-xs font-mono">{part.content}</code>
+                          </pre>
+                        </div>
+                      ) : (
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{part.content}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+              )}
               <div className="flex items-center justify-between mt-2 gap-2">
                 <p className="text-xs opacity-70 font-medium tabular-nums">
                   {message.timestamp.toLocaleTimeString()}
@@ -211,6 +278,25 @@ const ChatInterface = ({ activeAIs, multiSelectMode }: ChatInterfaceProps) => {
       </div>
 
       <div className="p-4 border-t border-border/50 bg-background-elevated">
+        {showSuggestions && smartSuggestions.length > 0 && (
+          <div className="mb-3 flex gap-2 flex-wrap animate-in fade-in slide-in-from-bottom-4">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1 w-full">
+              <Lightbulb className="h-3 w-3 text-primary" />
+              <span>Vorschläge:</span>
+            </div>
+            {smartSuggestions.map((suggestion, idx) => (
+              <Button
+                key={idx}
+                variant="outline"
+                size="sm"
+                onClick={() => handleSuggestionClick(suggestion)}
+                className="text-xs hover:bg-primary/10 transition-all"
+              >
+                {suggestion}
+              </Button>
+            ))}
+          </div>
+        )}
         <div className="flex gap-2">
           <Input
             value={input}
