@@ -5,7 +5,7 @@ import { Activity, Brain, Sparkles, Check } from "lucide-react";
 interface AINode {
   id: string;
   name: string;
-  type: "director" | "manager" | "specialist";
+  type: "swarm" | "director" | "manager" | "specialist";
   status: "active" | "idle" | "processing";
   stats: {
     tasksCompleted: number;
@@ -37,6 +37,8 @@ const AINodeCard = ({ node, isActive, onClick, multiSelectMode = false }: AINode
   const getIcon = () => {
     const iconClass = "w-5 h-5 text-primary";
     switch (node.type) {
+      case "swarm":
+        return <Brain className={`${iconClass} animate-pulse`} />;
       case "director":
         return <Brain className={iconClass} />;
       case "manager":

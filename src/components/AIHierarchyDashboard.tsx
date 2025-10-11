@@ -6,7 +6,7 @@ import AINodeCard from "./AINodeCard";
 interface AINode {
   id: string;
   name: string;
-  type: "director" | "manager" | "specialist";
+  type: "swarm" | "director" | "manager" | "specialist";
   status: "active" | "idle" | "processing";
   children?: string[];
   stats: {
@@ -24,6 +24,14 @@ interface AIHierarchyDashboardProps {
 
 const AIHierarchyDashboard = ({ onSelectAI, activeAIs, onToggleMultiSelect, multiSelectMode }: AIHierarchyDashboardProps) => {
   const [nodes, setNodes] = useState<AINode[]>([
+    {
+      id: "swarm-1",
+      name: "Schwarm-Intelligenz",
+      type: "swarm",
+      status: "active",
+      children: ["director-1"],
+      stats: { tasksCompleted: 3842, accuracy: 99.2 },
+    },
     {
       id: "director-1",
       name: "Direktor KI",
@@ -103,6 +111,7 @@ const AIHierarchyDashboard = ({ onSelectAI, activeAIs, onToggleMultiSelect, mult
     return () => clearInterval(interval);
   }, []);
 
+  const swarmNode = nodes.find((n) => n.type === "swarm");
   const directorNode = nodes.find((n) => n.type === "director");
   const managerNodes = nodes.filter((n) => n.type === "manager");
   const specialistNodes = nodes.filter((n) => n.type === "specialist");
@@ -116,7 +125,7 @@ const AIHierarchyDashboard = ({ onSelectAI, activeAIs, onToggleMultiSelect, mult
           <div>
             <h2 className="text-xl font-bold flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-glow" />
-              KI-Hierarchie
+              KI-Hierarchie & Kollektiv
             </h2>
             <p className="text-xs text-muted-foreground mt-1">
               {multiSelectMode ? "🔗 Mehrere KIs gleichzeitig befragen" : "Einzelne KI auswählen"}
@@ -130,6 +139,26 @@ const AIHierarchyDashboard = ({ onSelectAI, activeAIs, onToggleMultiSelect, mult
           >
             {multiSelectMode ? "🔗 Multi" : "📋 Einzel"}
           </Button>
+        </div>
+
+        {/* Swarm Intelligence Level */}
+        {swarmNode && (
+          <div className="mb-6 flex justify-center">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-accent/20 to-secondary/20 blur-xl animate-pulse" />
+              <AINodeCard
+                node={swarmNode}
+                isActive={activeAIs.includes(swarmNode.id)}
+                onClick={() => onSelectAI(swarmNode.id)}
+                multiSelectMode={multiSelectMode}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Connection Lines */}
+        <div className="flex justify-center mb-4">
+          <div className="w-px h-8 bg-gradient-to-b from-primary via-accent to-transparent" />
         </div>
 
         {/* Director Level */}
