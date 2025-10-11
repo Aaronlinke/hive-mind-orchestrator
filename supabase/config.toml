@@ -43,3 +43,6 @@ verify_jwt = true
 
 [functions.generate-video]
 verify_jwt = true
+
+[functions.security-manager]
+verify_jwt = true

@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { authenticateRequest, validateRequestBody, handleSecurityError } from "../_shared/security-guard.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,7 +14,27 @@ serve(async (req) => {
   }
 
   try {
-    const { aiNodeId, aiNodeType, aiNodeName, message, conversationHistory, requestCodeGeneration } = await req.json();
+    // 🚪 Security Guard
+    const securityContext = await authenticateRequest(req, { requireAuth: true });
+    
+    // ✅ Input-Validierung
+    const body = await validateRequestBody<{
+      aiNodeId: string;
+      aiNodeType: string;
+      aiNodeName: string;
+      message: string;
+      conversationHistory?: any[];
+      requestCodeGeneration?: boolean;
+    }>(req, {
+      aiNodeId: { type: "string", required: true, maxLength: 100 },
+      aiNodeType: { type: "string", required: true, maxLength: 50 },
+      aiNodeName: { type: "string", required: true, maxLength: 200 },
+      message: { type: "string", required: true, minLength: 1, maxLength: 10000 },
+      conversationHistory: { type: "object", required: false },
+      requestCodeGeneration: { type: "boolean", required: false },
+    });
+    
+    const { aiNodeId, aiNodeType, aiNodeName, message, conversationHistory, requestCodeGeneration } = body;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
@@ -184,13 +205,14 @@ Antworte mit Expertise, Präzision und praktischer Anwendbarkeit.`,
           }
           controller.close();
           
-          // Speichere in Lernhistorie (async, ohne await)
-          supabase.from('ai_learning_history').insert({
+          // Speichere in Lernhistorie mit user_id
+          securityContext.supabase.from('ai_learning_history').insert({
+            user_id: securityContext.user.id,
             ai_node_id: aiNodeId,
             ai_node_type: aiNodeType,
             prompt: message,
             response: fullResponse.join(''),
-            success_score: 0.0, // Wird später durch User-Feedback aktualisiert
+            success_score: 0.0,
             context: { conversationHistory, timestamp: new Date().toISOString() }
           }).then(() => console.log('Learning history saved'));
           
@@ -205,13 +227,6 @@ Antworte mit Expertise, Präzision und praktischer Anwendbarkeit.`,
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (error) {
-    console.error("Hierarchical AI Error:", error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unbekannter Fehler" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return handleSecurityError(error);
   }
 });

@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Send, Bot, User, Trash2, Copy, Check, Code, Lightbulb } from "lucide-react";
+import { Send, Bot, User, Trash2, Copy, Check, Code, Lightbulb, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useChat } from "@/hooks/useChat";
 import SelfImprovementPanel from "./SelfImprovementPanel";
@@ -11,6 +11,7 @@ import { VoiceInput } from "./VoiceInput";
 import { PromptTemplates } from "./PromptTemplates";
 import { ExportPanel } from "./ExportPanel";
 import { supabase } from "@/integrations/supabase/client";
+import { chatMessageSchema, validateInput } from "@/lib/security-validator";
 
 interface ChatInterfaceProps {
   activeAIs: string[];
@@ -23,6 +24,7 @@ const ChatInterface = ({ activeAIs, multiSelectMode }: ChatInterfaceProps) => {
   const [codeSnippets, setCodeSnippets] = useState<any[]>([]);
   const [smartSuggestions, setSmartSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { messages, isLoading, sendMessage, clearChat, setMessages } = useChat({ activeAIs, multiSelectMode });
@@ -121,7 +123,27 @@ const ChatInterface = ({ activeAIs, multiSelectMode }: ChatInterfaceProps) => {
   }, [activeAIs, multiSelectMode]);
 
   const handleSend = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || isValidating) return;
+    
+    // 🛡️ Security: Validiere Input vor dem Senden
+    setIsValidating(true);
+    const validation = validateInput(chatMessageSchema, {
+      content: input,
+      aiNodeId: activeAIs[0],
+    });
+    
+    setIsValidating(false);
+    
+    if (!validation.success) {
+      const errorMsg = 'errors' in validation ? validation.errors[0] : "Ungültige Eingabe";
+      toast({
+        title: "❌ Ungültige Eingabe",
+        description: errorMsg,
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setShowSuggestions(false);
     await sendMessage(input);
     setInput("");
@@ -309,11 +331,15 @@ const ChatInterface = ({ activeAIs, multiSelectMode }: ChatInterfaceProps) => {
           <VoiceInput onTranscription={(text) => setInput(text)} />
           <Button
             onClick={handleSend}
-            disabled={isLoading || !input.trim()}
+            disabled={isLoading || isValidating || !input.trim()}
             size="icon"
             className="gradient-primary hover:scale-105 transition-transform shadow-lg glow-primary disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Send className="w-4 h-4" />
+            {isValidating ? (
+              <Shield className="w-4 h-4 animate-pulse" />
+            ) : (
+              <Send className="w-4 h-4" />
+            )}
           </Button>
         </div>
       </div>
