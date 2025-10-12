@@ -24,8 +24,17 @@ export const ImageGenerator = () => {
 
     setIsGenerating(true);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error("Nicht angemeldet");
+      }
+
       const { data, error } = await supabase.functions.invoke("generate-image", {
         body: { prompt, aiNodeId: "image-generator" },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
       });
 
       if (error) throw error;
@@ -39,7 +48,7 @@ export const ImageGenerator = () => {
       console.error("Error generating image:", error);
       toast({
         title: "Fehler",
-        description: "Bildgenerierung fehlgeschlagen",
+        description: error instanceof Error ? error.message : "Bildgenerierung fehlgeschlagen",
         variant: "destructive",
       });
     } finally {

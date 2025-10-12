@@ -107,6 +107,20 @@ const Index = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <Button 
+                variant="outline" 
+                onClick={() => navigate("/evolution")}
+                className="hover-lift"
+              >
+                🧬 Evolution
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => navigate("/swarm")}
+                className="hover-lift"
+              >
+                🐝 Swarm
+              </Button>
               <ThemeToggle />
               <StatsPanel />
               <Button variant="outline" size="icon" onClick={signOut} title="Abmelden">
@@ -119,49 +133,25 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 relative z-10">
-        <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-12 mb-6 glass-card p-2 h-auto">
+        <Tabs defaultValue="dashboard" className="w-full">
+          <TabsList className="grid w-full grid-cols-6 mb-6 glass-card p-2 h-auto gap-1">
             <TabsTrigger 
-              value="overview" 
+              value="dashboard" 
               className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
             >
-              Übersicht
+              Dashboard
             </TabsTrigger>
             <TabsTrigger 
-              value="chat" 
+              value="ai-chat" 
               className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
             >
-              Chat & AI
+              AI Chat
             </TabsTrigger>
             <TabsTrigger 
-              value="fusion" 
+              value="creation" 
               className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
             >
-              Fusion Chat
-            </TabsTrigger>
-            <TabsTrigger 
-              value="grid" 
-              className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
-            >
-              KI-Grid
-            </TabsTrigger>
-            <TabsTrigger 
-              value="enhanced" 
-              className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
-            >
-              Enhanced AI
-            </TabsTrigger>
-            <TabsTrigger 
-              value="image" 
-              className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
-            >
-              Bilder
-            </TabsTrigger>
-            <TabsTrigger 
-              value="video" 
-              className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
-            >
-              Videos
+              Kreativ Tools
             </TabsTrigger>
             <TabsTrigger 
               value="analytics" 
@@ -170,116 +160,161 @@ const Index = () => {
               Analytics
             </TabsTrigger>
             <TabsTrigger 
-              value="voice" 
-              className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
-            >
-              Voice Agent
-            </TabsTrigger>
-            <TabsTrigger 
-              value="workflows" 
+              value="automation" 
               className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
             >
               <Workflow className="h-4 w-4 mr-1" />
-              Workflows
+              Automation
             </TabsTrigger>
             <TabsTrigger 
-              value="achievements" 
-              className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
-            >
-              <Trophy className="h-4 w-4 mr-1" />
-              Erfolge
-            </TabsTrigger>
-            <TabsTrigger 
-              value="theme" 
+              value="settings" 
               className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
             >
               <Palette className="h-4 w-4 mr-1" />
-              Theme
+              Einstellungen
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+          {/* Dashboard - Hauptübersicht */}
+          <TabsContent value="dashboard" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
             <div className="space-y-6">
-              {/* System Dashboard */}
               <SystemDashboard />
-
-              {/* Main Control and Activity */}
+              
               <div className="grid lg:grid-cols-2 gap-6">
                 <AIOrchestrationControl />
                 <RealTimeActivityFeed />
               </div>
 
-              {/* Performance Metrics */}
               <AIPerformanceMetrics />
 
-              {/* AI Capabilities Grid */}
               <div className="glass-card p-6 rounded-xl">
                 <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                   KI-Capabilities Übersicht
                 </h2>
                 <p className="text-muted-foreground mb-6">
-                  Vollständiges Multi-Agent-System mit hierarchischer Orchestrierung und adaptiver Entscheidungsfindung
+                  Vollständiges Multi-Agent-System mit hierarchischer Orchestrierung
                 </p>
                 <AICapabilitiesGrid />
               </div>
             </div>
           </TabsContent>
 
-          <TabsContent value="chat" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-              <AIHierarchyDashboard 
-                onSelectAI={handleSelectAI} 
-                activeAIs={activeAIs}
-                onToggleMultiSelect={handleToggleMultiSelect}
-                multiSelectMode={multiSelectMode}
-              />
-              <ChatInterface activeAIs={activeAIs} multiSelectMode={multiSelectMode} />
-            </div>
+          {/* AI Chat - Alle Chat-Features */}
+          <TabsContent value="ai-chat" className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            <Tabs defaultValue="standard" className="w-full">
+              <TabsList className="glass-card mb-4">
+                <TabsTrigger value="standard">Standard Chat</TabsTrigger>
+                <TabsTrigger value="fusion">Fusion Chat</TabsTrigger>
+                <TabsTrigger value="grid">KI-Grid</TabsTrigger>
+                <TabsTrigger value="enhanced">Enhanced AI</TabsTrigger>
+                <TabsTrigger value="voice">Voice Agent</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="standard">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <AIHierarchyDashboard 
+                    onSelectAI={handleSelectAI} 
+                    activeAIs={activeAIs}
+                    onToggleMultiSelect={handleToggleMultiSelect}
+                    multiSelectMode={multiSelectMode}
+                  />
+                  <ChatInterface activeAIs={activeAIs} multiSelectMode={multiSelectMode} />
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="fusion">
+                <FusionChat />
+              </TabsContent>
+              
+              <TabsContent value="grid">
+                <AIGridSystem />
+              </TabsContent>
+              
+              <TabsContent value="enhanced">
+                <EnhancedAIPanel />
+              </TabsContent>
+              
+              <TabsContent value="voice">
+                <VoiceAgent />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
-          <TabsContent value="fusion" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
-            <FusionChat />
-          </TabsContent>
-
-          <TabsContent value="grid" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
-            <AIGridSystem />
-          </TabsContent>
-
-          <TabsContent value="enhanced" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
-            <EnhancedAIPanel />
-          </TabsContent>
-
-          <TabsContent value="image">
-            <ImageGenerator />
-          </TabsContent>
-
-          <TabsContent value="video">
-            <VideoGenerator />
-          </TabsContent>
-
-          <TabsContent value="analytics">
-            <AdvancedAnalytics />
-          </TabsContent>
-
-          <TabsContent value="voice">
-            <VoiceAgent />
-          </TabsContent>
-
-          <TabsContent value="workflows" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <WorkflowBuilder />
-              <div className="space-y-6">
-                <AchievementSystem />
+          {/* Creation - Bild & Video Generierung */}
+          <TabsContent value="creation" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            <div className="grid gap-6">
+              <div className="glass-card p-6 rounded-xl">
+                <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  🎨 Kreativ-Tools
+                </h2>
+                <p className="text-muted-foreground mb-8">
+                  Generiere Bilder und Videos mit fortschrittlicher KI
+                </p>
+                
+                <div className="grid lg:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-10 h-10 rounded-lg gradient-primary flex items-center justify-center">
+                        <span className="text-2xl">🖼️</span>
+                      </div>
+                      <h3 className="text-xl font-semibold">Bildgenerierung</h3>
+                    </div>
+                    <ImageGenerator />
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-10 h-10 rounded-lg gradient-accent flex items-center justify-center">
+                        <span className="text-2xl">🎬</span>
+                      </div>
+                      <h3 className="text-xl font-semibold">Videogenerierung</h3>
+                    </div>
+                    <VideoGenerator />
+                  </div>
+                </div>
               </div>
             </div>
           </TabsContent>
 
-          <TabsContent value="achievements" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
-            <AchievementSystem />
+          {/* Analytics */}
+          <TabsContent value="analytics" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            <AdvancedAnalytics />
           </TabsContent>
 
-          <TabsContent value="theme" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
-            <ThemeCustomizer />
+          {/* Automation - Workflows & Achievements */}
+          <TabsContent value="automation" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="space-y-6">
+                <div className="glass-card p-6 rounded-xl">
+                  <div className="flex items-center gap-2 mb-6">
+                    <Workflow className="h-6 w-6 text-primary" />
+                    <h2 className="text-2xl font-bold">Workflows</h2>
+                  </div>
+                  <WorkflowBuilder />
+                </div>
+              </div>
+              
+              <div className="space-y-6">
+                <div className="glass-card p-6 rounded-xl">
+                  <div className="flex items-center gap-2 mb-6">
+                    <Trophy className="h-6 w-6 text-accent" />
+                    <h2 className="text-2xl font-bold">Erfolge</h2>
+                  </div>
+                  <AchievementSystem />
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Settings - Theme */}
+          <TabsContent value="settings" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            <div className="glass-card p-6 rounded-xl">
+              <div className="flex items-center gap-2 mb-6">
+                <Palette className="h-6 w-6 text-primary" />
+                <h2 className="text-2xl font-bold">Theme Einstellungen</h2>
+              </div>
+              <ThemeCustomizer />
+            </div>
           </TabsContent>
         </Tabs>
       </main>

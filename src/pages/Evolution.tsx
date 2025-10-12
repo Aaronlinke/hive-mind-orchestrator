@@ -77,122 +77,152 @@ export default function Evolution() {
     : 0;
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-            🧬 PROJECT GENESIS
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Das erste selbst-evolvierende Multi-Agent-KI-System
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={handleAnalyze} disabled={isLoading} variant="outline">
-            <Activity className="w-4 h-4 mr-2" />
-            Analysieren
-          </Button>
-          <Button onClick={handleReflect} disabled={isLoading} variant="outline">
-            <Brain className="w-4 h-4 mr-2" />
-            Reflektieren
-          </Button>
-          <Button onClick={handleEvolve} disabled={isLoading}>
-            <Sparkles className="w-4 h-4 mr-2" />
-            Evolution starten
-          </Button>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background-deep to-background">
+      {/* Animated background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-float" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/2 right-1/3 w-96 h-96 bg-secondary/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '4s' }} />
       </div>
 
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Aktuelle Generation</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{maxGeneration}</div>
-            <Progress value={(maxGeneration / 100) * 100} className="mt-2" />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Aktive Agenten</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{agents.length}</div>
-            <p className="text-xs text-muted-foreground mt-2">
-              Ø Fitness: {(avgFitness * 100).toFixed(1)}%
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Mutationen</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{history.length}</div>
-            <p className="text-xs text-muted-foreground mt-2">
-              Evolution-Events
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">System-Stimmung</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {consciousness ? (
-              <div className="flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-full ${getMoodColor(consciousness.mood)}`} />
-                <span className="text-lg font-semibold capitalize">{consciousness.mood}</span>
-              </div>
-            ) : (
-              <span className="text-muted-foreground">Keine Daten</span>
-            )}
-            {consciousness && (
-              <p className="text-xs text-muted-foreground mt-2">
-                Konfidenz: {(consciousness.confidence_level * 100).toFixed(0)}%
+      <div className="container mx-auto py-8 space-y-8 relative z-10">
+        {/* Header */}
+        <Card className="glass-card border-2 border-primary/20 p-8 animate-in slide-in-from-top duration-1000">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-5xl font-bold mb-3 bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent animate-pulse-glow">
+                🧬 PROJECT GENESIS
+              </h1>
+              <p className="text-lg text-muted-foreground">
+                Das erste selbst-evolvierende Multi-Agent-KI-System • <span className="text-primary font-semibold">Generation {maxGeneration}</span>
               </p>
-            )}
-          </CardContent>
+            </div>
+            <div className="flex gap-3">
+              <Button onClick={handleAnalyze} disabled={isLoading} variant="outline" className="hover-lift">
+                <Activity className="w-4 h-4 mr-2" />
+                Analysieren
+              </Button>
+              <Button onClick={handleReflect} disabled={isLoading} variant="secondary" className="hover-lift">
+                <Brain className="w-4 h-4 mr-2" />
+                Reflektieren
+              </Button>
+              <Button onClick={handleEvolve} disabled={isLoading} className="gradient-primary hover-lift shadow-lg">
+                <Sparkles className="w-4 h-4 mr-2" />
+                Evolution starten
+              </Button>
+            </div>
+          </div>
         </Card>
-      </div>
 
-      {/* Main Content */}
-      <Tabs defaultValue="consciousness" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="consciousness">
-            <Brain className="w-4 h-4 mr-2" />
-            Bewusstsein
-          </TabsTrigger>
-          <TabsTrigger value="agents">
-            <Zap className="w-4 h-4 mr-2" />
-            Agenten-DNA
-          </TabsTrigger>
-          <TabsTrigger value="history">
-            <History className="w-4 h-4 mr-2" />
-            Evolution-Historie
-          </TabsTrigger>
-        </TabsList>
+        {/* Key Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+          <Card className="glass-card hover-lift transition-all">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Aktuelle Generation</CardTitle>
+                <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center animate-pulse-glow">
+                  <span className="text-lg">🧬</span>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-4xl font-bold text-primary">{maxGeneration}</div>
+              <Progress value={Math.min((maxGeneration / 100) * 100, 100)} className="mt-3" />
+            </CardContent>
+          </Card>
 
-        <TabsContent value="consciousness" className="space-y-4">
-          {consciousness ? (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  System-Bewusstsein
-                  <Badge variant="outline" className="ml-auto">
-                    Generation {consciousness.current_generation}
-                  </Badge>
-                </CardTitle>
-                <CardDescription>
-                  Introspektive Selbstreflexion des Systems
-                </CardDescription>
-              </CardHeader>
+          <Card className="glass-card hover-lift transition-all">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Aktive Agenten</CardTitle>
+                <div className="w-8 h-8 rounded-lg gradient-accent flex items-center justify-center animate-pulse-glow">
+                  <span className="text-lg">🤖</span>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-4xl font-bold text-accent">{agents.length}</div>
+              <p className="text-sm text-muted-foreground mt-2">
+                Ø Fitness: {(avgFitness * 100).toFixed(1)}%
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="glass-card hover-lift transition-all">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Mutationen</CardTitle>
+                <div className="w-8 h-8 rounded-lg gradient-secondary flex items-center justify-center animate-pulse-glow">
+                  <span className="text-lg">⚡</span>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-4xl font-bold text-secondary">{history.length}</div>
+              <p className="text-sm text-muted-foreground mt-2">
+                Evolution-Events
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="glass-card hover-lift transition-all">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground">System-Stimmung</CardTitle>
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center animate-pulse-glow">
+                  <span className="text-lg">💭</span>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {consciousness ? (
+                <>
+                  <div className="flex items-center gap-2">
+                    <div className={`w-3 h-3 rounded-full ${getMoodColor(consciousness.mood)} animate-pulse`} />
+                    <span className="text-xl font-semibold capitalize">{consciousness.mood}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Konfidenz: {(consciousness.confidence_level * 100).toFixed(0)}%
+                  </p>
+                </>
+              ) : (
+                <span className="text-muted-foreground">Keine Daten</span>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Content */}
+        <Tabs defaultValue="consciousness" className="space-y-6">
+          <TabsList className="glass-card grid w-full grid-cols-3 p-2">
+            <TabsTrigger value="consciousness" className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300">
+              <Brain className="w-4 h-4 mr-2" />
+              Bewusstsein
+            </TabsTrigger>
+            <TabsTrigger value="agents" className="data-[state=active]:gradient-accent data-[state=active]:text-background transition-all duration-300">
+              <Zap className="w-4 h-4 mr-2" />
+              Agenten-DNA
+            </TabsTrigger>
+            <TabsTrigger value="history" className="data-[state=active]:gradient-secondary data-[state=active]:text-background transition-all duration-300">
+              <History className="w-4 h-4 mr-2" />
+              Evolution-Historie
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="consciousness" className="space-y-4 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            {consciousness ? (
+              <Card className="glass-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-2xl">
+                    💭 System-Bewusstsein
+                    <Badge variant="outline" className="ml-auto">
+                      Generation {consciousness.current_generation}
+                    </Badge>
+                  </CardTitle>
+                  <CardDescription className="text-base">
+                    Introspektive Selbstreflexion des Systems
+                  </CardDescription>
+                </CardHeader>
               <CardContent className="space-y-6">
                 {/* Reflection Text */}
                 <div className="prose prose-sm dark:prose-invert max-w-none">
@@ -256,25 +286,26 @@ export default function Evolution() {
                 )}
               </CardContent>
             </Card>
-          ) : (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <Brain className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">
-                  Noch keine Selbstreflexion vorhanden. Starte eine Reflexion, um das System-Bewusstsein zu aktivieren.
-                </p>
-                <Button onClick={handleReflect} className="mt-4" disabled={isLoading}>
-                  Erste Reflexion starten
-                </Button>
+            ) : (
+              <Card className="glass-card">
+                <CardContent className="py-16 text-center">
+                  <Brain className="w-16 h-16 mx-auto text-muted-foreground mb-4 animate-pulse" />
+                  <p className="text-muted-foreground text-lg mb-6">
+                    Noch keine Selbstreflexion vorhanden. Starte eine Reflexion, um das System-Bewusstsein zu aktivieren.
+                  </p>
+                  <Button onClick={handleReflect} className="gradient-primary hover-lift shadow-lg" disabled={isLoading}>
+                    <Brain className="w-4 h-4 mr-2" />
+                    Erste Reflexion starten
+                  </Button>
               </CardContent>
             </Card>
           )}
         </TabsContent>
 
-        <TabsContent value="agents" className="space-y-4">
-          <div className="grid gap-4">
+        <TabsContent value="agents" className="space-y-4 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+          <div className="grid gap-6">
             {agents.map((agent) => (
-              <Card key={agent.id}>
+              <Card key={agent.id} className="glass-card hover-lift transition-all">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div>
@@ -327,11 +358,11 @@ export default function Evolution() {
           </div>
         </TabsContent>
 
-        <TabsContent value="history">
-          <Card>
+        <TabsContent value="history" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+          <Card className="glass-card">
             <CardHeader>
-              <CardTitle>Evolution-Timeline</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-2xl">⏰ Evolution-Timeline</CardTitle>
+              <CardDescription className="text-base">
                 Chronologische Aufzeichnung aller Mutationen und Entwicklungen
               </CardDescription>
             </CardHeader>
@@ -361,6 +392,7 @@ export default function Evolution() {
           </Card>
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   );
 }
