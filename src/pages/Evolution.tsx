@@ -8,6 +8,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sparkles, Brain, Activity, History, Zap, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { EvolutionTree } from '@/components/EvolutionTree';
+import { LiveEvolutionFeed } from '@/components/LiveEvolutionFeed';
+import { NFTGallery } from '@/components/NFTGallery';
+import { TemporalDebugger } from '@/components/TemporalDebugger';
+import { PatternVisualization } from '@/components/PatternVisualization';
 
 export default function Evolution() {
   const {
@@ -194,18 +199,33 @@ export default function Evolution() {
 
         {/* Main Content */}
         <Tabs defaultValue="consciousness" className="space-y-6">
-          <TabsList className="glass-card grid w-full grid-cols-3 p-2">
+          <TabsList className="glass-card grid w-full grid-cols-4 lg:grid-cols-8 p-2">
             <TabsTrigger value="consciousness" className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300">
               <Brain className="w-4 h-4 mr-2" />
-              Bewusstsein
+              Consciousness
             </TabsTrigger>
             <TabsTrigger value="agents" className="data-[state=active]:gradient-accent data-[state=active]:text-background transition-all duration-300">
               <Zap className="w-4 h-4 mr-2" />
-              Agenten-DNA
+              DNA
             </TabsTrigger>
             <TabsTrigger value="history" className="data-[state=active]:gradient-secondary data-[state=active]:text-background transition-all duration-300">
               <History className="w-4 h-4 mr-2" />
-              Evolution-Historie
+              History
+            </TabsTrigger>
+            <TabsTrigger value="tree" className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300">
+              🌳 Tree
+            </TabsTrigger>
+            <TabsTrigger value="feed" className="data-[state=active]:gradient-accent data-[state=active]:text-background transition-all duration-300">
+              📡 Live Feed
+            </TabsTrigger>
+            <TabsTrigger value="nft" className="data-[state=active]:gradient-secondary data-[state=active]:text-background transition-all duration-300">
+              💎 NFTs
+            </TabsTrigger>
+            <TabsTrigger value="temporal" className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300">
+              ⏰ Time Travel
+            </TabsTrigger>
+            <TabsTrigger value="patterns" className="data-[state=active]:gradient-accent data-[state=active]:text-background transition-all duration-300">
+              🧠 Patterns
             </TabsTrigger>
           </TabsList>
 
@@ -390,6 +410,26 @@ export default function Evolution() {
               </ScrollArea>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="tree" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+          <EvolutionTree agents={agents} />
+        </TabsContent>
+
+        <TabsContent value="feed" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+          <LiveEvolutionFeed />
+        </TabsContent>
+
+        <TabsContent value="nft" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+          <NFTGallery />
+        </TabsContent>
+
+        <TabsContent value="temporal" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+          <TemporalDebugger />
+        </TabsContent>
+
+        <TabsContent value="patterns" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+          <PatternVisualization />
         </TabsContent>
       </Tabs>
       </div>

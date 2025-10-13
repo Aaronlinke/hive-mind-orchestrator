@@ -50,6 +50,42 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_collaborations: {
+        Row: {
+          agent_a: string
+          agent_b: string
+          collaboration_type: string
+          created_at: string | null
+          id: string
+          interaction_count: number | null
+          last_collaboration: string | null
+          success_rate: number | null
+          synergy_score: number | null
+        }
+        Insert: {
+          agent_a: string
+          agent_b: string
+          collaboration_type: string
+          created_at?: string | null
+          id?: string
+          interaction_count?: number | null
+          last_collaboration?: string | null
+          success_rate?: number | null
+          synergy_score?: number | null
+        }
+        Update: {
+          agent_a?: string
+          agent_b?: string
+          collaboration_type?: string
+          created_at?: string | null
+          id?: string
+          interaction_count?: number | null
+          last_collaboration?: string | null
+          success_rate?: number | null
+          synergy_score?: number | null
+        }
+        Relationships: []
+      }
       agent_dna: {
         Row: {
           agent_name: string
@@ -161,6 +197,42 @@ export type Database = {
         }
         Relationships: []
       }
+      blockchain_checkpoints: {
+        Row: {
+          block_number: number | null
+          checkpoint_data: Json
+          contract_address: string | null
+          created_at: string | null
+          generation_number: number
+          id: string
+          ipfs_hash: string | null
+          transaction_hash: string | null
+          verified: boolean | null
+        }
+        Insert: {
+          block_number?: number | null
+          checkpoint_data: Json
+          contract_address?: string | null
+          created_at?: string | null
+          generation_number: number
+          id?: string
+          ipfs_hash?: string | null
+          transaction_hash?: string | null
+          verified?: boolean | null
+        }
+        Update: {
+          block_number?: number | null
+          checkpoint_data?: Json
+          contract_address?: string | null
+          created_at?: string | null
+          generation_number?: number
+          id?: string
+          ipfs_hash?: string | null
+          transaction_hash?: string | null
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
       chat_analysis: {
         Row: {
           analysis_result: Json | null
@@ -263,6 +335,42 @@ export type Database = {
         }
         Relationships: []
       }
+      emergent_patterns: {
+        Row: {
+          confidence_score: number | null
+          contributing_agents: string[] | null
+          discovered_at: string | null
+          id: string
+          last_seen: string | null
+          occurrence_count: number | null
+          pattern_data: Json
+          pattern_name: string
+          pattern_signature: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          contributing_agents?: string[] | null
+          discovered_at?: string | null
+          id?: string
+          last_seen?: string | null
+          occurrence_count?: number | null
+          pattern_data: Json
+          pattern_name: string
+          pattern_signature: string
+        }
+        Update: {
+          confidence_score?: number | null
+          contributing_agents?: string[] | null
+          discovered_at?: string | null
+          id?: string
+          last_seen?: string | null
+          occurrence_count?: number | null
+          pattern_data?: Json
+          pattern_name?: string
+          pattern_signature?: string
+        }
+        Relationships: []
+      }
       evolution_experiments: {
         Row: {
           completed_at: string | null
@@ -305,6 +413,39 @@ export type Database = {
           status?: string | null
           success_count?: number | null
           test_runs?: number | null
+        }
+        Relationships: []
+      }
+      evolution_feed: {
+        Row: {
+          downvotes: number | null
+          event_data: Json
+          event_type: string
+          generation: number
+          id: string
+          timestamp: string | null
+          upvotes: number | null
+          visibility: string | null
+        }
+        Insert: {
+          downvotes?: number | null
+          event_data: Json
+          event_type: string
+          generation: number
+          id?: string
+          timestamp?: string | null
+          upvotes?: number | null
+          visibility?: string | null
+        }
+        Update: {
+          downvotes?: number | null
+          event_data?: Json
+          event_type?: string
+          generation?: number
+          id?: string
+          timestamp?: string | null
+          upvotes?: number | null
+          visibility?: string | null
         }
         Relationships: []
       }
@@ -455,6 +596,45 @@ export type Database = {
         }
         Relationships: []
       }
+      nft_milestones: {
+        Row: {
+          created_at: string | null
+          generation: number
+          id: string
+          image_url: string | null
+          milestone_type: string
+          minted_at: string | null
+          nft_metadata: Json
+          opensea_url: string | null
+          owner_address: string | null
+          token_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          generation: number
+          id?: string
+          image_url?: string | null
+          milestone_type: string
+          minted_at?: string | null
+          nft_metadata: Json
+          opensea_url?: string | null
+          owner_address?: string | null
+          token_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          generation?: number
+          id?: string
+          image_url?: string | null
+          milestone_type?: string
+          minted_at?: string | null
+          nft_metadata?: Json
+          opensea_url?: string | null
+          owner_address?: string | null
+          token_id?: string | null
+        }
+        Relationships: []
+      }
       optimized_prompts: {
         Row: {
           ai_node_type: string
@@ -569,6 +749,36 @@ export type Database = {
           reflection_text?: string | null
           self_assessment?: Json
           timestamp?: string | null
+        }
+        Relationships: []
+      }
+      temporal_snapshots: {
+        Row: {
+          agent_states: Json
+          consciousness_state: Json | null
+          created_by: string | null
+          generation: number
+          id: string
+          snapshot_time: string
+          system_state: Json
+        }
+        Insert: {
+          agent_states: Json
+          consciousness_state?: Json | null
+          created_by?: string | null
+          generation: number
+          id?: string
+          snapshot_time?: string
+          system_state: Json
+        }
+        Update: {
+          agent_states?: Json
+          consciousness_state?: Json | null
+          created_by?: string | null
+          generation?: number
+          id?: string
+          snapshot_time?: string
+          system_state?: Json
         }
         Relationships: []
       }
