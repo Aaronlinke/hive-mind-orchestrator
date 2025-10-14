@@ -189,16 +189,17 @@ const Index = () => {
 
           {/* Master Orchestrator - Übergeordnete KI */}
           <TabsContent value="master" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
-            <div className="space-y-6">
-              <div className="glass-card p-6 rounded-xl border-accent/30 shadow-2xl">
-                <div className="mb-6">
-                  <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-accent via-primary to-secondary bg-clip-text text-transparent flex items-center gap-3">
-                    <Crown className="h-8 w-8 text-accent" />
-                    Master Orchestrator
+            <div className="space-y-3 md:space-y-6">
+              <div className="glass-card p-3 md:p-6 rounded-xl border-accent/30 shadow-2xl">
+                <div className="mb-3 md:mb-6">
+                  <h2 className="text-xl md:text-3xl font-bold mb-2 bg-gradient-to-r from-accent via-primary to-secondary bg-clip-text text-transparent flex items-center gap-2 md:gap-3">
+                    <Crown className="h-5 w-5 md:h-8 md:w-8 text-accent flex-shrink-0" />
+                    <span>Master AI</span>
                   </h2>
-                  <p className="text-muted-foreground">
-                    Orchestriert alle 7 KI-Spezialisten (Semantik, Decision, Resource, Knowledge, Web, Visual, Skill) 
-                    + Collective Intelligence + Evolutionäres System für vollständige Komplettlösungen.
+                  <p className="text-xs md:text-base text-muted-foreground">
+                    <span className="hidden md:inline">Orchestriert alle 7 KI-Spezialisten (Semantik, Decision, Resource, Knowledge, Web, Visual, Skill) 
+                    + Collective Intelligence + Evolutionäres System für vollständige Komplettlösungen.</span>
+                    <span className="md:hidden">7 KI-Spezialisten + Collective Intelligence</span>
                   </p>
                 </div>
                 <MasterOrchestratorChat />
@@ -208,22 +209,22 @@ const Index = () => {
 
           {/* Dashboard - Hauptübersicht */}
           <TabsContent value="dashboard" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
-            <div className="space-y-6">
+            <div className="space-y-3 md:space-y-6">
               <SystemDashboard />
               
-              <div className="grid lg:grid-cols-2 gap-6">
+              <div className="grid lg:grid-cols-2 gap-3 md:gap-6">
                 <AIOrchestrationControl />
                 <RealTimeActivityFeed />
               </div>
 
               <AIPerformanceMetrics />
 
-              <div className="glass-card p-6 rounded-xl">
-                <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <div className="glass-card p-3 md:p-6 rounded-xl">
+                <h2 className="text-lg md:text-2xl font-bold mb-1 md:mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                   KI-Capabilities Übersicht
                 </h2>
-                <p className="text-muted-foreground mb-6">
-                  Vollständiges Multi-Agent-System mit hierarchischer Orchestrierung
+                <p className="text-xs md:text-base text-muted-foreground mb-3 md:mb-6">
+                  Multi-Agent-System mit hierarchischer Orchestrierung
                 </p>
                 <AICapabilitiesGrid />
               </div>
@@ -231,18 +232,18 @@ const Index = () => {
           </TabsContent>
 
           {/* AI Chat - Alle Chat-Features */}
-          <TabsContent value="ai-chat" className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+          <TabsContent value="ai-chat" className="space-y-3 md:space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-1000">
             <Tabs defaultValue="standard" className="w-full">
-              <TabsList className="glass-card mb-4">
-                <TabsTrigger value="standard">Standard Chat</TabsTrigger>
-                <TabsTrigger value="fusion">Fusion Chat</TabsTrigger>
-                <TabsTrigger value="grid">KI-Grid</TabsTrigger>
-                <TabsTrigger value="enhanced">Enhanced AI</TabsTrigger>
-                <TabsTrigger value="voice">Voice Agent</TabsTrigger>
+              <TabsList className="glass-card mb-3 md:mb-4 grid grid-cols-3 md:grid-cols-5 text-xs md:text-sm h-auto p-1">
+                <TabsTrigger value="standard" className="h-8 md:h-10">Standard</TabsTrigger>
+                <TabsTrigger value="fusion" className="h-8 md:h-10">Fusion</TabsTrigger>
+                <TabsTrigger value="grid" className="h-8 md:h-10 hidden md:flex">Grid</TabsTrigger>
+                <TabsTrigger value="enhanced" className="h-8 md:h-10">Enhanced</TabsTrigger>
+                <TabsTrigger value="voice" className="h-8 md:h-10 hidden md:flex">Voice</TabsTrigger>
               </TabsList>
               
               <TabsContent value="standard">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6">
                   <AIHierarchyDashboard 
                     onSelectAI={handleSelectAI} 
                     activeAIs={activeAIs}
@@ -273,32 +274,32 @@ const Index = () => {
 
           {/* Creation - Bild & Video Generierung */}
           <TabsContent value="creation" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
-            <div className="grid gap-6">
-              <div className="glass-card p-6 rounded-xl">
-                <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            <div className="grid gap-3 md:gap-6">
+              <div className="glass-card p-3 md:p-6 rounded-xl">
+                <h2 className="text-xl md:text-3xl font-bold mb-1 md:mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                   🎨 Kreativ-Tools
                 </h2>
-                <p className="text-muted-foreground mb-8">
-                  Generiere Bilder und Videos mit fortschrittlicher KI
+                <p className="text-xs md:text-base text-muted-foreground mb-4 md:mb-8">
+                  Generiere Bilder und Videos mit KI
                 </p>
                 
-                <div className="grid lg:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="w-10 h-10 rounded-lg gradient-primary flex items-center justify-center">
-                        <span className="text-2xl">🖼️</span>
+                <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
+                  <div className="space-y-3 md:space-y-4">
+                    <div className="flex items-center gap-2 mb-3 md:mb-4">
+                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg gradient-primary flex items-center justify-center flex-shrink-0">
+                        <span className="text-lg md:text-2xl">🖼️</span>
                       </div>
-                      <h3 className="text-xl font-semibold">Bildgenerierung</h3>
+                      <h3 className="text-base md:text-xl font-semibold">Bildgenerierung</h3>
                     </div>
                     <ImageGenerator />
                   </div>
                   
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="w-10 h-10 rounded-lg gradient-accent flex items-center justify-center">
-                        <span className="text-2xl">🎬</span>
+                  <div className="space-y-3 md:space-y-4">
+                    <div className="flex items-center gap-2 mb-3 md:mb-4">
+                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg gradient-accent flex items-center justify-center flex-shrink-0">
+                        <span className="text-lg md:text-2xl">🎬</span>
                       </div>
-                      <h3 className="text-xl font-semibold">Videogenerierung</h3>
+                      <h3 className="text-base md:text-xl font-semibold">Videogenerierung</h3>
                     </div>
                     <VideoGenerator />
                   </div>
@@ -314,22 +315,22 @@ const Index = () => {
 
           {/* Automation - Workflows & Achievements */}
           <TabsContent value="automation" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="space-y-6">
-                <div className="glass-card p-6 rounded-xl">
-                  <div className="flex items-center gap-2 mb-6">
-                    <Workflow className="h-6 w-6 text-primary" />
-                    <h2 className="text-2xl font-bold">Workflows</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6">
+              <div className="space-y-3 md:space-y-6">
+                <div className="glass-card p-3 md:p-6 rounded-xl">
+                  <div className="flex items-center gap-2 mb-3 md:mb-6">
+                    <Workflow className="h-4 w-4 md:h-6 md:w-6 text-primary" />
+                    <h2 className="text-lg md:text-2xl font-bold">Workflows</h2>
                   </div>
                   <WorkflowBuilder />
                 </div>
               </div>
               
-              <div className="space-y-6">
-                <div className="glass-card p-6 rounded-xl">
-                  <div className="flex items-center gap-2 mb-6">
-                    <Trophy className="h-6 w-6 text-accent" />
-                    <h2 className="text-2xl font-bold">Erfolge</h2>
+              <div className="space-y-3 md:space-y-6">
+                <div className="glass-card p-3 md:p-6 rounded-xl">
+                  <div className="flex items-center gap-2 mb-3 md:mb-6">
+                    <Trophy className="h-4 w-4 md:h-6 md:w-6 text-accent" />
+                    <h2 className="text-lg md:text-2xl font-bold">Erfolge</h2>
                   </div>
                   <AchievementSystem />
                 </div>
@@ -339,10 +340,10 @@ const Index = () => {
 
           {/* Settings - Theme */}
           <TabsContent value="settings" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
-            <div className="glass-card p-6 rounded-xl">
-              <div className="flex items-center gap-2 mb-6">
-                <Palette className="h-6 w-6 text-primary" />
-                <h2 className="text-2xl font-bold">Theme Einstellungen</h2>
+            <div className="glass-card p-3 md:p-6 rounded-xl">
+              <div className="flex items-center gap-2 mb-3 md:mb-6">
+                <Palette className="h-4 w-4 md:h-6 md:w-6 text-primary" />
+                <h2 className="text-lg md:text-2xl font-bold">Theme Einstellungen</h2>
               </div>
               <ThemeCustomizer />
             </div>
