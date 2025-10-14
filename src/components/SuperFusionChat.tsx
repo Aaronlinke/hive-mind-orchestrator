@@ -14,6 +14,8 @@ interface Message {
   content: string;
   timestamp: Date;
   imageUrl?: string;
+  videoPredictionId?: string;
+  videoUrl?: string;
   metadata?: {
     activeSystems?: number;
     totalSystems?: number;
@@ -22,6 +24,7 @@ interface Message {
     ssf_active?: boolean;
     core_directive?: string;
     imageGenerated?: boolean;
+    videoGenerated?: boolean;
   };
 }
 
@@ -140,14 +143,25 @@ export const SuperFusionChat = () => {
         content: data.message || "Keine Antwort erhalten.",
         timestamp: new Date(),
         imageUrl: data.imageUrl,
+        videoPredictionId: data.videoPredictionId,
         metadata: data.metadata,
       };
+      
+      // Falls ein Video generiert wird, starte Polling
+      if (data.videoPredictionId) {
+        pollVideoStatus(data.videoPredictionId, assistantMessage.id);
+      }
 
       setMessages((prev) => [...prev, assistantMessage]);
 
+      const mediaStatus = [];
+      if (data.metadata?.imageGenerated) mediaStatus.push('🎨 Bild generiert');
+      if (data.metadata?.videoGenerated) mediaStatus.push('🎬 Video wird generiert...');
+      const mediaText = mediaStatus.length > 0 ? ' · ' + mediaStatus.join(' · ') : '';
+      
       toast({
         title: "🧬 Sentient Symbiotic Fabric",
-        description: `${data.metadata?.activeSystems}/${data.metadata?.totalSystems} Systeme · ${data.metadata?.swarmMemories} Memories · ${data.metadata?.collectiveConsensus?.toFixed(1)}% Konsens · SSF ${data.metadata?.ssf_active ? 'AKTIV' : 'INAKTIV'}${data.metadata?.imageGenerated ? ' · 🎨 Bild generiert' : ''}`,
+        description: `${data.metadata?.activeSystems}/${data.metadata?.totalSystems} Systeme · ${data.metadata?.swarmMemories} Memories · ${data.metadata?.collectiveConsensus?.toFixed(1)}% Konsens · SSF ${data.metadata?.ssf_active ? 'AKTIV' : 'INAKTIV'}${mediaText}`,
       });
     } catch (error) {
       console.error("SSF error:", error);
@@ -184,6 +198,52 @@ export const SuperFusionChat = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const pollVideoStatus = async (predictionId: string, messageId: string) => {
+    const maxAttempts = 60;
+    let attempts = 0;
+
+    const checkStatus = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("generate-video", {
+          body: { predictionId },
+        });
+
+        if (error) throw error;
+
+        if (data.status === "succeeded" && data.output) {
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === messageId
+                ? { ...msg, videoUrl: data.output }
+                : msg
+            )
+          );
+          toast({
+            title: "🎬 Video fertig!",
+            description: "Dein Video wurde erfolgreich generiert.",
+          });
+          return;
+        } else if (data.status === "failed") {
+          toast({
+            title: "Video-Fehler",
+            description: "Video-Generierung fehlgeschlagen.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(checkStatus, 5000);
+        }
+      } catch (error) {
+        console.error("Video polling error:", error);
+      }
+    };
+
+    checkStatus();
   };
 
   const clearChat = () => {
@@ -385,6 +445,28 @@ export const SuperFusionChat = () => {
                             <img 
                               src={message.imageUrl} 
                               alt="Generiertes Bild von SSF" 
+                              className="rounded-lg max-w-full h-auto shadow-lg border border-primary/20"
+                            />
+                          </div>
+                        )}
+                        {message.videoPredictionId && !message.videoUrl && (
+                          <div className="mt-3 p-4 glass-card rounded-lg border border-primary/20">
+                            <div className="flex items-center gap-3">
+                              <div className="animate-spin">🎬</div>
+                              <div className="text-sm">
+                                <p className="font-semibold text-primary">Video wird generiert...</p>
+                                <p className="text-xs text-muted-foreground">Dies kann 1-3 Minuten dauern</p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        {message.videoUrl && (
+                          <div className="mt-3">
+                            <video 
+                              src={message.videoUrl} 
+                              controls 
+                              autoPlay 
+                              loop
                               className="rounded-lg max-w-full h-auto shadow-lg border border-primary/20"
                             />
                           </div>
