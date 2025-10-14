@@ -18,68 +18,62 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    if (action === 'load') {
-      // Load skill module
-      const { data: existingSkill } = await supabase
-        .from('skill_modules')
-        .select('*')
-        .eq('skill_id', skillId)
-        .eq('is_active', true)
-        .single();
-
-      if (existingSkill) {
-        return new Response(
-          JSON.stringify({ message: 'Skill already loaded', skill: existingSkill }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      // Register new skill
-      const { data: newSkill } = await supabase
-        .from('skill_modules')
+    if (action === 'load' || action === 'develop') {
+      // Entwickle neue Skill
+      const { data: newSkill, error } = await supabase
+        .from('skill_development')
         .insert({
-          skill_id: skillId,
-          skill_path: skillPath,
-          is_active: true,
-          capabilities: {},
-          performance_metrics: { loadTime: Date.now() }
+          skill_name: input?.skillName || skillId,
+          skill_category: input?.category || 'general',
+          proficiency_level: 0.5,
+          usage_count: 0,
+          learning_resources: input?.learningResources || []
         })
         .select()
         .single();
 
+      if (error) {
+        console.error('Skill creation error:', error);
+      }
+
       return new Response(
-        JSON.stringify({ message: 'Skill loaded', skill: newSkill }),
+        JSON.stringify({ message: 'Skill entwickelt', skill: newSkill, success: !error }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    if (action === 'execute') {
-      // Execute skill
-      const { data: skill } = await supabase
-        .from('skill_modules')
+    if (action === 'execute' || action === 'use') {
+      // Führe Skill aus und verbessere Proficiency
+      const queryText = typeof input === 'string' ? input : (input?.query || '');
+      const category = input?.category || 'general';
+      
+      const { data: skills } = await supabase
+        .from('skill_development')
         .select('*')
-        .eq('skill_id', skillId)
-        .eq('is_active', true)
-        .single();
+        .eq('skill_category', category);
 
-      if (!skill) {
-        throw new Error(`Skill ${skillId} not found or inactive`);
+      const skill = skills?.[0];
+      
+      if (skill) {
+        // Update usage und erhöhe Proficiency
+        const newProficiency = Math.min((skill.proficiency_level || 0.5) + 0.05, 1.0);
+        
+        await supabase
+          .from('skill_development')
+          .update({
+            last_used: new Date().toISOString(),
+            usage_count: (skill.usage_count || 0) + 1,
+            proficiency_level: newProficiency
+          })
+          .eq('id', skill.id);
       }
 
-      // Execute skill logic
-      const result = await executeSkill(skill, input);
-
-      // Update usage metrics
-      await supabase
-        .from('skill_modules')
-        .update({
-          last_used: new Date().toISOString(),
-          performance_metrics: {
-            ...skill.performance_metrics,
-            totalExecutions: (skill.performance_metrics?.totalExecutions || 0) + 1
-          }
-        })
-        .eq('id', skill.id);
+      const result = {
+        executed: true,
+        skill: skill?.skill_name || 'general',
+        proficiency: skill?.proficiency_level || 0.5,
+        input
+      };
 
       return new Response(
         JSON.stringify({ result }),
@@ -89,10 +83,9 @@ serve(async (req) => {
 
     if (action === 'list') {
       const { data: skills } = await supabase
-        .from('skill_modules')
+        .from('skill_development')
         .select('*')
-        .eq('is_active', true)
-        .order('last_used', { ascending: false });
+        .order('proficiency_level', { ascending: false });
 
       return new Response(
         JSON.stringify({ skills }),
@@ -101,24 +94,38 @@ serve(async (req) => {
     }
 
     if (action === 'analyze') {
-      // Analyze skill and provide insights
-      const { data: skills } = await supabase
-        .from('skill_modules')
-        .select('*')
-        .eq('is_active', true);
+      // Analysiere Skills und liefere Erkenntnisse
+      const queryText = typeof input === 'string' ? input.toLowerCase() : (input?.query || '').toLowerCase();
+      
+      const { data: allSkills } = await supabase
+        .from('skill_development')
+        .select('*');
+
+      // Finde relevante Skills basierend auf Query
+      const relevantSkills = allSkills?.filter(s => {
+        const category = s.skill_category.toLowerCase();
+        const name = s.skill_name.toLowerCase();
+        return queryText.includes(category) || queryText.includes(name) || 
+               category.includes(queryText) || name.includes(queryText);
+      }) || [];
 
       const analysis = {
-        totalSkills: skills?.length || 0,
-        activeSkills: skills?.filter(s => s.is_active).length || 0,
-        mostUsed: skills?.sort((a, b) => 
-          (b.performance_metrics?.totalExecutions || 0) - (a.performance_metrics?.totalExecutions || 0)
-        ).slice(0, 3) || [],
-        avgExecutionTime: skills?.reduce((acc, s) => 
-          acc + (s.performance_metrics?.avgExecutionTime || 0), 0) / (skills?.length || 1)
+        totalSkills: allSkills?.length || 0,
+        relevantSkills: relevantSkills.map(s => ({
+          name: s.skill_name,
+          category: s.skill_category,
+          proficiency: s.proficiency_level,
+          usageCount: s.usage_count
+        })),
+        avgProficiency: allSkills?.reduce((acc, s) => 
+          acc + (s.proficiency_level || 0), 0) / (allSkills?.length || 1),
+        topSkills: allSkills?.sort((a, b) => 
+          (b.proficiency_level || 0) - (a.proficiency_level || 0)
+        ).slice(0, 5) || []
       };
 
       return new Response(
-        JSON.stringify({ analysis }),
+        JSON.stringify(analysis),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

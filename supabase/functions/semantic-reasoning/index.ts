@@ -18,12 +18,12 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Load semantic patterns
+    // Load semantic analysis patterns
     const { data: patterns } = await supabase
-      .from('semantic_patterns')
+      .from('semantic_analysis')
       .select('*')
-      .gte('confidence', 0.3)
-      .order('confidence', { ascending: false })
+      .gte('confidence_score', 0.3)
+      .order('confidence_score', { ascending: false })
       .limit(50);
 
     // Enhanced pattern matching with keyword extraction
@@ -36,9 +36,15 @@ serve(async (req) => {
 
     // Match against existing patterns
     for (const pattern of patterns || []) {
-      const regex = new RegExp(pattern.pattern, 'i');
-      if (regex.test(request)) {
-        implications.push(...pattern.implications);
+      const queryText = typeof request === 'string' ? request : JSON.stringify(request);
+      const patternQuery = typeof pattern.query === 'string' ? pattern.query : JSON.stringify(pattern.query);
+      
+      // Einfaches Keyword-Matching
+      const patternKeywords = patternQuery.toLowerCase().split(' ').filter((w: string) => w.length > 3);
+      const queryKeywords = queryText.toLowerCase().split(' ').filter((w: string) => w.length > 3);
+      const matchCount = patternKeywords.filter((k: string) => queryKeywords.includes(k)).length;
+      
+      if (matchCount > 0 && pattern.semantic_patterns) {
         matchedPatterns.push(pattern);
       }
     }
@@ -66,11 +72,12 @@ serve(async (req) => {
 
     // Store analysis for learning
     try {
-      await supabase.from('semantic_patterns').insert({
-        pattern: request.substring(0, 200),
-        implications: prognosis.immediateNeeds,
-        confidence: prognosis.confidence,
-        context: { prognosis, context, keywords }
+      const queryText = typeof request === 'string' ? request : JSON.stringify(request);
+      await supabase.from('semantic_analysis').insert({
+        query: queryText.substring(0, 500),
+        semantic_patterns: matchedPatterns,
+        confidence_score: prognosis.confidence,
+        context_data: { prognosis, context, keywords }
       }).select().single();
     } catch (insertError) {
       console.log("ℹ️ Pattern storage skipped:", insertError);

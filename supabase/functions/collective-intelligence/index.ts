@@ -35,17 +35,17 @@ serve(async (req) => {
       visualResult,
       skillResult,
       resourceResult,
-      webResult,
-      hierarchicalResult
+      webResult
     ] = await Promise.allSettled([
       supabaseClient.functions.invoke('semantic-reasoning', { 
         body: { request, context, history: context.history || [] }
       }),
       supabaseClient.functions.invoke('decision-engine', {
         body: { 
-          context: { request, ...context },
-          environment: { activeAgents: brainCount },
-          requestType: 'collective_analysis'
+          request,
+          systemState: context,
+          source: 'collective_intelligence',
+          history: context.history || []
         }
       }),
       supabaseClient.functions.invoke('knowledge-manager', {
@@ -61,15 +61,7 @@ serve(async (req) => {
         body: { request, requirements: context.requirements || [], priority: 'high' }
       }),
       supabaseClient.functions.invoke('web-interaction', {
-        body: { query: request, context, action: 'research' }
-      }),
-      supabaseClient.functions.invoke('hierarchical-ai', {
-        body: { 
-          request,
-          context,
-          hierarchyLevel: 'meta',
-          coordinationMode: 'collective'
-        }
+        body: { action: 'research', data: request }
       })
     ]);
 
@@ -89,7 +81,6 @@ serve(async (req) => {
     const skill = extractResult(skillResult);
     const resource = extractResult(resourceResult);
     const web = extractResult(webResult);
-    const hierarchical = extractResult(hierarchicalResult);
 
     // Collective synthesis
     const agentResults = [
@@ -99,8 +90,7 @@ serve(async (req) => {
       { name: 'Visuelle Konzepte', data: visual, confidence: 0.75 },
       { name: 'Skill-Manager', data: skill, confidence: skill?.relevantSkills?.length > 0 ? 0.8 : 0.5 },
       { name: 'Ressourcen-Orchestrierung', data: resource, confidence: resource?.allocation ? 0.9 : 0.6 },
-      { name: 'Web-Interaktion', data: web, confidence: web?.sources?.length > 0 ? 0.8 : 0.5 },
-      { name: 'Hierarchische KI', data: hierarchical, confidence: hierarchical?.confidence || 0 }
+      { name: 'Web-Interaktion', data: web, confidence: web?.sources?.length > 0 ? 0.8 : 0.5 }
     ];
 
     // Calculate collective metrics
@@ -113,16 +103,14 @@ serve(async (req) => {
       immediateNeeds: semantic?.immediateNeeds || [],
       recommendations: [
         ...(semantic?.recommendations || []),
-        ...(decision?.recommendedActions || []),
-        ...(hierarchical?.recommendations || [])
+        ...(resource?.recommendations || [])
       ].slice(0, 5),
       knowledgeBase: knowledge?.results || [],
       visualConcepts: visual?.concepts || [],
       requiredSkills: skill?.relevantSkills || [],
       resourceAllocation: resource?.allocation || {},
       externalSources: web?.sources || [],
-      decisionPath: decision?.decisionPath || [],
-      hierarchicalStructure: hierarchical?.structure || {}
+      decisionPath: decision?.reasoning || []
     };
 
     // Generate meta-analysis using collective intelligence

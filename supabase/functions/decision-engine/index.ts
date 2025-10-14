@@ -119,8 +119,13 @@ function evaluateRisk(request: any, resourceScores: any[]): number {
     risk += 0.3;
   }
 
+  // Sicherer Umgang mit undefined request
+  if (!request) {
+    return risk;
+  }
+
   const requestStr = JSON.stringify(request).toLowerCase();
-  const riskKeywords = ['delete', 'remove', 'critical', 'production'];
+  const riskKeywords = ['delete', 'remove', 'critical', 'production', 'drop', 'truncate'];
   
   for (const keyword of riskKeywords) {
     if (requestStr.includes(keyword)) {

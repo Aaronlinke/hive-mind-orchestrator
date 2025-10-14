@@ -19,111 +19,133 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     if (action === 'search') {
-      // Search knowledge base
+      // Durchsuche Wissensbasis
+      const searchText = typeof query === 'string' ? query.toLowerCase() : '';
+      const keywords = searchText.split(' ').filter((w: string) => w.length > 3);
+      
       const { data: entries } = await supabase
-        .from('knowledge_base')
+        .from('knowledge_entries')
         .select('*')
-        .or(`title.ilike.%${query}%,content.ilike.%${query}%,tags.cs.{${query}}`)
-        .order('access_count', { ascending: false })
-        .limit(10);
+        .order('relevance_score', { ascending: false })
+        .limit(20);
 
-      // Search knowledge graph
-      const { data: nodes } = await supabase
-        .from('knowledge_graph_nodes')
-        .select('*')
-        .or(`node_label.ilike.%${query}%,properties->>description.ilike.%${query}%`)
-        .limit(10);
+      // Filter und bewerte Ergebnisse basierend auf Keywords
+      const scoredResults = (entries || [])
+        .map((entry: any) => {
+          const titleMatch = keywords.filter((k: string) => 
+            entry.title.toLowerCase().includes(k)
+          ).length;
+          const contentMatch = keywords.filter((k: string) => 
+            entry.content.toLowerCase().includes(k)
+          ).length;
+          const tagMatch = keywords.filter((k: string) => 
+            (entry.tags || []).some((t: string) => t.toLowerCase().includes(k))
+          ).length;
+
+          const relevance = (titleMatch * 3 + contentMatch * 2 + tagMatch) / Math.max(keywords.length, 1);
+          return { ...entry, calculatedRelevance: relevance };
+        })
+        .filter((r: any) => r.calculatedRelevance > 0)
+        .sort((a: any, b: any) => b.calculatedRelevance - a.calculatedRelevance)
+        .slice(0, 10);
+
+      // Update access count
+      for (const result of scoredResults) {
+        await supabase
+          .from('knowledge_entries')
+          .update({ access_count: (result.access_count || 0) + 1 })
+          .eq('id', result.id);
+      }
 
       return new Response(
-        JSON.stringify({ entries, nodes }),
+        JSON.stringify({ 
+          results: scoredResults,
+          query: searchText,
+          found: scoredResults.length
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     if (action === 'add') {
-      // Add to knowledge base
-      const { data: entry } = await supabase
-        .from('knowledge_base')
+      // Füge Wissen hinzu
+      const { data: entry, error } = await supabase
+        .from('knowledge_entries')
         .insert({
-          title: knowledge.title,
-          content: knowledge.content,
+          title: knowledge.title || 'Untitled',
+          content: knowledge.content || '',
           category: knowledge.category || 'general',
           tags: knowledge.tags || [],
-          source_url: knowledge.sourceUrl,
-          metadata: knowledge.metadata || {}
+          relevance_score: 0.8,
+          access_count: 0
         })
         .select()
         .single();
 
       return new Response(
-        JSON.stringify({ entry }),
+        JSON.stringify({ 
+          success: !error, 
+          entry, 
+          message: error ? error.message : 'Wissen erfolgreich hinzugefügt' 
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    if (action === 'addNode') {
-      // Add knowledge graph node
-      const { data: node } = await supabase
-        .from('knowledge_graph_nodes')
-        .insert({
-          node_label: knowledge.label,
-          node_type: knowledge.type,
-          properties: knowledge.properties || {}
+    if (action === 'update') {
+      // Aktualisiere Wissen
+      const { data: entry, error } = await supabase
+        .from('knowledge_entries')
+        .update({
+          title: knowledge.title,
+          content: knowledge.content,
+          category: knowledge.category,
+          tags: knowledge.tags,
+          relevance_score: knowledge.relevanceScore
         })
+        .eq('id', knowledge.id)
         .select()
         .single();
 
       return new Response(
-        JSON.stringify({ node }),
+        JSON.stringify({ 
+          success: !error, 
+          entry, 
+          message: error ? error.message : 'Wissen erfolgreich aktualisiert' 
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    if (action === 'addEdge') {
-      // Add knowledge graph edge
-      const { data: edge } = await supabase
-        .from('knowledge_graph_edges')
-        .insert({
-          source_node_id: edgeData.sourceId,
-          target_node_id: edgeData.targetId,
-          relationship_type: edgeData.relationshipType,
-          properties: edgeData.properties || {}
-        })
-        .select()
-        .single();
+    if (action === 'analyze') {
+      // Analysiere Wissensbasis
+      const { data: entries } = await supabase
+        .from('knowledge_entries')
+        .select('*');
+
+      const categories = (entries || []).reduce((acc: any, e: any) => {
+        acc[e.category] = (acc[e.category] || 0) + 1;
+        return acc;
+      }, {});
+
+      const allTags = (entries || []).flatMap((e: any) => e.tags || []);
+      const tagCounts = allTags.reduce((acc: any, tag: string) => {
+        acc[tag] = (acc[tag] || 0) + 1;
+        return acc;
+      }, {});
+
+      const topTags = Object.entries(tagCounts)
+        .sort(([,a]: any, [,b]: any) => b - a)
+        .slice(0, 10);
 
       return new Response(
-        JSON.stringify({ edge }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    if (action === 'getGraph') {
-      // Get knowledge graph starting from a node
-      const { data: nodes } = await supabase
-        .from('knowledge_graph_nodes')
-        .select(`
-          *,
-          outgoing:knowledge_graph_edges!source_node_id(*),
-          incoming:knowledge_graph_edges!target_node_id(*)
-        `)
-        .eq('id', nodeId)
-        .single();
-
-      return new Response(
-        JSON.stringify({ graph: nodes }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    if (action === 'updateAccess') {
-      // Track knowledge access
-      await supabase.rpc('increment_access_count', { 
-        entry_id: knowledge.id 
-      });
-
-      return new Response(
-        JSON.stringify({ success: true }),
+        JSON.stringify({ 
+          totalEntries: entries?.length || 0,
+          categories,
+          topTags,
+          avgRelevance: (entries || []).reduce((sum: number, e: any) => 
+            sum + (e.relevance_score || 0), 0) / Math.max(entries?.length || 1, 1)
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

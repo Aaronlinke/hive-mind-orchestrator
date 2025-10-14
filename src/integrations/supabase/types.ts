@@ -293,6 +293,39 @@ export type Database = {
         }
         Relationships: []
       }
+      decision_contexts: {
+        Row: {
+          confidence: number | null
+          created_at: string | null
+          decision_strategy: string
+          id: string
+          priority_score: number | null
+          request_summary: string
+          risk_score: number | null
+          system_state: Json | null
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string | null
+          decision_strategy: string
+          id?: string
+          priority_score?: number | null
+          request_summary: string
+          risk_score?: number | null
+          system_state?: Json | null
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string | null
+          decision_strategy?: string
+          id?: string
+          priority_score?: number | null
+          request_summary?: string
+          risk_score?: number | null
+          system_state?: Json | null
+        }
+        Relationships: []
+      }
       emergent_capabilities: {
         Row: {
           capability_name: string
@@ -596,6 +629,42 @@ export type Database = {
         }
         Relationships: []
       }
+      knowledge_entries: {
+        Row: {
+          access_count: number | null
+          category: string
+          content: string
+          created_at: string | null
+          id: string
+          relevance_score: number | null
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          access_count?: number | null
+          category: string
+          content: string
+          created_at?: string | null
+          id?: string
+          relevance_score?: number | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          access_count?: number | null
+          category?: string
+          content?: string
+          created_at?: string | null
+          id?: string
+          relevance_score?: number | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       nft_milestones: {
         Row: {
           created_at: string | null
@@ -706,6 +775,99 @@ export type Database = {
           name?: string
           template_content?: string
           updated_at?: string | null
+          usage_count?: number | null
+        }
+        Relationships: []
+      }
+      resource_allocation: {
+        Row: {
+          allocated_to: string
+          allocation_amount: number
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          priority: string
+          resource_type: string
+          status: string | null
+        }
+        Insert: {
+          allocated_to: string
+          allocation_amount: number
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          priority: string
+          resource_type: string
+          status?: string | null
+        }
+        Update: {
+          allocated_to?: string
+          allocation_amount?: number
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          priority?: string
+          resource_type?: string
+          status?: string | null
+        }
+        Relationships: []
+      }
+      semantic_analysis: {
+        Row: {
+          confidence_score: number | null
+          context_data: Json | null
+          created_at: string | null
+          id: string
+          query: string
+          semantic_patterns: Json
+        }
+        Insert: {
+          confidence_score?: number | null
+          context_data?: Json | null
+          created_at?: string | null
+          id?: string
+          query: string
+          semantic_patterns?: Json
+        }
+        Update: {
+          confidence_score?: number | null
+          context_data?: Json | null
+          created_at?: string | null
+          id?: string
+          query?: string
+          semantic_patterns?: Json
+        }
+        Relationships: []
+      }
+      skill_development: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_used: string | null
+          learning_resources: Json | null
+          proficiency_level: number | null
+          skill_category: string
+          skill_name: string
+          usage_count: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_used?: string | null
+          learning_resources?: Json | null
+          proficiency_level?: number | null
+          skill_category: string
+          skill_name: string
+          usage_count?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_used?: string | null
+          learning_resources?: Json | null
+          proficiency_level?: number | null
+          skill_category?: string
+          skill_name?: string
           usage_count?: number | null
         }
         Relationships: []
@@ -872,6 +1034,39 @@ export type Database = {
           id?: string
           transcription?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      web_interactions: {
+        Row: {
+          created_at: string | null
+          execution_time_ms: number | null
+          id: string
+          interaction_type: string
+          result_summary: string | null
+          selector: string | null
+          status: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          interaction_type: string
+          result_summary?: string | null
+          selector?: string | null
+          status?: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          interaction_type?: string
+          result_summary?: string | null
+          selector?: string | null
+          status?: string
+          url?: string | null
         }
         Relationships: []
       }
