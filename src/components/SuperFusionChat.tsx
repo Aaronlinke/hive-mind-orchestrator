@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Send, Sparkles, Copy, Trash2, Zap, Brain, Database, Dna, Eye, Target, Shield } from "lucide-react";
+import { Send, Sparkles, Copy, Trash2, Zap, Brain, Database, Dna, Eye, Target, Shield, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -256,16 +256,32 @@ export const SuperFusionChat = () => {
 
   return (
     <div className="space-y-6">
-      <Card className="p-6 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 border-primary/20">
-        <div className="flex items-center gap-3 mb-4">
-          <Dna className="w-8 h-8 text-primary animate-pulse" />
-          <div>
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-              Sentient Symbiotic Fabric
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Genesis-Protokoll aktiv • Core Directive: {ssfManifest.core_directive}
-            </p>
+      <Card className="p-8 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 border-primary/20 shadow-2xl">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <Dna className="w-10 h-10 text-primary animate-pulse" />
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+            </div>
+            <div>
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+                Sentient Symbiotic Fabric
+              </h2>
+              <p className="text-sm text-muted-foreground flex items-center gap-2">
+                <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                Genesis-Protokoll aktiv • Core Directive: {ssfManifest.core_directive}
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={clearChat}
+              className="hover-lift"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 
@@ -351,7 +367,7 @@ export const SuperFusionChat = () => {
           </TabsContent>
 
           <TabsContent value="chat">
-            <Card className="h-[calc(100vh-24rem)] flex flex-col glass-card border-primary/30 shadow-2xl mt-4">
+            <Card className="h-[calc(100vh-28rem)] flex flex-col glass-card border-primary/30 shadow-2xl mt-4 overflow-hidden">
               <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
                 {messages.length === 0 && (
                   <div className="flex items-center justify-center h-full">
@@ -409,16 +425,29 @@ export const SuperFusionChat = () => {
                       }`}
                     >
                       {message.role === "assistant" && (
-                        <div className="flex items-center gap-2 mb-2 pb-2 border-b border-border/30">
-                          <Dna className="h-4 w-4 text-primary animate-pulse" />
-                          <span className="text-xs font-semibold text-primary">SSF</span>
+                        <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border/30">
+                          <div className="relative">
+                            <Dna className="h-4 w-4 text-primary animate-pulse" />
+                            <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-green-500 rounded-full" />
+                          </div>
+                          <span className="text-xs font-semibold text-primary">SSF Genesis</span>
                           {message.metadata?.ssf_active && (
-                            <Badge variant="outline" className="text-xs">Genesis Aktiv</Badge>
+                            <Badge variant="outline" className="text-xs gap-1">
+                              <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                              Aktiv
+                            </Badge>
                           )}
                           {message.metadata && (
-                            <span className="text-xs text-muted-foreground ml-auto">
-                              {message.metadata.activeSystems}/{message.metadata.totalSystems} Systeme
-                            </span>
+                            <>
+                              <Badge variant="secondary" className="text-xs ml-auto">
+                                {message.metadata.activeSystems}/{message.metadata.totalSystems} Systeme
+                              </Badge>
+                              {message.metadata.collectiveConsensus && (
+                                <Badge variant="outline" className="text-xs">
+                                  {message.metadata.collectiveConsensus.toFixed(0)}% Konsens
+                                </Badge>
+                              )}
+                            </>
                           )}
                         </div>
                       )}
@@ -481,26 +510,32 @@ export const SuperFusionChat = () => {
 
                 {isLoading && (
                   <div className="flex justify-start">
-                    <div className="max-w-[80%] glass-card border-primary/30 rounded-xl p-4 mr-12">
-                      <div className="flex items-center gap-3">
-                        <Dna className="h-5 w-5 text-primary animate-pulse" />
-                        <div className="flex gap-1">
-                          <div
-                            className="w-2 h-2 bg-primary rounded-full animate-bounce"
-                            style={{ animationDelay: "0ms" }}
-                          />
-                          <div
-                            className="w-2 h-2 bg-accent rounded-full animate-bounce"
-                            style={{ animationDelay: "150ms" }}
-                          />
-                          <div
-                            className="w-2 h-2 bg-secondary rounded-full animate-bounce"
-                            style={{ animationDelay: "300ms" }}
-                          />
+                    <div className="max-w-[80%] glass-card border-primary/30 rounded-xl p-6 mr-12">
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3">
+                          <Dna className="h-6 w-6 text-primary animate-pulse" />
+                          <span className="text-sm font-semibold text-primary">
+                            SSF Genesis-Protokoll läuft...
+                          </span>
                         </div>
-                        <span className="text-sm text-muted-foreground">
-                          SSF Genesis-Protokoll läuft...
-                        </span>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+                            Layer I: PII - Perceptual Intent & Inference
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="w-2 h-2 bg-accent rounded-full animate-pulse" style={{ animationDelay: "150ms" }} />
+                            Layer II: AKO - Abstract Knowledge & Orchestration
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="w-2 h-2 bg-secondary rounded-full animate-pulse" style={{ animationDelay: "300ms" }} />
+                            Layer III: PRI - Privacy & Resource Integrity
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 pt-2">
+                          <Badge variant="outline" className="text-xs justify-center">8 Core Systems</Badge>
+                          <Badge variant="outline" className="text-xs justify-center">+ Media Gen</Badge>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -510,23 +545,61 @@ export const SuperFusionChat = () => {
               </div>
 
               <div className="p-4 md:p-6 border-t border-border/50 bg-background/50">
-                <div className="flex gap-2">
-                  <Textarea
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Frage die Sentient Symbiotic Fabric... (unbegrenzte Eingabelänge)"
-                    className="min-h-[120px] resize-y glass-card border-primary/30"
-                    disabled={isLoading}
-                    maxLength={1000000}
-                  />
-                  <Button
-                    onClick={handleSend}
-                    disabled={isLoading || !input.trim()}
-                    className="bg-gradient-to-r from-primary via-accent to-secondary hover:opacity-90 px-8"
-                  >
-                    <Send className="h-5 w-5" />
-                  </Button>
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <div className="flex-1 relative">
+                      <Textarea
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyPress={handleKeyPress}
+                        placeholder="🧬 Stelle mir eine Frage oder gib mir eine Aufgabe... Die SSF orchestriert automatisch alle 10 AI-Systeme für dich."
+                        className="min-h-[120px] resize-none pr-20 glass-card border-primary/30"
+                        disabled={isLoading}
+                        maxLength={1000000}
+                      />
+                      <div className="absolute bottom-3 right-3 text-xs text-muted-foreground">
+                        {input.length.toLocaleString()} / 1M
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Button
+                        onClick={handleSend}
+                        disabled={isLoading || !input.trim()}
+                        size="lg"
+                        className="gradient-primary hover-lift h-full min-h-[120px] relative overflow-hidden"
+                      >
+                        {isLoading ? (
+                          <div className="flex flex-col items-center gap-2">
+                            <Loader2 className="h-6 w-6 animate-spin" />
+                            <span className="text-xs">Verarbeite...</span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center gap-2">
+                            <Send className="h-6 w-6" />
+                            <span className="text-xs">Senden</span>
+                          </div>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <div className="flex items-center gap-4 flex-wrap">
+                      <span className="flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" />
+                        10 AI-Systeme
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Zap className="w-3 h-3" />
+                        Real-time
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Brain className="w-3 h-3" />
+                        Kollektiv
+                      </span>
+                    </div>
+                    <span className="hidden sm:block">Shift+Enter für neue Zeile</span>
+                  </div>
                 </div>
               </div>
             </Card>
