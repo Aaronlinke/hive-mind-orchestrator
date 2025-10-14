@@ -71,7 +71,7 @@ export const MasterOrchestratorChat = () => {
               Master Orchestrator
             </h2>
             <p className="text-sm text-muted-foreground font-medium">
-              Übergeordnete KI · System-Optimierung · Evolution-Steuerung
+              7 KI-Spezialisten · Collective Intelligence · Evolutionäres System
             </p>
           </div>
           <Button
@@ -118,10 +118,14 @@ export const MasterOrchestratorChat = () => {
                   Willkommen beim Master Orchestrator
                 </h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  Ich bin die übergeordnete KI, die das gesamte selbstevolvierendes Multi-KI-System steuert.
-                  Ich orchestriere alle Subsysteme, erkenne Optimierungspotenzial und triggere
-                  Systemverbesserungen. Stelle mir Fragen zur System-Optimierung, Evolution oder
-                  lasse mich das System analysieren und verbessern.
+                  Ich bin die übergeordnete KI, die ALLE 7 KI-Spezialisten orchestriert:
+                  <br/>
+                  <strong>Semantik · Decision · Resource · Knowledge · Web · Visual · Skill</strong>
+                  <br/><br/>
+                  Wenn du mir eine Aufgabe gibst, konsultiere ich alle Spezialisten parallel,
+                  lasse sie "debattieren" und synthetisiere ihre Erkenntnisse zu einer
+                  vollständigen Komplettlösung. Zusätzlich nutze ich das evolutionäre System
+                  im Hintergrund (Evolution, Blockchain, Patterns, Temporal) für noch bessere Entscheidungen.
                 </p>
               </div>
               <div className="grid grid-cols-3 gap-4 pt-4">
@@ -193,7 +197,7 @@ export const MasterOrchestratorChat = () => {
                   <div className="w-2 h-2 bg-secondary rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                 </div>
                 <span className="text-sm text-muted-foreground">
-                  Analysiere System und orchestriere Subsysteme...
+                  Konsultiere 7 Spezialisten & synthetisiere Komplettlösung...
                 </span>
               </div>
             </div>

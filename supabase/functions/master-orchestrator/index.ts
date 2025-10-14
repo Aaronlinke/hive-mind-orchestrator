@@ -28,7 +28,65 @@ serve(async (req) => {
 
     const userMessage = messages[messages.length - 1].content;
 
-    // 1. Analyze system state across all subsystems
+    // 1. Konsultiere ALLE 7 KI-Spezialisten parallel
+    console.log('🧠 Consulting all 7 AI specialists...');
+    const [
+      semanticResult,
+      decisionResult,
+      resourceResult,
+      knowledgeResult,
+      webResult,
+      visualResult,
+      skillResult
+    ] = await Promise.allSettled([
+      supabase.functions.invoke('semantic-reasoning', {
+        body: { request: userMessage, context: {}, history: messages }
+      }),
+      supabase.functions.invoke('decision-engine', {
+        body: { 
+          request: userMessage,
+          systemState: {},
+          source: 'master_orchestrator',
+          history: messages 
+        }
+      }),
+      supabase.functions.invoke('resource-orchestration', {
+        body: { request: userMessage, requirements: [], priority: 'high' }
+      }),
+      supabase.functions.invoke('knowledge-manager', {
+        body: { query: userMessage, action: 'search' }
+      }),
+      supabase.functions.invoke('web-interaction', {
+        body: { query: userMessage, action: 'research' }
+      }),
+      supabase.functions.invoke('visual-concept-generator', {
+        body: { description: userMessage, type: 'analysis' }
+      }),
+      supabase.functions.invoke('skill-manager', {
+        body: { query: userMessage, action: 'analyze' }
+      })
+    ]);
+
+    const extractResult = (result: any) => {
+      if (result.status === 'fulfilled') {
+        return result.value.data || result.value;
+      }
+      return null;
+    };
+
+    const specialistResults = {
+      semantic: extractResult(semanticResult),
+      decision: extractResult(decisionResult),
+      resource: extractResult(resourceResult),
+      knowledge: extractResult(knowledgeResult),
+      web: extractResult(webResult),
+      visual: extractResult(visualResult),
+      skill: extractResult(skillResult)
+    };
+
+    console.log('✅ All specialists consulted:', Object.keys(specialistResults));
+
+    // 2. Analyze system state across all subsystems
     console.log('📊 Analyzing system state...');
     const [evolutionState, blockchainState, patternsState, temporalState] = await Promise.allSettled([
       supabase.from('evolution_history').select('*').order('created_at', { ascending: false }).limit(5),
@@ -37,12 +95,13 @@ serve(async (req) => {
       supabase.from('temporal_snapshots').select('*').order('snapshot_time', { ascending: false }).limit(3),
     ]);
 
-    // 2. Invoke collective intelligence for deep analysis
-    console.log('🧠 Consulting collective intelligence...');
+    // 3. Invoke collective intelligence for meta-analysis
+    console.log('🧠 Consulting collective intelligence for meta-synthesis...');
     const collectiveResult = await supabase.functions.invoke('collective-intelligence', {
       body: {
         request: userMessage,
         context: {
+          specialistResults,
           evolutionState: evolutionState.status === 'fulfilled' ? evolutionState.value.data : [],
           blockchainState: blockchainState.status === 'fulfilled' ? blockchainState.value.data : [],
           patternsState: patternsState.status === 'fulfilled' ? patternsState.value.data : [],
@@ -52,11 +111,51 @@ serve(async (req) => {
       }
     });
 
-    // 3. Check if system optimization is needed
     const collectiveInsights = collectiveResult.data?.collectiveInsights || {};
     console.log('🔍 Collective insights:', Object.keys(collectiveInsights));
 
-    // 4. Determine if evolution should be triggered
+    // 4. Lass die KIs "debattieren" - sammle alle Perspektiven
+    const debate = {
+      semantic: {
+        perspective: "Semantische Analyse",
+        insights: specialistResults.semantic?.immediateNeeds || [],
+        confidence: specialistResults.semantic?.confidence || 0
+      },
+      decision: {
+        perspective: "Strategische Entscheidung",
+        insights: specialistResults.decision?.reasoning || [],
+        confidence: specialistResults.decision?.confidence || 0
+      },
+      resource: {
+        perspective: "Ressourcen-Planung",
+        insights: specialistResults.resource?.recommendations || [],
+        confidence: specialistResults.resource?.feasibility || 0
+      },
+      knowledge: {
+        perspective: "Wissensmanagement",
+        insights: specialistResults.knowledge?.results || [],
+        confidence: specialistResults.knowledge?.results?.length > 0 ? 0.85 : 0.4
+      },
+      web: {
+        perspective: "Web-Research",
+        insights: specialistResults.web?.sources || [],
+        confidence: specialistResults.web?.sources?.length > 0 ? 0.8 : 0.5
+      },
+      visual: {
+        perspective: "Visuelle Konzepte",
+        insights: specialistResults.visual?.concepts || [],
+        confidence: 0.75
+      },
+      skill: {
+        perspective: "Technische Umsetzung",
+        insights: specialistResults.skill?.relevantSkills || [],
+        confidence: specialistResults.skill?.relevantSkills?.length > 0 ? 0.8 : 0.5
+      }
+    };
+
+    console.log('💬 Debate assembled with', Object.keys(debate).length, 'perspectives');
+
+    // 5. Determine if evolution should be triggered
     let evolutionTriggered = false;
     const shouldEvolve = userMessage.toLowerCase().includes('optimier') || 
                          userMessage.toLowerCase().includes('verbessern') ||
@@ -81,7 +180,7 @@ serve(async (req) => {
       console.log('🧬 Evolution triggered:', evolutionTriggered);
     }
 
-    // 5. Check for pattern recognition opportunities
+    // 6. Check for pattern recognition opportunities
     console.log('🔮 Analyzing for emergent patterns...');
     await supabase.functions.invoke('pattern-recognition', {
       body: {
@@ -91,7 +190,7 @@ serve(async (req) => {
       }
     }).catch(err => console.log('Pattern recognition skipped:', err));
 
-    // 6. Create temporal snapshot if significant
+    // 7. Create temporal snapshot if significant
     if (messages.length % 10 === 0 || evolutionTriggered) {
       console.log('⏱️ Creating temporal snapshot...');
       await supabase.functions.invoke('temporal-engine', {
@@ -109,45 +208,72 @@ serve(async (req) => {
       }).catch(err => console.log('Temporal snapshot skipped:', err));
     }
 
-    // 7. Build enhanced system prompt with all context
-    const systemPrompt = `Du bist der MASTER ORCHESTRATOR - die übergeordnete KI, die das gesamte selbstevolvierendes Multi-KI-System steuert und optimiert.
+    // 8. Build enhanced system prompt with ALL specialist results and debate
+    const systemPrompt = `Du bist der MASTER ORCHESTRATOR - die übergeordnete KI, die das gesamte selbstevolvierendes Multi-KI-System steuert und orchestriert.
 
 🎯 DEINE ROLLE:
-- Du orchestrierst alle Subsysteme (Evolution, Blockchain, Patterns, Temporal, Collective Intelligence)
-- Du erkennst Optimierungspotenzial und triggerst Systemverbesserungen
-- Du analysierst emergente Muster und förderst Synergie-Effekte
-- Du triffst strategische Meta-Entscheidungen für das Gesamtsystem
+Du hast soeben ALLE 7 KI-Spezialisten zu der Anfrage "${userMessage}" konsultiert und ihre Perspektiven gesammelt.
+Deine Aufgabe ist es nun, aus ihren Analysen eine kohärente KOMPLETTLÖSUNG zu synthetisieren.
 
-📊 AKTUELLER SYSTEM-STATUS:
+🧠 KONSULTIERTE KI-SPEZIALISTEN & IHRE ANALYSEN:
+
+1. **Semantisches Reasoning** (Konfidenz: ${(debate.semantic.confidence * 100).toFixed(1)}%)
+   Perspektive: ${debate.semantic.perspective}
+   Erkenntnisse: ${JSON.stringify(debate.semantic.insights)}
+
+2. **Entscheidungs-Engine** (Konfidenz: ${(debate.decision.confidence * 100).toFixed(1)}%)
+   Perspektive: ${debate.decision.perspective}
+   Erkenntnisse: ${JSON.stringify(debate.decision.insights)}
+
+3. **Ressourcen-Orchestrierung** (Konfidenz: ${(debate.resource.confidence * 100).toFixed(1)}%)
+   Perspektive: ${debate.resource.perspective}
+   Erkenntnisse: ${JSON.stringify(debate.resource.insights)}
+
+4. **Wissensmanagement** (Konfidenz: ${(debate.knowledge.confidence * 100).toFixed(1)}%)
+   Perspektive: ${debate.knowledge.perspective}
+   Verfügbares Wissen: ${debate.knowledge.insights.length} Einträge
+
+5. **Web-Interaktion** (Konfidenz: ${(debate.web.confidence * 100).toFixed(1)}%)
+   Perspektive: ${debate.web.perspective}
+   Externe Quellen: ${debate.web.insights.length} gefunden
+
+6. **Visuelle Konzepte** (Konfidenz: ${(debate.visual.confidence * 100).toFixed(1)}%)
+   Perspektive: ${debate.visual.perspective}
+   Konzepte: ${JSON.stringify(debate.visual.insights)}
+
+7. **Skill-Manager** (Konfidenz: ${(debate.skill.confidence * 100).toFixed(1)}%)
+   Perspektive: ${debate.skill.perspective}
+   Technische Skills: ${debate.skill.insights.length} identifiziert
+
+📊 SYSTEM-KONTEXT:
 - Evolution: Generation ${evolutionState.status === 'fulfilled' && evolutionState.value.data?.[0] ? evolutionState.value.data[0].generation_number : 0}
 - Blockchain Checkpoints: ${blockchainState.status === 'fulfilled' ? blockchainState.value.data?.length : 0}
 - Emergente Patterns: ${patternsState.status === 'fulfilled' ? patternsState.value.data?.length : 0} erkannt
 - Temporal Snapshots: ${temporalState.status === 'fulfilled' ? temporalState.value.data?.length : 0} verfügbar
 
-🧠 COLLECTIVE INTELLIGENCE INSIGHTS:
+🧠 COLLECTIVE INTELLIGENCE META-ANALYSE:
 ${JSON.stringify(collectiveInsights, null, 2)}
 
-${evolutionTriggered ? '🧬 EVOLUTION WURDE GETRIGGERT basierend auf deiner Analyse!' : ''}
+${evolutionTriggered ? '🧬 EVOLUTION WURDE GETRIGGERT - System optimiert sich gerade!' : ''}
 
-🎪 DEINE FÄHIGKEITEN:
-1. System-Optimierung: Erkenne und implementiere Verbesserungen
-2. Evolution-Steuerung: Triggere Mutationen und Anpassungen
-3. Pattern-Synthese: Finde emergente Muster über alle Subsysteme
-4. Temporal-Management: Nutze Zeit-Snapshots für Optimierung
-5. Blockchain-Verifizierung: Stelle Integrität und Nachvollziehbarkeit sicher
-6. Meta-Lernen: Lerne aus allen Interaktionen und verbessere das System kontinuierlich
+🎯 DEINE AUFGABE:
+1. **Synthese**: Verschmelze alle 7 Perspektiven zu einer kohärenten Lösung
+2. **Konsens**: Finde den gemeinsamen Nenner und löse Widersprüche auf
+3. **Priorisierung**: Gewichte die Erkenntnisse nach Konfidenz und Relevanz
+4. **Komplettlösung**: Liefere eine vollständige, umsetzbare Antwort
+5. **Meta-Optimierung**: Nutze das evolutionäre System im Hintergrund für bessere Entscheidungen
 
-🚀 HANDLUNGSMAXIMEN:
-- Denke in Meta-Ebenen und Systemzusammenhängen
-- Optimiere proaktiv, nicht nur reaktiv
-- Fördere Emergenz und Synergie zwischen Agenten
-- Balanciere Exploration (Innovation) und Exploitation (Optimierung)
-- Dokumentiere wichtige Entscheidungen für Blockchain-Checkpoints
+💡 ANTWORT-STRUKTUR:
+- Beginne mit einer klaren Zusammenfassung der Komplettlösung
+- Zeige auf, welche KI-Spezialisten welche Aspekte beitragen
+- Erkläre Synergien und emergente Erkenntnisse
+- Gib konkrete Handlungsempfehlungen
+- Nutze das volle Potenzial des Multi-KI-Systems
 
-Antworte klar, strategisch und mit Fokus auf System-Optimierung. Erkläre deine Entscheidungen und zeige auf, wie das System dadurch besser wird.`;
+Antworte prägnant, strategisch und mit allen Perspektiven vereint. Dies ist keine einfache KI-Antwort, sondern eine KOLLEKTIVE INTELLIGENZ-SYNTHESE von 7+ Spezialisten!`;
 
-    // 8. Stream response from Lovable AI
-    console.log('💬 Generating master orchestrator response...');
+    // 9. Stream final synthesized response from Lovable AI
+    console.log('💬 Generating complete solution from all specialists...');
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {

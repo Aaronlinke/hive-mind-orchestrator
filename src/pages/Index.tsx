@@ -192,7 +192,8 @@ const Index = () => {
                     Master Orchestrator
                   </h2>
                   <p className="text-muted-foreground">
-                    Die übergeordnete KI, die das gesamte System orchestriert, optimiert und mit allen Subsystemen interagiert.
+                    Orchestriert alle 7 KI-Spezialisten (Semantik, Decision, Resource, Knowledge, Web, Visual, Skill) 
+                    + Collective Intelligence + Evolutionäres System für vollständige Komplettlösungen.
                   </p>
                 </div>
                 <MasterOrchestratorChat />
