@@ -272,9 +272,10 @@ export const SuperFusionChat = () => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Frage die Super Fusion AI..."
-            className="min-h-[80px] resize-none glass-card border-primary/30"
+            placeholder="Frage die Super Fusion AI... (unbegrenzte Eingabelänge)"
+            className="min-h-[120px] resize-y glass-card border-primary/30"
             disabled={isLoading}
+            maxLength={1000000}
           />
           <Button
             onClick={handleSend}
