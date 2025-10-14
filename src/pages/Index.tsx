@@ -94,38 +94,42 @@ const Index = () => {
 
       {/* Header */}
       <header className="border-b border-border/50 glass-card sticky top-0 z-50 shadow-xl">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-lg glow-primary animate-pulse-glow">
-                <span className="text-3xl">◈</span>
+        <div className="container mx-auto px-3 md:px-4 py-3 md:py-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 md:gap-4 min-w-0">
+              <div className="w-8 h-8 md:w-12 md:h-12 rounded-xl gradient-primary flex items-center justify-center shadow-lg glow-primary animate-pulse-glow flex-shrink-0">
+                <span className="text-xl md:text-3xl">◈</span>
               </div>
-              <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent animate-in slide-in-from-left duration-1000">
+              <div className="min-w-0">
+                <h1 className="text-lg md:text-3xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent animate-in slide-in-from-left duration-1000 truncate">
                   KI-Orchestrator
                 </h1>
-                <p className="text-sm text-muted-foreground font-medium">Hierarchisches Multi-KI-System der Zukunft</p>
+                <p className="text-[10px] md:text-sm text-muted-foreground font-medium hidden sm:block truncate">Hierarchisches Multi-KI-System</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1 md:gap-3 flex-shrink-0">
               <Button 
                 variant="outline" 
+                size="sm"
                 onClick={() => navigate("/evolution")}
-                className="hover-lift"
+                className="hover-lift h-8 px-2 md:h-10 md:px-4"
               >
-                🧬 Evolution
+                <span className="hidden sm:inline">🧬</span>
+                <span className="text-xs md:text-sm hidden md:inline ml-1">Evolution</span>
               </Button>
               <Button 
                 variant="outline" 
+                size="sm"
                 onClick={() => navigate("/swarm")}
-                className="hover-lift"
+                className="hover-lift h-8 px-2 md:h-10 md:px-4"
               >
-                🐝 Swarm
+                <span className="hidden sm:inline">🐝</span>
+                <span className="text-xs md:text-sm hidden md:inline ml-1">Swarm</span>
               </Button>
               <ThemeToggle />
               <StatsPanel />
-              <Button variant="outline" size="icon" onClick={signOut} title="Abmelden">
-                <LogOut className="h-5 w-5" />
+              <Button variant="outline" size="icon" onClick={signOut} title="Abmelden" className="h-8 w-8 md:h-10 md:w-10">
+                <LogOut className="h-4 w-4 md:h-5 md:w-5" />
               </Button>
             </div>
           </div>
@@ -133,52 +137,53 @@ const Index = () => {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8 relative z-10">
+      <main className="container mx-auto px-3 md:px-4 py-4 md:py-8 relative z-10">
         <Tabs defaultValue="master" className="w-full">
-          <TabsList className="grid w-full grid-cols-7 mb-6 glass-card p-2 h-auto gap-1">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-7 mb-4 md:mb-6 glass-card p-1 md:p-2 h-auto gap-1">
             <TabsTrigger 
               value="master" 
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-accent data-[state=active]:via-primary data-[state=active]:to-secondary data-[state=active]:text-background transition-all duration-300 hover-lift"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-accent data-[state=active]:via-primary data-[state=active]:to-secondary data-[state=active]:text-background transition-all duration-300 hover-lift text-xs md:text-sm h-9 md:h-10"
             >
-              👑 Master AI
+              <span className="md:hidden">👑</span>
+              <span className="hidden md:inline">👑 Master</span>
             </TabsTrigger>
             <TabsTrigger 
               value="dashboard" 
-              className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
+              className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift text-xs md:text-sm h-9 md:h-10"
             >
               Dashboard
             </TabsTrigger>
             <TabsTrigger 
               value="ai-chat" 
-              className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
+              className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift text-xs md:text-sm h-9 md:h-10"
             >
-              AI Chat
+              Chat
             </TabsTrigger>
             <TabsTrigger 
               value="creation" 
-              className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
+              className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift text-xs md:text-sm h-9 md:h-10 hidden md:flex"
             >
-              Kreativ Tools
+              Kreativ
             </TabsTrigger>
             <TabsTrigger 
               value="analytics" 
-              className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
+              className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift text-xs md:text-sm h-9 md:h-10 hidden md:flex"
             >
               Analytics
             </TabsTrigger>
             <TabsTrigger 
               value="automation" 
-              className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
+              className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift text-xs md:text-sm h-9 md:h-10 hidden md:flex"
             >
-              <Workflow className="h-4 w-4 mr-1" />
-              Automation
+              <Workflow className="h-3 w-3 md:h-4 md:w-4 mr-1" />
+              <span className="hidden lg:inline">Automation</span>
             </TabsTrigger>
             <TabsTrigger 
               value="settings" 
-              className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
+              className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift text-xs md:text-sm h-9 md:h-10 hidden md:flex"
             >
-              <Palette className="h-4 w-4 mr-1" />
-              Einstellungen
+              <Palette className="h-3 w-3 md:h-4 md:w-4 mr-1" />
+              <span className="hidden lg:inline">Settings</span>
             </TabsTrigger>
           </TabsList>
 
