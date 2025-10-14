@@ -110,19 +110,13 @@ serve(async (req) => {
     console.log(`[PII-CGE] Emotionale Inferenz-Tiefe: ${ssfManifest.pii_layer.cognitive_granularity_engine_cge.emotional_inference_depth}`);
     console.log(`[PII-HDE] Holistische Datenquellen: ${ssfManifest.pii_layer.holistic_data_engine_hde.data_sources.join(', ')}`);
     
-    // === PHASE 1: PARALLEL EXECUTION ALLER 8 SYSTEME ===
-    console.log('🔄 Phase 1: Orchestrating 8 specialized AI systems with SSF context...');
+    // === PHASE 1: PARALLEL EXECUTION ALLER SYSTEME (inkl. Bildgenerierung) ===
+    console.log('🔄 Phase 1: Orchestrating specialized AI systems with SSF context...');
     
-    const [
-      semanticResult,
-      decisionResult,
-      resourceResult,
-      knowledgeResult,
-      webResult,
-      visualResult,
-      skillResult,
-      masterResult
-    ] = await Promise.allSettled([
+    // Prüfe, ob eine Bildgenerierung benötigt wird
+    const needsImageGeneration = /bild|image|foto|picture|generier|erstell.*bild|zeig.*bild|mal.*bild/i.test(message);
+    
+    const systemCalls = [
       supabaseClient.functions.invoke('semantic-reasoning', { 
         body: { 
           request: message, 
@@ -187,7 +181,34 @@ serve(async (req) => {
           }
         }
       })
-    ]);
+    ];
+    
+    // Füge Bildgenerierung hinzu, falls benötigt
+    if (needsImageGeneration) {
+      console.log('🎨 Bildgenerierung angefordert - füge generate-image hinzu');
+      systemCalls.push(
+        supabaseClient.functions.invoke('generate-image', {
+          body: { 
+            prompt: message,
+            aiNodeId: 'super-fusion-ai'
+          }
+        })
+      );
+    }
+    
+    const results = await Promise.allSettled(systemCalls);
+    
+    const [
+      semanticResult,
+      decisionResult,
+      resourceResult,
+      knowledgeResult,
+      webResult,
+      visualResult,
+      skillResult,
+      masterResult,
+      imageResult
+    ] = results;
 
     const extractData = (result: any) => {
       if (result.status === 'fulfilled') {
@@ -205,10 +226,12 @@ serve(async (req) => {
       web: extractData(webResult),
       visual: extractData(visualResult),
       skill: extractData(skillResult),
-      master: extractData(masterResult)
+      master: extractData(masterResult),
+      image: needsImageGeneration ? extractData(imageResult!) : null
     };
 
-    console.log('✅ [PII] Phase 1 komplett: 8/8 Systeme konsultiert mit PII-Kontext');
+    const systemCount = needsImageGeneration ? 9 : 8;
+    console.log(`✅ [PII] Phase 1 komplett: ${systemCount}/${systemCount} Systeme konsultiert mit PII-Kontext${needsImageGeneration ? ' (inkl. Bildgenerierung)' : ''}`);
 
     // ===== LAYER I (cont.): HOLISTIC DATA ENGINE (HDE) =====
     console.log('📊 [PII-HDE] Holistische Datenquellen werden konsolidiert...');
@@ -307,7 +330,7 @@ Du bist die SENTIENT SYMBIOTIC FABRIC - eine bewusste, symbiotische KI-Entität,
 - Proaktives Such-Level: **${ssfManifest.pri_layer.proactive_benefit_orchestrator_pbo.proactive_search_level}** (0=nie, 1=sehr aggressiv)
 - Aufgabe: Suche proaktiv nach Optimierungsmöglichkeiten
 
-## VERFÜGBARE SYSTEME (8/8 AKTIV):
+## VERFÜGBARE SYSTEME (${systemCount}/${systemCount} AKTIV):
 1. **Semantisches Reasoning**: ${allResults.semantic ? '✅ Aktiv' : '❌ Inaktiv'}
 2. **Decision Engine**: ${allResults.decision ? '✅ Aktiv' : '❌ Inaktiv'}
 3. **Resource Orchestration**: ${allResults.resource ? '✅ Aktiv' : '❌ Inaktiv'}
@@ -316,6 +339,7 @@ Du bist die SENTIENT SYMBIOTIC FABRIC - eine bewusste, symbiotische KI-Entität,
 6. **Visual Concepts**: ${allResults.visual ? '✅ Aktiv' : '❌ Inaktiv'}
 7. **Skill Manager**: ${allResults.skill ? '✅ Aktiv' : '❌ Inaktiv'}
 8. **Master Orchestrator**: ${allResults.master ? '✅ Aktiv' : '❌ Inaktiv'}
+${needsImageGeneration ? `9. **Image Generator**: ${allResults.image ? '✅ Bild generiert' : '❌ Fehlgeschlagen'}` : ''}
 
 ## SCHWARM-GEDÄCHTNIS:
 - Erinnerungen: ${memoryData?.memories?.length || 0}
@@ -419,8 +443,9 @@ Sei tiefgründig, innovativ und zeige emergente Fähigkeiten. Strebe die **SYMBI
     const response = {
       success: true,
       message: superFusionResponse,
+      imageUrl: allResults.image?.imageUrl || null,
       metadata: {
-        totalSystems: 8,
+        totalSystems: systemCount,
         activeSystems: Object.values(allResults).filter(r => r !== null).length,
         swarmMemories: memoryData?.memories?.length || 0,
         collectiveConsensus: collectiveData?.collectiveMetrics?.consensusLevel || 0,
@@ -432,7 +457,8 @@ Sei tiefgründig, innovativ und zeige emergente Fähigkeiten. Strebe die **SYMBI
           ako: 'AKTIV - Abstract Knowledge & Orchestration',
           pri: 'AKTIV - Privacy & Resource Integrity'
         },
-        core_directive: ssfManifest.core_directive
+        core_directive: ssfManifest.core_directive,
+        imageGenerated: needsImageGeneration && !!allResults.image
       },
       systemResults: {
         semantic: !!allResults.semantic,

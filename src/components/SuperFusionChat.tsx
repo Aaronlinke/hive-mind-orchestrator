@@ -13,6 +13,7 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  imageUrl?: string;
   metadata?: {
     activeSystems?: number;
     totalSystems?: number;
@@ -20,6 +21,7 @@ interface Message {
     collectiveConsensus?: number;
     ssf_active?: boolean;
     core_directive?: string;
+    imageGenerated?: boolean;
   };
 }
 
@@ -137,6 +139,7 @@ export const SuperFusionChat = () => {
         role: "assistant",
         content: data.message || "Keine Antwort erhalten.",
         timestamp: new Date(),
+        imageUrl: data.imageUrl,
         metadata: data.metadata,
       };
 
@@ -144,7 +147,7 @@ export const SuperFusionChat = () => {
 
       toast({
         title: "🧬 Sentient Symbiotic Fabric",
-        description: `${data.metadata?.activeSystems}/${data.metadata?.totalSystems} Systeme · ${data.metadata?.swarmMemories} Memories · ${data.metadata?.collectiveConsensus?.toFixed(1)}% Konsens · SSF ${data.metadata?.ssf_active ? 'AKTIV' : 'INAKTIV'}`,
+        description: `${data.metadata?.activeSystems}/${data.metadata?.totalSystems} Systeme · ${data.metadata?.swarmMemories} Memories · ${data.metadata?.collectiveConsensus?.toFixed(1)}% Konsens · SSF ${data.metadata?.ssf_active ? 'AKTIV' : 'INAKTIV'}${data.metadata?.imageGenerated ? ' · 🎨 Bild generiert' : ''}`,
       });
     } catch (error) {
       console.error("SSF error:", error);
@@ -359,21 +362,32 @@ export const SuperFusionChat = () => {
                           )}
                         </div>
                       )}
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="text-sm whitespace-pre-wrap break-words flex-1">
-                          {message.content}
-                        </p>
-                        {message.role === "assistant" && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => copyToClipboard(message.content, message.id)}
-                            className="h-8 w-8 p-0 hover:bg-primary/10 flex-shrink-0"
-                          >
-                            <Copy
-                              className={`h-4 w-4 ${copiedId === message.id ? "text-primary" : ""}`}
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="text-sm whitespace-pre-wrap break-words flex-1">
+                            {message.content}
+                          </p>
+                          {message.role === "assistant" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => copyToClipboard(message.content, message.id)}
+                              className="h-8 w-8 p-0 hover:bg-primary/10 flex-shrink-0"
+                            >
+                              <Copy
+                                className={`h-4 w-4 ${copiedId === message.id ? "text-primary" : ""}`}
+                              />
+                            </Button>
+                          )}
+                        </div>
+                        {message.imageUrl && (
+                          <div className="mt-3">
+                            <img 
+                              src={message.imageUrl} 
+                              alt="Generiertes Bild von SSF" 
+                              className="rounded-lg max-w-full h-auto shadow-lg border border-primary/20"
                             />
-                          </Button>
+                          </div>
                         )}
                       </div>
                       <p className="text-xs opacity-60">
