@@ -67,3 +67,9 @@ verify_jwt = true
 
 [functions.security-manager]
 verify_jwt = true
+
+[functions.swarm-memory]
+verify_jwt = true
+
+[functions.super-fusion-ai]
+verify_jwt = true

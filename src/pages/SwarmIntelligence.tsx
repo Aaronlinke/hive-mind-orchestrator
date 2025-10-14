@@ -4,13 +4,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Brain, Zap, Activity, Download, RotateCcw } from "lucide-react";
+import { ArrowLeft, Brain, Zap, Activity, Download, RotateCcw, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useMultiAgentOrchestrator } from "@/hooks/useMultiAgentOrchestrator";
 import { useSystemMetrics } from "@/hooks/useSystemMetrics";
 import { AgentResultCard } from "@/components/AgentResultCard";
 import { SwarmAnalysisHistory } from "@/components/SwarmAnalysisHistory";
 import { AgentMetricsPanel } from "@/components/AgentMetricsPanel";
+import { SuperFusionChat } from "@/components/SuperFusionChat";
 
 interface Brain {
   id: number;
@@ -474,6 +475,24 @@ export default function SwarmIntelligence() {
           <SwarmAnalysisHistory />
 
           <AgentMetricsPanel metrics={systemMetrics} />
+        </div>
+
+        {/* Super Fusion AI Chat */}
+        <div className="mt-6">
+          <Card className="backdrop-blur-sm bg-card/50">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                Super Fusion AI - Alle Systeme vereint
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Chat mit der Super-Mama-KI: Fusion aller 8 KI-Systeme + Schwarm-Gedächtnis
+              </p>
+            </CardHeader>
+            <CardContent>
+              <SuperFusionChat />
+            </CardContent>
+          </Card>
         </div>
 
         {/* Additional System Information */}
