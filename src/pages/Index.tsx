@@ -16,6 +16,7 @@ import { AIOrchestrationControl } from "@/components/AIOrchestrationControl";
 import { RealTimeActivityFeed } from "@/components/RealTimeActivityFeed";
 import { AIPerformanceMetrics } from "@/components/AIPerformanceMetrics";
 import { CommandPalette } from "@/components/CommandPalette";
+import { MasterOrchestratorChat } from "@/components/MasterOrchestratorChat";
 import { QuickActions } from "@/components/QuickActions";
 import { OnboardingTour } from "@/components/OnboardingTour";
 import { AchievementSystem } from "@/components/AchievementSystem";
@@ -25,7 +26,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { LogOut, Workflow, Trophy, Palette } from "lucide-react";
+import { LogOut, Workflow, Trophy, Palette, Crown } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -133,8 +134,14 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 relative z-10">
-        <Tabs defaultValue="dashboard" className="w-full">
-          <TabsList className="grid w-full grid-cols-6 mb-6 glass-card p-2 h-auto gap-1">
+        <Tabs defaultValue="master" className="w-full">
+          <TabsList className="grid w-full grid-cols-7 mb-6 glass-card p-2 h-auto gap-1">
+            <TabsTrigger 
+              value="master" 
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-accent data-[state=active]:via-primary data-[state=active]:to-secondary data-[state=active]:text-background transition-all duration-300 hover-lift"
+            >
+              👑 Master AI
+            </TabsTrigger>
             <TabsTrigger 
               value="dashboard" 
               className="data-[state=active]:gradient-primary data-[state=active]:text-background transition-all duration-300 hover-lift"
@@ -174,6 +181,24 @@ const Index = () => {
               Einstellungen
             </TabsTrigger>
           </TabsList>
+
+          {/* Master Orchestrator - Übergeordnete KI */}
+          <TabsContent value="master" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            <div className="space-y-6">
+              <div className="glass-card p-6 rounded-xl border-accent/30 shadow-2xl">
+                <div className="mb-6">
+                  <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-accent via-primary to-secondary bg-clip-text text-transparent flex items-center gap-3">
+                    <Crown className="h-8 w-8 text-accent" />
+                    Master Orchestrator
+                  </h2>
+                  <p className="text-muted-foreground">
+                    Die übergeordnete KI, die das gesamte System orchestriert, optimiert und mit allen Subsystemen interagiert.
+                  </p>
+                </div>
+                <MasterOrchestratorChat />
+              </div>
+            </div>
+          </TabsContent>
 
           {/* Dashboard - Hauptübersicht */}
           <TabsContent value="dashboard" className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
