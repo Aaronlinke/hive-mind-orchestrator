@@ -1,6 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { SuperFusionChat } from "@/components/SuperFusionChat";
 import { SystemDashboard } from "@/components/SystemDashboard";
+import { AIGenerator } from "@/components/AIGenerator";
+import { DebateCircle } from "@/components/DebateCircle";
+import { CodeGenerator } from "@/components/CodeGenerator";
 import { CommandPalette } from "@/components/CommandPalette";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
@@ -137,6 +140,13 @@ const Index = () => {
         </div>
         
         <SuperFusionChat />
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <AIGenerator />
+          <DebateCircle />
+        </div>
+        
+        <CodeGenerator />
         
         <div className="glass-card p-6 border-primary/20 rounded-xl shadow-lg">
           <SystemDashboard />
