@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Play, Pause, RotateCcw, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { evaluateTextAdvanced, calculateConsensus } from "@/lib/textEvaluator";
 
 interface DebateMessage {
   agent: string;
@@ -49,17 +50,22 @@ export const DebateCircle = () => {
     
     // Simuliere intelligente Debattenbeiträge basierend auf Agent-Typ
     const perspectives = {
-      'semantic': `Aus semantischer Sicht zu "${topic}": Das zugrundeliegende Konzept zeigt interessante Muster...`,
-      'decision': `Entscheidungslogisch betrachtet bei "${topic}": Wir müssen die Risiken gegen den Nutzen abwägen...`,
-      'knowledge': `Basierend auf dem Wissensgraphen zu "${topic}": Historische Daten zeigen, dass...`,
-      'visual': `Die visuelle Darstellung von "${topic}": Wir könnten dies durch Diagramme verdeutlichen...`,
-      'skill': `Skill-technisch für "${topic}": Wir benötigen spezielle Fähigkeiten, um dies umzusetzen...`,
-      'resource': `Ressourcen-Analyse zu "${topic}": Die Allokation sollte optimiert werden durch...`,
+      'semantic': `Aus semantischer Sicht zu "${topic}": Das zugrundeliegende Konzept zeigt interessante Muster in der begrifflichen Struktur und weist auf tiefere kausale Zusammenhänge hin...`,
+      'decision': `Entscheidungslogisch betrachtet bei "${topic}": Wir müssen die Risiken gegen den erwarteten Nutzen abwägen, wobei Unsicherheitsfaktoren quantifiziert werden sollten...`,
+      'knowledge': `Basierend auf dem Wissensgraphen zu "${topic}": Historische Daten zeigen signifikante Korrelationen mit ähnlichen Domänen, was auf erprobte Lösungsansätze hinweist...`,
+      'visual': `Die visuelle Darstellung von "${topic}": Wir könnten dies durch mehrdimensionale Diagramme verdeutlichen, die komplexe Zusammenhänge intuitiv erfassbar machen...`,
+      'skill': `Skill-technisch für "${topic}": Wir benötigen spezielle interdisziplinäre Fähigkeiten, um dies effektiv umzusetzen und zu optimieren...`,
+      'resource': `Ressourcen-Analyse zu "${topic}": Die Allokation sollte algorithmisch optimiert werden durch adaptive Verteilungsstrategien und Echtzeitanpassung...`,
     };
 
+    const messageText = perspectives[agent.id as keyof typeof perspectives];
+    
+    // Evaluiere Text-Qualität mit lokalem Evaluator
+    const evaluation = evaluateTextAdvanced(messageText);
+    
     const message: DebateMessage = {
       agent: agent.name,
-      message: perspectives[agent.id as keyof typeof perspectives],
+      message: messageText,
       timestamp: Date.now(),
       color: agent.color,
     };
@@ -203,9 +209,16 @@ export const DebateCircle = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="flex items-center justify-between text-xs text-muted-foreground">
+      <div className="flex items-center justify-between text-xs text-muted-foreground pt-3 border-t">
         <span>{messages.length} Beiträge</span>
         <span>{AGENTS.length} aktive KI-Agenten</span>
+        {messages.length > 2 && (
+          <Badge variant="secondary" className="text-xs">
+            Konsensus: {Math.round(calculateConsensus(
+              messages.slice(-3).map(m => evaluateTextAdvanced(m.message))
+            ))}%
+          </Badge>
+        )}
       </div>
     </Card>
   );
