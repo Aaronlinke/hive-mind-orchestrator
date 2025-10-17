@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SuperFusionChat } from "@/components/SuperFusionChat";
 import { SystemDashboard } from "@/components/SystemDashboard";
@@ -7,6 +8,7 @@ import { CodeGenerator } from "@/components/CodeGenerator";
 import { EvolutionaryDebatePanel } from "@/components/EvolutionaryDebatePanel";
 import { CommandPalette } from "@/components/CommandPalette";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { AgentControlPanel } from "@/components/AgentControlPanel";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -16,6 +18,14 @@ import { LogOut, Sparkles, Dna, Brain, Zap } from "lucide-react";
 const Index = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
+  const [activeAgents, setActiveAgents] = useState<string[]>([]);
+  const [agentCount, setAgentCount] = useState(7);
+
+  const handleAgentConfigChange = (agents: string[], count: number) => {
+    setActiveAgents(agents);
+    setAgentCount(count);
+    console.log('🤖 Agent Config Updated:', { agents, count, total: agents.length * count });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-accent/5">
@@ -121,8 +131,8 @@ const Index = () => {
                 <Brain className="w-6 h-6 text-accent" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground font-medium">Aktive Systeme</p>
-                <p className="text-xl font-bold">10 / 10</p>
+                <p className="text-xs text-muted-foreground font-medium">Aktive Agenten</p>
+                <p className="text-xl font-bold">{activeAgents.length} · {agentCount}x</p>
               </div>
             </div>
           </Card>
@@ -130,15 +140,22 @@ const Index = () => {
           <Card className="p-5 glass-card border-secondary/20 hover-lift shadow-lg">
             <div className="flex items-center gap-3">
               <div className="p-3 rounded-xl bg-secondary/10">
-                <Sparkles className="w-6 h-6 text-secondary" />
+                <Zap className="w-6 h-6 text-secondary" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground font-medium">Core Directive</p>
-                <p className="text-sm font-bold">SYMBIOTIC_HOMEOSTASIS</p>
+                <p className="text-xs text-muted-foreground font-medium">Total Power</p>
+                <p className="text-xl font-bold">{activeAgents.length * agentCount}</p>
               </div>
             </div>
           </Card>
         </div>
+
+        {/* Agent Control Panel */}
+        <AgentControlPanel 
+          onConfigChange={handleAgentConfigChange}
+          showAdvanced={true}
+          maxAgents={30}
+        />
         
         <SuperFusionChat />
         
