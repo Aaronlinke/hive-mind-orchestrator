@@ -9,17 +9,29 @@ import { EvolutionaryDebatePanel } from "@/components/EvolutionaryDebatePanel";
 import { CommandPalette } from "@/components/CommandPalette";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { AgentControlPanel } from "@/components/AgentControlPanel";
+import { MasterOrchestratorChat } from "@/components/MasterOrchestratorChat";
+import { AgentMetricsPanel } from "@/components/AgentMetricsPanel";
+import { AdvancedAnalytics } from "@/components/AdvancedAnalytics";
+import { LiveEvolutionFeed } from "@/components/LiveEvolutionFeed";
+import StatsPanel from "@/components/StatsPanel";
 import { useAuth } from "@/contexts/AuthContext";
+import { useMultiAgentOrchestrator } from "@/hooks/useMultiAgentOrchestrator";
+import { useSystemMetrics } from "@/hooks/useSystemMetrics";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { LogOut, Sparkles, Dna, Brain, Zap } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LogOut, Sparkles, Dna, Brain, Zap, BarChart3, Activity, Users, Crown } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const [activeAgents, setActiveAgents] = useState<string[]>([]);
   const [agentCount, setAgentCount] = useState(7);
+  const [activeTab, setActiveTab] = useState("main");
+  
+  const { agentResults } = useMultiAgentOrchestrator();
+  const systemMetrics = useSystemMetrics(agentResults);
 
   const handleAgentConfigChange = (agents: string[], count: number) => {
     setActiveAgents(agents);
@@ -109,7 +121,8 @@ const Index = () => {
       </header>
 
       <main className="container mx-auto p-4 md:p-6 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Header Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="p-5 glass-card border-primary/20 hover-lift shadow-lg">
             <div className="flex items-center gap-3">
               <div className="p-3 rounded-xl bg-primary/10">
@@ -148,6 +161,12 @@ const Index = () => {
               </div>
             </div>
           </Card>
+
+          <Card className="p-5 glass-card border-primary/20 hover-lift shadow-lg">
+            <div className="flex items-center justify-center">
+              <StatsPanel />
+            </div>
+          </Card>
         </div>
 
         {/* Agent Control Panel */}
@@ -156,21 +175,74 @@ const Index = () => {
           showAdvanced={true}
           maxAgents={30}
         />
-        
-        <SuperFusionChat />
-        
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <AIGenerator />
-            <DebateCircle />
-          </div>
-          
-          <EvolutionaryDebatePanel />
-          
-          <CodeGenerator />
-        
-        <div className="glass-card p-6 border-primary/20 rounded-xl shadow-lg">
-          <SystemDashboard />
-        </div>
+
+        {/* Main Content Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-5 glass-card p-1">
+            <TabsTrigger value="main" className="gap-2">
+              <Sparkles className="h-4 w-4" />
+              <span className="hidden sm:inline">Haupt</span>
+            </TabsTrigger>
+            <TabsTrigger value="orchestrator" className="gap-2">
+              <Crown className="h-4 w-4" />
+              <span className="hidden sm:inline">Master</span>
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="gap-2">
+              <BarChart3 className="h-4 w-4" />
+              <span className="hidden sm:inline">Analytics</span>
+            </TabsTrigger>
+            <TabsTrigger value="evolution" className="gap-2">
+              <Activity className="h-4 w-4" />
+              <span className="hidden sm:inline">Evolution</span>
+            </TabsTrigger>
+            <TabsTrigger value="agents" className="gap-2">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">Agenten</span>
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Main Tab */}
+          <TabsContent value="main" className="space-y-6 mt-6">
+            <SuperFusionChat />
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <AIGenerator />
+              <DebateCircle />
+            </div>
+            
+            <CodeGenerator />
+            
+            <div className="glass-card p-6 border-primary/20 rounded-xl shadow-lg">
+              <SystemDashboard />
+            </div>
+          </TabsContent>
+
+          {/* Master Orchestrator Tab */}
+          <TabsContent value="orchestrator" className="space-y-6 mt-6">
+            <MasterOrchestratorChat />
+          </TabsContent>
+
+          {/* Analytics Tab */}
+          <TabsContent value="analytics" className="space-y-6 mt-6">
+            <AgentMetricsPanel metrics={systemMetrics} />
+            <AdvancedAnalytics />
+          </TabsContent>
+
+          {/* Evolution Tab */}
+          <TabsContent value="evolution" className="space-y-6 mt-6">
+            <EvolutionaryDebatePanel />
+            <LiveEvolutionFeed />
+          </TabsContent>
+
+          {/* Agents Tab */}
+          <TabsContent value="agents" className="space-y-6 mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <DebateCircle />
+              <AIGenerator />
+            </div>
+            <AgentMetricsPanel metrics={systemMetrics} />
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
