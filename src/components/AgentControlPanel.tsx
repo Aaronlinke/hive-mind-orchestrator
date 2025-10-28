@@ -12,8 +12,11 @@ import {
   Settings2, 
   Zap,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Copy
 } from "lucide-react";
+import { copyToClipboard, formatJSON } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 export interface AgentConfig {
   id: string;
@@ -50,6 +53,7 @@ export const AgentControlPanel = ({
   const [agents, setAgents] = useState<AgentConfig[]>(DEFAULT_AGENTS);
   const [agentCount, setAgentCount] = useState(7);
   const [showSettings, setShowSettings] = useState(false);
+  const { toast } = useToast();
 
   const activeAgents = agents.filter(a => a.enabled);
   const coreAgents = agents.filter(a => a.category === 'core');
@@ -116,6 +120,26 @@ export const AgentControlPanel = ({
       case 'specialist': return 'bg-accent/20 text-accent border-accent/30';
       case 'support': return 'bg-secondary/20 text-secondary border-secondary/30';
     }
+  };
+
+  const handleCopyConfig = async () => {
+    const config = {
+      agents: agents.map(a => ({
+        id: a.id,
+        name: a.name,
+        enabled: a.enabled,
+        category: a.category
+      })),
+      agentCount,
+      activeAgents: activeAgents.length,
+      totalCapacity: activeAgents.length * agentCount,
+      timestamp: new Date().toISOString()
+    };
+    await copyToClipboard(
+      formatJSON(config),
+      () => toast({ title: "Konfiguration kopiert" }),
+      () => toast({ title: "Kopieren fehlgeschlagen", variant: "destructive" })
+    );
   };
 
   const renderAgentGroup = (title: string, agentList: AgentConfig[], color: string) => (
@@ -190,14 +214,24 @@ export const AgentControlPanel = ({
               {activeAgents.length} von {agents.length} Agenten aktiv · {agentCount} parallele Instanzen
             </p>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowSettings(!showSettings)}
-            className="hover:bg-primary/10"
-          >
-            <Settings2 className={`h-4 w-4 transition-transform ${showSettings ? 'rotate-90' : ''}`} />
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCopyConfig}
+              className="hover:bg-primary/10"
+            >
+              <Copy className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSettings(!showSettings)}
+              className="hover:bg-primary/10"
+            >
+              <Settings2 className={`h-4 w-4 transition-transform ${showSettings ? 'rotate-90' : ''}`} />
+            </Button>
+          </div>
         </div>
 
         {/* Quick Stats */}

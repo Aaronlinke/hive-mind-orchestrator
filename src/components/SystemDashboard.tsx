@@ -1,11 +1,22 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Brain, Zap, Database, Network, Cpu, RefreshCw } from "lucide-react";
+import { Activity, Brain, Zap, Database, Network, Cpu, RefreshCw, Copy } from "lucide-react";
 import { useRealTimeMetrics } from "@/hooks/useRealTimeMetrics";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { copyToClipboard, formatJSON } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 export const SystemDashboard = () => {
   const { metrics, isLoading, refresh } = useRealTimeMetrics();
+  const { toast } = useToast();
+
+  const handleCopyMetrics = async () => {
+    await copyToClipboard(
+      formatJSON(metrics),
+      () => toast({ title: "Metriken kopiert" }),
+      () => toast({ title: "Kopieren fehlgeschlagen", variant: "destructive" })
+    );
+  };
 
   const healthColor = metrics.systemHealth >= 90 ? 'text-primary' : metrics.systemHealth >= 70 ? 'text-warning' : 'text-destructive';
   const nodesRatio = metrics.totalNodes > 0 ? (metrics.activeNodes / metrics.totalNodes) * 100 : 0;
@@ -14,16 +25,28 @@ export const SystemDashboard = () => {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Live System Metrics</h3>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={refresh}
-          disabled={isLoading}
-          className="flex items-center gap-2"
-        >
-          <RefreshCw className={`h-3 w-3 ${isLoading ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleCopyMetrics}
+            disabled={isLoading}
+            className="flex items-center gap-2"
+          >
+            <Copy className="h-3 w-3" />
+            Copy
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={refresh}
+            disabled={isLoading}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`h-3 w-3 ${isLoading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

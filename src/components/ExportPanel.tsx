@@ -3,7 +3,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Download, FileJson, FileCode } from "lucide-react";
+import { Download, FileJson, FileCode, Copy } from "lucide-react";
+import { copyToClipboard, formatJSON } from "@/lib/utils";
 
 interface ExportPanelProps {
   messages: any[];
@@ -95,11 +96,30 @@ export const ExportPanel = ({ messages, codeSnippets }: ExportPanelProps) => {
     }
   };
 
+  const handleCopy = async () => {
+    const content = { messages, codeSnippets, exportedAt: new Date().toISOString() };
+    await copyToClipboard(
+      formatJSON(content),
+      () => toast({ title: "In Zwischenablage kopiert" }),
+      () => toast({ title: "Kopieren fehlgeschlagen", variant: "destructive" })
+    );
+  };
+
   return (
     <Card className="p-6">
-      <div className="flex items-center gap-2 mb-4">
-        <Download className="h-5 w-5 text-primary" />
-        <h3 className="text-lg font-semibold">Export</h3>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Download className="h-5 w-5 text-primary" />
+          <h3 className="text-lg font-semibold">Export</h3>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleCopy}
+          disabled={messages.length === 0}
+        >
+          <Copy className="h-4 w-4" />
+        </Button>
       </div>
 
       <div className="space-y-2">
