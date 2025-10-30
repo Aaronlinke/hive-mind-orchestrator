@@ -42,9 +42,7 @@ export const CodeGenerator = () => {
     try {
       const { data, error } = await supabase.functions.invoke("super-fusion-ai", {
         body: {
-          messages: [{
-            role: 'user',
-            content: `Generiere sauberen, produktionsreifen ${LANGUAGES.find(l => l.value === language)?.label}-Code für folgende Anforderung:
+          message: `Generiere sauberen, produktionsreifen ${LANGUAGES.find(l => l.value === language)?.label}-Code für folgende Anforderung:
 
 ${prompt}
 
@@ -56,13 +54,12 @@ Anforderungen:
 - Füge TypeScript Types hinzu (falls applicable)
 
 Antworte NUR mit dem Code, keine Erklärungen drumherum.`
-          }]
         }
       });
 
       if (error) throw error;
 
-      setGeneratedCode(data.response || "// Keine Antwort vom Server");
+      setGeneratedCode(data?.message || data?.response || "// Keine Antwort vom Server");
       
       toast({
         title: "Code generiert!",

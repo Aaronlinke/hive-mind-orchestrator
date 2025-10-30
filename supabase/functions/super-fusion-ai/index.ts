@@ -82,9 +82,12 @@ serve(async (req) => {
   }
 
   try {
-    const { message, manifest } = await req.json();
+    const requestBody = await req.json();
+    const message = requestBody.message || requestBody.messages?.[0]?.content;
+    const manifest = requestBody.manifest;
     
     if (!message) {
+      console.error('Invalid request body:', requestBody);
       throw new Error('Message is required');
     }
 
@@ -414,6 +417,11 @@ Sei tiefgründig, innovativ und zeige emergente Fähigkeiten. Strebe die **SYMBI
         if (aiResponse.ok) {
           const aiData = await aiResponse.json();
           superFusionResponse = aiData.choices[0]?.message?.content || '';
+          console.log('✅ [SSF] AI Response received, length:', superFusionResponse.length);
+        } else {
+          const errorText = await aiResponse.text();
+          console.error('❌ [SSF] AI Gateway error:', aiResponse.status, errorText);
+          superFusionResponse = `Fehler bei der AI-Gateway Verbindung (Status ${aiResponse.status}). Bitte versuche es erneut.`;
         }
       } catch (error) {
         console.error('SSF Super Fusion error:', error);

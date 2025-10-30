@@ -53,13 +53,10 @@ export const AIGenerator = () => {
         case 'code':
           ({ data, error } = await supabase.functions.invoke("super-fusion-ai", {
             body: { 
-              messages: [{ 
-                role: 'user', 
-                content: `Generiere sauberen, gut dokumentierten Code für: ${prompt}` 
-              }]
+              message: `Generiere sauberen, gut dokumentierten Code für: ${prompt}` 
             },
           }));
-          if (data) setResult({ type: 'code', content: data.response });
+          if (data) setResult({ type: 'code', content: data.message || data.response });
           break;
       }
 
