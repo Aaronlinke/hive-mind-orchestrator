@@ -215,6 +215,16 @@ serve(async (req) => {
     
     const results = await Promise.allSettled(systemCalls);
     
+    const extractData = (result: any) => {
+      if (!result) return null;
+      if (result.status === 'fulfilled') {
+        return result.value?.data || result.value || null;
+      }
+      console.error('Agent failed:', result.reason);
+      return null;
+    };
+
+    // Extract base system results (first 8)
     const [
       semanticResult,
       decisionResult,
@@ -223,18 +233,21 @@ serve(async (req) => {
       webResult,
       visualResult,
       skillResult,
-      masterResult,
-      imageResult,
-      videoResult
+      masterResult
     ] = results;
 
-    const extractData = (result: any) => {
-      if (result.status === 'fulfilled') {
-        return result.value.data || result.value;
-      }
-      console.error('Agent failed:', result.reason);
-      return null;
-    };
+    // Extract optional media results
+    let imageResult = null;
+    let videoResult = null;
+    
+    if (needsImageGeneration && needsVideoGeneration) {
+      imageResult = results[8];
+      videoResult = results[9];
+    } else if (needsImageGeneration) {
+      imageResult = results[8];
+    } else if (needsVideoGeneration) {
+      videoResult = results[8];
+    }
 
     const allResults = {
       semantic: extractData(semanticResult),
@@ -245,8 +258,8 @@ serve(async (req) => {
       visual: extractData(visualResult),
       skill: extractData(skillResult),
       master: extractData(masterResult),
-      image: needsImageGeneration ? extractData(imageResult!) : null,
-      video: needsVideoGeneration ? extractData(videoResult!) : null
+      image: needsImageGeneration ? extractData(imageResult) : null,
+      video: needsVideoGeneration ? extractData(videoResult) : null
     };
 
     let systemCount = 8;
