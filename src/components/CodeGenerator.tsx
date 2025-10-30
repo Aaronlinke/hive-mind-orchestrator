@@ -5,8 +5,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Code, Copy, Download, Loader2, CheckCircle2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { generateCode } from "@/lib/localAI";
 
 const LANGUAGES = [
   { value: 'typescript', label: 'TypeScript', icon: '📘' },
@@ -26,7 +26,7 @@ export const CodeGenerator = () => {
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
 
-  const generateCode = async () => {
+  const handleGenerateCode = async () => {
     if (!prompt.trim()) {
       toast({
         title: "Fehler",
@@ -40,55 +40,28 @@ export const CodeGenerator = () => {
     setGeneratedCode("");
 
     try {
-      const { data, error } = await supabase.functions.invoke("super-fusion-ai", {
-        body: {
-          message: `Generiere sauberen, produktionsreifen ${LANGUAGES.find(l => l.value === language)?.label}-Code für folgende Anforderung:
-
-${prompt}
-
-Anforderungen:
-- Nutze Best Practices
-- Füge hilfreiche Kommentare hinzu
-- Berücksichtige Error Handling
-- Optimiere für Lesbarkeit und Performance
-- Füge TypeScript Types hinzu (falls applicable)
-
-Antworte NUR mit dem Code, keine Erklärungen drumherum.`
-        }
+      // ✅ KOSTENLOS: Nutze lokales Code-Modell
+      const code = await generateCode({
+        prompt,
+        language: LANGUAGES.find(l => l.value === language)?.label || language,
+        maxTokens: 1024,
       });
 
-      if (error) throw error;
-
-      setGeneratedCode(data?.message || data?.response || "// Keine Antwort vom Server");
+      setGeneratedCode(code || "// Keine Antwort vom Modell");
       
       toast({
-        title: "Code generiert!",
-        description: `${LANGUAGES.find(l => l.value === language)?.label} Code wurde erstellt`,
+        title: "Code generiert! 🆓",
+        description: `${LANGUAGES.find(l => l.value === language)?.label} Code wurde lokal erstellt (kostenlos)`,
       });
 
     } catch (error: any) {
       console.error("Code generation error:", error);
       
-      const errorMsg = error?.message || "";
-      if (errorMsg.includes('402') || errorMsg.includes('Guthaben') || errorMsg.includes('Credits')) {
-        toast({
-          title: "💳 Lovable AI Credits aufgebraucht",
-          description: "Füge Credits hinzu: Settings → Workspace → Usage",
-          variant: "destructive",
-        });
-      } else if (errorMsg.includes('429')) {
-        toast({
-          title: "⏱️ Rate Limit",
-          description: "Zu viele Anfragen. Bitte kurz warten.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Fehler",
-          description: error instanceof Error ? error.message : "Code-Generierung fehlgeschlagen",
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "Fehler",
+        description: error?.message || "Lokales KI-Modell konnte nicht laden. Bitte Seite neu laden.",
+        variant: "destructive",
+      });
     } finally {
       setIsGenerating(false);
     }
@@ -184,7 +157,7 @@ Antworte NUR mit dem Code, keine Erklärungen drumherum.`
         </div>
 
         <Button 
-          onClick={generateCode} 
+          onClick={handleGenerateCode} 
           disabled={isGenerating || !prompt.trim()}
           className="w-full"
         >

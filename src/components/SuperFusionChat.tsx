@@ -5,8 +5,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Send, Sparkles, Copy, Trash2, Zap, Brain, Database, Dna, Eye, Target, Shield, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { generateSSFFusion, checkWebGPUSupport } from "@/lib/localAI";
 
 interface Message {
   id: string;
@@ -124,68 +124,36 @@ export const SuperFusionChat = () => {
     };
 
     setMessages((prev) => [...prev, userMessage]);
+    const messageText = input;
     setInput("");
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("super-fusion-ai", {
-        body: { 
-          message: input,
-          manifest: ssfManifest
-        },
-      });
-
-      if (error) throw error;
+      // ✅ KOSTENLOS: Nutze lokales Browser-Modell statt externe API
+      const data = await generateSSFFusion(messageText, ssfManifest);
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
         content: data.message || "Keine Antwort erhalten.",
         timestamp: new Date(),
-        imageUrl: data.imageUrl,
-        videoPredictionId: data.videoPredictionId,
         metadata: data.metadata,
       };
-      
-      // Falls ein Video generiert wird, starte Polling
-      if (data.videoPredictionId) {
-        pollVideoStatus(data.videoPredictionId, assistantMessage.id);
-      }
 
       setMessages((prev) => [...prev, assistantMessage]);
-
-      const mediaStatus = [];
-      if (data.metadata?.imageGenerated) mediaStatus.push('🎨 Bild generiert');
-      if (data.metadata?.videoGenerated) mediaStatus.push('🎬 Video wird generiert...');
-      const mediaText = mediaStatus.length > 0 ? ' · ' + mediaStatus.join(' · ') : '';
       
       toast({
-        title: "🧬 Sentient Symbiotic Fabric",
-        description: `${data.metadata?.activeSystems}/${data.metadata?.totalSystems} Systeme · ${data.metadata?.swarmMemories} Memories · ${data.metadata?.collectiveConsensus?.toFixed(1)}% Konsens · SSF ${data.metadata?.ssf_active ? 'AKTIV' : 'INAKTIV'}${mediaText}`,
+        title: "🧬 Sentient Symbiotic Fabric (Lokal)",
+        description: `${data.metadata?.activeSystems}/${data.metadata?.totalSystems} Systeme · ${data.metadata?.swarmMemories} Memories · ${data.metadata?.collectiveConsensus?.toFixed(1)}% Konsens · SSF ${data.metadata?.ssf_active ? 'AKTIV' : 'INAKTIV'} · 🆓 Kostenlos`,
       });
     } catch (error: any) {
       console.error("SSF error:", error);
       
-      // Check for 402 Payment Required error
-      if (error?.message?.includes('402') || error?.message?.includes('Guthaben') || error?.message?.includes('Credits')) {
-        toast({
-          title: "💳 Lovable AI Credits aufgebraucht",
-          description: "Bitte füge Credits hinzu unter Settings → Workspace → Usage",
-          variant: "destructive",
-        });
-      } else if (error?.message?.includes('429') || error?.message?.includes('Rate limit')) {
-        toast({
-          title: "⏱️ Rate Limit erreicht",
-          description: "Zu viele Anfragen. Bitte warte einen Moment.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Fehler",
-          description: error?.message || "Sentient Symbiotic Fabric konnte nicht antworten.",
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "Fehler",
+        description: error?.message || "Lokales KI-Modell konnte nicht laden. Bitte Seite neu laden.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }

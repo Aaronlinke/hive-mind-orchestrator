@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sparkles, Image, Video, Code, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { generateCode, generateText } from "@/lib/localAI";
 
 export const AIGenerator = () => {
   const [prompt, setPrompt] = useState("");
@@ -27,69 +27,47 @@ export const AIGenerator = () => {
     setResult(null);
 
     try {
-      let data, error;
-      
       switch(type) {
         case 'image':
-          ({ data, error } = await supabase.functions.invoke("generate-image", {
-            body: { prompt, aiNodeId: "ai-generator" },
-          }));
-          if (data) setResult({ type: 'image', content: data.imageUrl });
+          toast({
+            title: "Bild-Generierung",
+            description: "Bildgenerierung erfordert externe API - aktuell nicht verfügbar im kostenlosen Modus",
+            variant: "destructive",
+          });
           break;
           
         case 'video':
-          ({ data, error } = await supabase.functions.invoke("generate-video", {
-            body: { prompt, duration: 5 },
-          }));
-          if (data?.predictionId) {
-            toast({
-              title: "Video wird generiert...",
-              description: "Dies dauert 1-3 Minuten",
-            });
-            // Polling würde hier stattfinden
-          }
+          toast({
+            title: "Video-Generierung",
+            description: "Videogenerierung erfordert externe API - aktuell nicht verfügbar im kostenlosen Modus",
+            variant: "destructive",
+          });
           break;
           
         case 'code':
-          ({ data, error } = await supabase.functions.invoke("super-fusion-ai", {
-            body: { 
-              message: `Generiere sauberen, gut dokumentierten Code für: ${prompt}` 
-            },
-          }));
-          if (data) setResult({ type: 'code', content: data.message || data.response });
+          // ✅ KOSTENLOS: Nutze lokales Code-Modell
+          const code = await generateCode({
+            prompt,
+            language: "typescript",
+            maxTokens: 1024,
+          });
+          if (code) setResult({ type: 'code', content: code });
+          
+          toast({
+            title: "Code generiert! 🆓",
+            description: "Code wurde lokal erstellt (kostenlos)",
+          });
           break;
       }
-
-      if (error) throw error;
-
-      toast({
-        title: "Erfolgreich generiert!",
-        description: `${type.toUpperCase()} wurde erstellt`,
-      });
 
     } catch (error: any) {
       console.error("Generation error:", error);
       
-      const errorMsg = error?.message || "";
-      if (errorMsg.includes('402') || errorMsg.includes('Guthaben') || errorMsg.includes('Credits')) {
-        toast({
-          title: "💳 Lovable AI Credits aufgebraucht",
-          description: "Credits hinzufügen: Settings → Workspace → Usage",
-          variant: "destructive",
-        });
-      } else if (errorMsg.includes('429')) {
-        toast({
-          title: "⏱️ Rate Limit erreicht",
-          description: "Bitte einen Moment warten.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Fehler",
-          description: error instanceof Error ? error.message : "Generierung fehlgeschlagen",
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "Fehler",
+        description: error?.message || "Lokales KI-Modell konnte nicht laden. Bitte Seite neu laden.",
+        variant: "destructive",
+      });
     } finally {
       setIsGenerating(false);
     }
