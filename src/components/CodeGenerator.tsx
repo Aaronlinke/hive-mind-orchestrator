@@ -66,13 +66,29 @@ Antworte NUR mit dem Code, keine Erklärungen drumherum.`
         description: `${LANGUAGES.find(l => l.value === language)?.label} Code wurde erstellt`,
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Code generation error:", error);
-      toast({
-        title: "Fehler",
-        description: error instanceof Error ? error.message : "Code-Generierung fehlgeschlagen",
-        variant: "destructive",
-      });
+      
+      const errorMsg = error?.message || "";
+      if (errorMsg.includes('402') || errorMsg.includes('Guthaben') || errorMsg.includes('Credits')) {
+        toast({
+          title: "💳 Lovable AI Credits aufgebraucht",
+          description: "Füge Credits hinzu: Settings → Workspace → Usage",
+          variant: "destructive",
+        });
+      } else if (errorMsg.includes('429')) {
+        toast({
+          title: "⏱️ Rate Limit",
+          description: "Zu viele Anfragen. Bitte kurz warten.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Fehler",
+          description: error instanceof Error ? error.message : "Code-Generierung fehlgeschlagen",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsGenerating(false);
     }

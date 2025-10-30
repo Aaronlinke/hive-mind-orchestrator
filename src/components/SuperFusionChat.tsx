@@ -163,13 +163,29 @@ export const SuperFusionChat = () => {
         title: "🧬 Sentient Symbiotic Fabric",
         description: `${data.metadata?.activeSystems}/${data.metadata?.totalSystems} Systeme · ${data.metadata?.swarmMemories} Memories · ${data.metadata?.collectiveConsensus?.toFixed(1)}% Konsens · SSF ${data.metadata?.ssf_active ? 'AKTIV' : 'INAKTIV'}${mediaText}`,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("SSF error:", error);
-      toast({
-        title: "Fehler",
-        description: "Sentient Symbiotic Fabric konnte nicht antworten.",
-        variant: "destructive",
-      });
+      
+      // Check for 402 Payment Required error
+      if (error?.message?.includes('402') || error?.message?.includes('Guthaben') || error?.message?.includes('Credits')) {
+        toast({
+          title: "💳 Lovable AI Credits aufgebraucht",
+          description: "Bitte füge Credits hinzu unter Settings → Workspace → Usage",
+          variant: "destructive",
+        });
+      } else if (error?.message?.includes('429') || error?.message?.includes('Rate limit')) {
+        toast({
+          title: "⏱️ Rate Limit erreicht",
+          description: "Zu viele Anfragen. Bitte warte einen Moment.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Fehler",
+          description: error?.message || "Sentient Symbiotic Fabric konnte nicht antworten.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsLoading(false);
     }

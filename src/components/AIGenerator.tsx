@@ -67,13 +67,29 @@ export const AIGenerator = () => {
         description: `${type.toUpperCase()} wurde erstellt`,
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Generation error:", error);
-      toast({
-        title: "Fehler",
-        description: error instanceof Error ? error.message : "Generierung fehlgeschlagen",
-        variant: "destructive",
-      });
+      
+      const errorMsg = error?.message || "";
+      if (errorMsg.includes('402') || errorMsg.includes('Guthaben') || errorMsg.includes('Credits')) {
+        toast({
+          title: "💳 Lovable AI Credits aufgebraucht",
+          description: "Credits hinzufügen: Settings → Workspace → Usage",
+          variant: "destructive",
+        });
+      } else if (errorMsg.includes('429')) {
+        toast({
+          title: "⏱️ Rate Limit erreicht",
+          description: "Bitte einen Moment warten.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Fehler",
+          description: error instanceof Error ? error.message : "Generierung fehlgeschlagen",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsGenerating(false);
     }
