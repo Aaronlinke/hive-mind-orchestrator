@@ -184,51 +184,7 @@ export const SuperFusionChat = () => {
     }
   };
 
-  const pollVideoStatus = async (predictionId: string, messageId: string) => {
-    const maxAttempts = 60;
-    let attempts = 0;
-
-    const checkStatus = async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke("generate-video", {
-          body: { predictionId },
-        });
-
-        if (error) throw error;
-
-        if (data.status === "succeeded" && data.output) {
-          setMessages((prev) =>
-            prev.map((msg) =>
-              msg.id === messageId
-                ? { ...msg, videoUrl: data.output }
-                : msg
-            )
-          );
-          toast({
-            title: "🎬 Video fertig!",
-            description: "Dein Video wurde erfolgreich generiert.",
-          });
-          return;
-        } else if (data.status === "failed") {
-          toast({
-            title: "Video-Fehler",
-            description: "Video-Generierung fehlgeschlagen.",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        attempts++;
-        if (attempts < maxAttempts) {
-          setTimeout(checkStatus, 5000);
-        }
-      } catch (error) {
-        console.error("Video polling error:", error);
-      }
-    };
-
-    checkStatus();
-  };
+  // Video generation removed - requires external API
 
   const clearChat = () => {
     setMessages([]);

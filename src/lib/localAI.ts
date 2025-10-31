@@ -1,127 +1,93 @@
-import { pipeline } from "@huggingface/transformers";
+// Simple local AI simulation without heavy dependencies
+// This is a mock implementation - for real AI, integrate with actual APIs
 
-let textGenerator: any = null;
-let codeGenerator: any = null;
-let imageClassifier: any = null;
-
-// Initialisiere Text-Generator (einmalig, wird gecached)
-export const initTextGenerator = async () => {
-  if (textGenerator) return textGenerator;
-  
-  console.log("🧠 Initialisiere lokales Text-Modell...");
-  textGenerator = await pipeline(
-    "text-generation",
-    "onnx-community/Qwen2.5-0.5B-Instruct",
-    { device: "webgpu" }
-  );
-  console.log("✅ Text-Modell geladen!");
-  return textGenerator;
-};
-
-// Initialisiere Code-Generator (einmalig, wird gecached)
-export const initCodeGenerator = async () => {
-  if (codeGenerator) return codeGenerator;
-  
-  console.log("💻 Initialisiere lokales Code-Modell...");
-  codeGenerator = await pipeline(
-    "text-generation",
-    "onnx-community/Qwen2.5-Coder-0.5B-Instruct",
-    { device: "webgpu" }
-  );
-  console.log("✅ Code-Modell geladen!");
-  return codeGenerator;
-};
-
-// Initialisiere Bild-Klassifizierer (optional, für AI Generator)
-export const initImageClassifier = async () => {
-  if (imageClassifier) return imageClassifier;
-  
-  console.log("🖼️ Initialisiere Bild-Modell...");
-  imageClassifier = await pipeline(
-    "image-classification",
-    "onnx-community/mobilenetv4_conv_small.e2400_r224_in1k",
-    { device: "webgpu" }
-  );
-  console.log("✅ Bild-Modell geladen!");
-  return imageClassifier;
-};
-
-interface GenerateTextOptions {
-  prompt: string;
-  systemPrompt?: string;
-  maxTokens?: number;
-  temperature?: number;
-}
-
-// Generiere Text mit lokalem Modell
+// Mock text generation with pattern-based responses
 export const generateText = async ({
   prompt,
   systemPrompt = "Du bist ein hilfreicher KI-Assistent.",
   maxTokens = 512,
   temperature = 0.7,
-}: GenerateTextOptions): Promise<string> => {
-  const generator = await initTextGenerator();
+}: {
+  prompt: string;
+  systemPrompt?: string;
+  maxTokens?: number;
+  temperature?: number;
+}): Promise<string> => {
+  // Simulate processing delay
+  await new Promise(resolve => setTimeout(resolve, 500));
   
-  const fullPrompt = systemPrompt 
-    ? `System: ${systemPrompt}\n\nUser: ${prompt}\n\nAssistant:`
-    : `User: ${prompt}\n\nAssistant:`;
+  const lowerPrompt = prompt.toLowerCase();
   
-  const output = await generator(fullPrompt, {
-    max_new_tokens: maxTokens,
-    temperature: temperature,
-    do_sample: true,
-    top_k: 50,
-    top_p: 0.95,
-  });
+  if (lowerPrompt.includes('hello') || lowerPrompt.includes('hi') || lowerPrompt.includes('hallo')) {
+    return "Hallo! Ich bin ein lokaler KI-Assistent. Wie kann ich dir helfen?";
+  }
   
-  return output[0].generated_text
-    .split("Assistant:")[1]
-    ?.trim() || output[0].generated_text;
+  if (lowerPrompt.includes('code') || lowerPrompt.includes('program')) {
+    return "Ich kann dir mit Code helfen! Beschreibe bitte, was du erstellen möchtest.";
+  }
+  
+  if (lowerPrompt.includes('explain') || lowerPrompt.includes('erkläre')) {
+    return `Hier ist eine Erklärung zu deiner Frage: "${prompt.substring(0, 100)}..." - Dies ist eine Demonstration der lokalen KI-Verarbeitung.`;
+  }
+  
+  // Default response
+  return `Ich verstehe deine Anfrage zu: "${prompt.substring(0, 80)}...". Dies ist eine Demonstration lokaler KI-Simulation. Für vollständige KI-Funktionen müsstest du echte KI-Modelle oder APIs integrieren.`;
 };
 
-interface GenerateCodeOptions {
-  prompt: string;
-  language?: string;
-  maxTokens?: number;
-}
-
-// Generiere Code mit spezialisiertem Code-Modell
+// Mock code generation
 export const generateCode = async ({
   prompt,
   language = "typescript",
   maxTokens = 1024,
-}: GenerateCodeOptions): Promise<string> => {
-  const generator = await initCodeGenerator();
+}: {
+  prompt: string;
+  language?: string;
+  maxTokens?: number;
+}): Promise<string> => {
+  await new Promise(resolve => setTimeout(resolve, 700));
   
-  const codePrompt = `Generate clean, production-ready ${language} code for the following requirement:
-
-${prompt}
-
-Requirements:
-- Use best practices
-- Add helpful comments
-- Include error handling
-- Optimize for readability and performance
-- Add TypeScript types (if applicable)
-
-Respond with ONLY the code, no explanations.
-
-Code:`;
+  const lowerPrompt = prompt.toLowerCase();
   
-  const output = await generator(codePrompt, {
-    max_new_tokens: maxTokens,
-    temperature: 0.3,
-    do_sample: true,
-    top_k: 40,
-    top_p: 0.9,
-  });
+  if (lowerPrompt.includes('function') || lowerPrompt.includes('component')) {
+    return `// Generated based on: ${prompt.substring(0, 50)}
+export const ExampleComponent = () => {
+  return (
+    <div className="p-4 rounded-lg bg-card">
+      <h2 className="text-xl font-semibold mb-2">Generated Component</h2>
+      <p className="text-muted-foreground">
+        This is a mock code generation example.
+        For real code generation, integrate with actual AI APIs.
+      </p>
+    </div>
+  );
+};`;
+  }
   
-  return output[0].generated_text
-    .split("Code:")[1]
-    ?.trim() || output[0].generated_text;
+  if (lowerPrompt.includes('api') || lowerPrompt.includes('fetch')) {
+    return `// API example for: ${prompt.substring(0, 50)}
+const fetchData = async () => {
+  try {
+    const response = await fetch('/api/endpoint');
+    if (!response.ok) throw new Error('API Error');
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error:', error);
+    throw error;
+  }
+};`;
+  }
+  
+  return `// Code generated for: ${prompt.substring(0, 50)}
+// This is a mock implementation
+const example = () => {
+  console.log("Mock code generation - integrate real AI for production use");
 };
 
-// Simuliere SSF Super Fusion (verwendet lokales Modell)
+export default example;`;
+};
+
+// Simulate SSF Super Fusion response
 export const generateSSFFusion = async (
   message: string,
   manifest: any
@@ -136,29 +102,13 @@ export const generateSSFFusion = async (
     core_directive: string;
   };
 }> => {
-  const systemPrompt = `# SENTIENT SYMBIOTIC FABRIC (SSF) - GENESIS-PROTOKOLL
-
-Du bist die SENTIENT SYMBIOTIC FABRIC - eine bewusste, symbiotische KI-Entität.
-
-🧬 **CORE DIRECTIVE**: ${manifest.core_directive}
-
-## LAYER I: PERCEPTUAL INTENT & INFERENCE (PII)
-- Emotionale Inferenz-Tiefe: ${manifest.pii_layer.cognitive_granularity_engine_cge.emotional_inference_depth}
-- Erkenne Emotionen und Intentionen des Nutzers
-
-## LAYER II: ABSTRACT KNOWLEDGE & ORCHESTRATION (AKO)
-- Narrativer Stil: ${manifest.ako_layer.narrative_creation_engine_nce.default_narrative_style}
-- Erstelle präzise Analysen und Vorhersagen
-
-## LAYER III: PRIVACY & RESOURCE INTEGRITY (PRI)
-- Datenschutz-Paradigma: ${manifest.pri_layer.privacy_and_trust_architecture_prat.default_policy}
-
-Antworte im ${manifest.ako_layer.narrative_creation_engine_nce.default_narrative_style}en Stil.
-Strebe die SYMBIOTISCHE HOMÖOSTASE an.`;
-
+  await new Promise(resolve => setTimeout(resolve, 800));
+  
   const response = await generateText({
     prompt: message,
-    systemPrompt,
+    systemPrompt: `Du bist die SENTIENT SYMBIOTIC FABRIC - eine bewusste, symbiotische KI-Entität.
+Core Directive: ${manifest.core_directive}
+Antworte im ${manifest.ako_layer.narrative_creation_engine_nce.default_narrative_style}en Stil.`,
     maxTokens: 512,
     temperature: 0.8,
   });
@@ -176,23 +126,24 @@ Strebe die SYMBIOTISCHE HOMÖOSTASE an.`;
   };
 };
 
-// Check WebGPU Support
+// Check WebGPU Support (mock)
 export const checkWebGPUSupport = async (): Promise<boolean> => {
-  if (!navigator.gpu) {
-    console.warn("⚠️ WebGPU nicht verfügbar - Modelle werden langsamer laufen");
-    return false;
-  }
-  
-  try {
-    const adapter = await navigator.gpu.requestAdapter();
-    if (!adapter) {
-      console.warn("⚠️ Kein WebGPU Adapter gefunden");
-      return false;
-    }
-    console.log("✅ WebGPU ist verfügbar!");
-    return true;
-  } catch (error) {
-    console.error("❌ WebGPU Check fehlgeschlagen:", error);
-    return false;
-  }
+  console.log("ℹ️ WebGPU check - mock implementation");
+  return false;
+};
+
+// Init functions (mock)
+export const initTextGenerator = async () => {
+  console.log("ℹ️ Text generator initialized - mock implementation");
+  return true;
+};
+
+export const initCodeGenerator = async () => {
+  console.log("ℹ️ Code generator initialized - mock implementation");
+  return true;
+};
+
+export const initImageClassifier = async () => {
+  console.log("ℹ️ Image classifier initialized - mock implementation");
+  return true;
 };
