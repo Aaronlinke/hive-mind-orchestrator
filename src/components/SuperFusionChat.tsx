@@ -451,31 +451,9 @@ export const SuperFusionChat = () => {
                 {isLoading && (
                   <div className="flex justify-start">
                     <div className="max-w-[80%] glass-card border-primary/30 rounded-xl p-6 mr-12">
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-3">
-                          <Dna className="h-6 w-6 text-primary animate-pulse" />
-                          <span className="text-sm font-semibold text-primary">
-                            SSF Genesis-Protokoll läuft...
-                          </span>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-                            Layer I: PII - Perceptual Intent & Inference
-                          </div>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <div className="w-2 h-2 bg-accent rounded-full animate-pulse" style={{ animationDelay: "150ms" }} />
-                            Layer II: AKO - Abstract Knowledge & Orchestration
-                          </div>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <div className="w-2 h-2 bg-secondary rounded-full animate-pulse" style={{ animationDelay: "300ms" }} />
-                            Layer III: PRI - Privacy & Resource Integrity
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 pt-2">
-                          <Badge variant="outline" className="text-xs justify-center">8 Core Systems</Badge>
-                          <Badge variant="outline" className="text-xs justify-center">+ Media Gen</Badge>
-                        </div>
+                      <div className="flex items-center gap-3">
+                        <Dna className="h-6 w-6 text-primary animate-pulse" />
+                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
                       </div>
                     </div>
                   </div>
@@ -492,14 +470,11 @@ export const SuperFusionChat = () => {
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyPress={handleKeyPress}
-                        placeholder="🧬 Stelle mir eine Frage oder gib mir eine Aufgabe... Die SSF orchestriert automatisch alle 10 AI-Systeme für dich."
-                        className="min-h-[120px] resize-none pr-20 glass-card border-primary/30"
+                        placeholder="🧬 Nachricht..."
+                        className="min-h-[120px] resize-none glass-card border-primary/30"
                         disabled={isLoading}
                         maxLength={1000000}
                       />
-                      <div className="absolute bottom-3 right-3 text-xs text-muted-foreground">
-                        {input.length.toLocaleString()} / 1M
-                      </div>
                     </div>
                     <div className="flex flex-col gap-2">
                       <Button
@@ -509,36 +484,16 @@ export const SuperFusionChat = () => {
                         className="gradient-primary hover-lift h-full min-h-[120px] relative overflow-hidden"
                       >
                         {isLoading ? (
-                          <div className="flex flex-col items-center gap-2">
-                            <Loader2 className="h-6 w-6 animate-spin" />
-                            <span className="text-xs">Verarbeite...</span>
-                          </div>
+                          <Loader2 className="h-6 w-6 animate-spin" />
                         ) : (
-                          <div className="flex flex-col items-center gap-2">
-                            <Send className="h-6 w-6" />
-                            <span className="text-xs">Senden</span>
-                          </div>
+                          <Send className="h-6 w-6" />
                         )}
                       </Button>
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <div className="flex items-center gap-4 flex-wrap">
-                      <span className="flex items-center gap-1">
-                        <Sparkles className="w-3 h-3" />
-                        10 AI-Systeme
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Zap className="w-3 h-3" />
-                        Real-time
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Brain className="w-3 h-3" />
-                        Kollektiv
-                      </span>
-                    </div>
-                    <span className="hidden sm:block">Shift+Enter für neue Zeile</span>
+                  <div className="flex items-center justify-end text-xs text-muted-foreground">
+                    <span>Shift+Enter für neue Zeile</span>
                   </div>
                 </div>
               </div>
