@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { SuperFusionChat } from "@/components/SuperFusionChat";
 import { SystemDashboard } from "@/components/SystemDashboard";
 import { AIGenerator } from "@/components/AIGenerator";
+import { AIGridSystem } from "@/components/AIGridSystem";
 import { DebateCircle } from "@/components/DebateCircle";
 import { CodeGenerator } from "@/components/CodeGenerator";
 import { EvolutionaryDebatePanel } from "@/components/EvolutionaryDebatePanel";
@@ -204,6 +205,8 @@ const Index = () => {
           {/* Main Tab */}
           <TabsContent value="main" className="space-y-6 mt-6">
             <SuperFusionChat />
+            
+            <AIGridSystem />
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <AIGenerator />
