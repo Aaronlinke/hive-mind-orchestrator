@@ -9,6 +9,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import SwarmIntelligence from "./pages/SwarmIntelligence";
 import Evolution from "./pages/Evolution";
+import AIGrid from "./pages/AIGrid";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const App = () => (
               <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
               <Route path="/swarm-intelligence" element={<ProtectedRoute><SwarmIntelligence /></ProtectedRoute>} />
               <Route path="/evolution" element={<ProtectedRoute><Evolution /></ProtectedRoute>} />
+              <Route path="/ai-grid" element={<ProtectedRoute><AIGrid /></ProtectedRoute>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

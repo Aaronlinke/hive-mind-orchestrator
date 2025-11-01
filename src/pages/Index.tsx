@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { SuperFusionChat } from "@/components/SuperFusionChat";
 import { SystemDashboard } from "@/components/SystemDashboard";
 import { AIGenerator } from "@/components/AIGenerator";
-import { AIGridSystem } from "@/components/AIGridSystem";
 import { DebateCircle } from "@/components/DebateCircle";
 import { CodeGenerator } from "@/components/CodeGenerator";
 import { EvolutionaryDebatePanel } from "@/components/EvolutionaryDebatePanel";
@@ -22,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogOut, Sparkles, Dna, Brain, Zap, BarChart3, Activity, Users, Crown } from "lucide-react";
+import { LogOut, Sparkles, Dna, Brain, Zap, BarChart3, Activity, Users, Crown, Grid3x3 } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -88,6 +87,15 @@ const Index = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate("/ai-grid")}
+                className="h-9 px-3 hover-lift hidden md:flex"
+              >
+                <Grid3x3 className="w-4 h-4" />
+                <span className="ml-2">Schachbrett</span>
+              </Button>
               <Button 
                 variant="outline" 
                 size="sm"
@@ -205,8 +213,6 @@ const Index = () => {
           {/* Main Tab */}
           <TabsContent value="main" className="space-y-6 mt-6">
             <SuperFusionChat />
-            
-            <AIGridSystem />
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <AIGenerator />
