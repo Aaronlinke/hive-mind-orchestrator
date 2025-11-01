@@ -91,7 +91,7 @@ const Index = () => {
                 variant="outline" 
                 size="sm"
                 onClick={() => navigate("/ai-grid")}
-                className="h-9 px-3 hover-lift hidden md:flex"
+                className="h-9 px-3 hover-lift"
               >
                 <Grid3x3 className="w-4 h-4" />
                 <span className="ml-2">Schachbrett</span>
