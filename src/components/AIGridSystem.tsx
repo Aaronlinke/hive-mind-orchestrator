@@ -61,7 +61,8 @@ export const AIGridSystem = () => {
   const [totalProgress, setTotalProgress] = useState(0);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [pendingRequest, setPendingRequest] = useState<string>("");
+  const [backgroundResults, setBackgroundResults] = useState<any[]>([]);
   const { toast } = useToast();
   const intervalRef = useRef<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -135,7 +136,18 @@ export const AIGridSystem = () => {
     calculateTotalProgress();
   }, [workers]);
 
-  const startWork = () => {
+  const startWork = async () => {
+    if (!input.trim()) {
+      toast({
+        title: "Keine Frage",
+        description: "Bitte gib eine Frage ein",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setPendingRequest(input);
+    setInput("");
     setIsRunning(true);
     setWorkers(prev => prev.map(w => ({ 
       ...w, 
@@ -148,131 +160,19 @@ export const AIGridSystem = () => {
     
     toast({
       title: "KI-Grid gestartet! 🚀",
-      description: `${workers.length} KI-Arbeiter beginnen ihre Aufgaben`,
+      description: `${workers.length} KI-Arbeiter verarbeiten deine Anfrage im Hintergrund`,
     });
-  };
 
-  const stopWork = () => {
-    setIsRunning(false);
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    
-    toast({
-      title: "KI-Grid pausiert",
-      description: `Grid läuft weiter bei Aufträgen`,
-    });
-  };
-
-  const resetWork = () => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    setIsRunning(false);
-    setWorkers(prev => prev.map(w => ({ 
-      ...w, 
-      status: 'idle', 
-      progress: 0,
-      currentTask: 'Warten...'
-    })));
-    setTotalProgress(0);
-  };
-
-  const getEdgeFunctionForType = (type: string): string | null => {
-    const mapping: Record<string, string> = {
-      'semantic': 'semantic-reasoning',
-      'decision': 'decision-engine',
-      'resource': 'resource-orchestration',
-      'knowledge': 'knowledge-manager',
-      'web': 'web-interaction',
-      'visual': 'visual-concept-generator',
-      'skill': 'skill-manager',
-      'fusion': 'fusion-chat',
-      'meta': 'hierarchical-ai',
-    };
-    return mapping[type] || null;
-  };
-
-  const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
-
-    const userMessage: Message = {
-      id: crypto.randomUUID(),
-      role: 'user',
-      content: input,
-      timestamp: new Date(),
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    const messageText = input;
-    setInput("");
-    setIsLoading(true);
-
+    // Verarbeite im Hintergrund
     try {
-      console.log("🚀 AIGridSystem: Processing message");
-      // Bestimme relevante Worker basierend auf der Anfrage
-      const relevantTypes = new Set<string>();
-      const keywords: Record<string, string[]> = {
-        'semantic': ['bedeutung', 'kontext', 'semantisch', 'verstehen', 'analyse'],
-        'decision': ['entscheidung', 'wählen', 'option', 'empfehlung', 'auswahl'],
-        'resource': ['ressource', 'optimierung', 'verteilung', 'allokation'],
-        'knowledge': ['wissen', 'information', 'daten', 'speichern', 'abrufen'],
-        'web': ['web', 'internet', 'suche', 'website', 'online'],
-        'visual': ['bild', 'visual', 'grafik', 'konzept', 'visualisierung'],
-        'skill': ['fähigkeit', 'skill', 'kompetenz', 'können'],
-        'fusion': ['koordination', 'zusammenfassung', 'synthese', 'fusion'],
-      };
-
-      const lowerMessage = messageText.toLowerCase();
-      for (const [type, words] of Object.entries(keywords)) {
-        if (words.some(word => lowerMessage.includes(word))) {
-          relevantTypes.add(type);
-        }
-      }
-
-      // Falls keine spezifischen Keywords, nutze eine Auswahl von Workern
-      if (relevantTypes.size === 0) {
-        console.log("⚠️ No specific keywords found, using default workers");
-        relevantTypes.add('semantic');
-        relevantTypes.add('decision');
-        relevantTypes.add('knowledge');
-        relevantTypes.add('web');
-        relevantTypes.add('resource');
-        relevantTypes.add('visual');
-        relevantTypes.add('skill');
-        relevantTypes.add('fusion');
-      } else {
-        console.log(`🎯 Found ${relevantTypes.size} relevant worker types:`, Array.from(relevantTypes));
-      }
-
-      // Setze Worker auf "working" Status für visuelle Rückmeldung
-      const selectedWorkerIds = workers
-        .filter(w => relevantTypes.has(w.type))
-        .slice(0, 8) // Max 8 Worker gleichzeitig
-        .map(w => w.id);
-
-      console.log(`🤖 Selected ${selectedWorkerIds.length} workers for execution`);
-
-      setWorkers(prev => prev.map(w => 
-        selectedWorkerIds.includes(w.id) 
-          ? { ...w, currentTask: 'Verarbeite Auftrag...', status: 'working' as const }
-          : w
-      ));
-
-      // Rufe Edge Functions parallel auf
-      console.log("🔄 Starting parallel edge function calls");
-      const workerPromises = Array.from(relevantTypes).slice(0, 8).map(async (type) => {
+      const messageText = input;
+      const relevantTypes = new Set<string>(['semantic', 'decision', 'knowledge', 'web', 'resource', 'visual', 'skill', 'fusion']);
+      
+      const workerPromises = Array.from(relevantTypes).map(async (type) => {
         const functionName = getEdgeFunctionForType(type);
-        if (!functionName) {
-          console.warn(`⚠️ No edge function found for type: ${type}`);
-          return null;
-        }
+        if (!functionName) return null;
 
-        console.log(`📞 Calling edge function: ${functionName} (type: ${type})`);
         try {
-          // Special handling for fusion-chat: stream SSE and aggregate
           if (functionName === 'fusion-chat') {
             const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fusion-chat`;
             const resp = await fetch(CHAT_URL, {
@@ -283,21 +183,12 @@ export const AIGridSystem = () => {
               },
               body: JSON.stringify({
                 request: messageText,
-                context: {
-                  gridStatus: {
-                    totalProgress,
-                    activeWorkers: workers.filter(w => w.status === 'working').length,
-                  },
-                  conversationHistory: messages.slice(-5).map(m => ({ role: m.role, content: m.content })),
-                },
+                context: { conversationHistory: messages.slice(-5).map(m => ({ role: m.role, content: m.content })) },
                 activeNodes: Array.from(relevantTypes).filter(t => t !== 'fusion'),
               }),
             });
 
-            if (!resp.ok || !resp.body) {
-              const t = await resp.text().catch(() => 'No details');
-              throw new Error(`fusion-chat failed: ${resp.status} - ${t}`);
-            }
+            if (!resp.ok || !resp.body) return { type, error: 'Failed' };
 
             const reader = resp.body.getReader();
             const decoder = new TextDecoder();
@@ -327,72 +218,112 @@ export const AIGridSystem = () => {
                 }
               }
             }
-
             return { type, result: { response: assistant } };
           }
 
           const { data, error } = await supabase.functions.invoke(functionName, {
             body: { 
               request: messageText,
-              context: {
-                gridStatus: {
-                  totalProgress,
-                  activeWorkers: workers.filter(w => w.status === 'working').length,
-                },
-                conversationHistory: messages.slice(-5).map(m => ({ role: m.role, content: m.content })),
-              }
+              context: { conversationHistory: messages.slice(-5).map(m => ({ role: m.role, content: m.content })) }
             }
           });
 
-          if (error) {
-            console.error(`❌ Error calling ${functionName}:`, error);
-            return { type, error: error.message };
-          }
-          console.log(`✅ Success from ${functionName}:`, data);
+          if (error) return { type, error: error.message };
           return { type, result: data };
         } catch (err) {
-          console.error(`❌ Exception calling ${functionName}:`, err);
           return { type, error: String(err) };
         }
       });
 
       const results = await Promise.all(workerPromises);
-      console.log(`📥 Received ${results.length} results from workers`);
-      
-      // Sammle erfolgreiche Antworten
-      const successfulResults = results.filter(r => r && !r.error);
-      const failedResults = results.filter(r => r && r.error);
-      
-      console.log(`✅ ${successfulResults.length} successful, ❌ ${failedResults.length} failed`);
+      setBackgroundResults(results.filter(r => r && !r.error));
+    } catch (error) {
+      console.error('Background processing error:', error);
+    }
+  };
 
-      let responseContent = '';
-      
-      if (successfulResults.length > 0) {
-        responseContent = `**Grid-Antwort von ${successfulResults.length} Agenten:**\n\n`;
-        successfulResults.forEach((result, idx) => {
-          const resultData = result.result;
-          let content = '';
-          
-          // Verschiedene Antwortformate behandeln
-          if (resultData?.response) content = resultData.response;
-          else if (resultData?.prognosis) content = JSON.stringify(resultData.prognosis, null, 2);
-          else if (resultData?.decision) content = JSON.stringify(resultData.decision, null, 2);
-          else if (resultData?.plan) content = JSON.stringify(resultData.plan, null, 2);
-          else content = JSON.stringify(resultData, null, 2);
+  const stopWork = async () => {
+    setIsRunning(false);
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
 
-          responseContent += `**${result.type.toUpperCase()} Agent:**\n${content}\n\n`;
+    // Generiere finale Antwort
+    if (pendingRequest && backgroundResults.length > 0) {
+      const userMessage: Message = {
+        id: crypto.randomUUID(),
+        role: 'user',
+        content: pendingRequest,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, userMessage]);
+
+      let responseContent = `🎯 **Finale Systemantwort:**\n\n`;
+      backgroundResults.forEach((result) => {
+        const resultData = result.result;
+        let content = '';
+        
+        if (resultData?.response) content = resultData.response;
+        else if (resultData?.prognosis) content = JSON.stringify(resultData.prognosis, null, 2);
+        else if (resultData?.decision) content = JSON.stringify(resultData.decision, null, 2);
+        else if (resultData?.plan) content = JSON.stringify(resultData.plan, null, 2);
+        else content = JSON.stringify(resultData, null, 2);
+
+        responseContent += `**${result.type.toUpperCase()}:** ${content}\n\n`;
+      });
+
+      // System-Reflexion über gesamten Chatverlauf
+      responseContent += `\n---\n\n🧠 **System-Reflexion:**\n\n`;
+      
+      try {
+        const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fusion-chat`;
+        const resp = await fetch(CHAT_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({
+            request: `Reflektiere den gesamten Chatverlauf und fasse die wichtigsten Erkenntnisse zusammen. Chatverlauf: ${JSON.stringify(messages.map(m => ({ role: m.role, content: m.content })))}`,
+            context: {},
+            activeNodes: ['semantic', 'decision', 'knowledge'],
+          }),
         });
-      }
 
-      if (failedResults.length > 0) {
-        responseContent += `\n⚠️ ${failedResults.length} Agent(en) konnten nicht antworten.`;
-      }
-
-      if (!responseContent) {
-        console.warn("⚠️ No response content generated");
-        responseContent = 'Keine Agenten konnten eine Antwort generieren. Bitte versuchen Sie es erneut.';
-      } else {
-        console.log("📝 Response content length:", responseContent.length);
+        if (resp.ok && resp.body) {
+          const reader = resp.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = '';
+          let reflection = '';
+          let done = false;
+          while (!done) {
+            const { done: d, value } = await reader.read();
+            if (d) break;
+            buffer += decoder.decode(value, { stream: true });
+            let idx: number;
+            while ((idx = buffer.indexOf('\n')) !== -1) {
+              let line = buffer.slice(0, idx);
+              buffer = buffer.slice(idx + 1);
+              if (line.endsWith('\r')) line = line.slice(0, -1);
+              if (line.startsWith(':') || line.trim() === '') continue;
+              if (!line.startsWith('data: ')) continue;
+              const jsonStr = line.slice(6).trim();
+              if (jsonStr === '[DONE]') { done = true; break; }
+              try {
+                const parsed = JSON.parse(jsonStr);
+                const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+                if (content) reflection += content;
+              } catch {
+                buffer = line + '\n' + buffer;
+                break;
+              }
+            }
+          }
+          responseContent += reflection;
+        }
+      } catch (error) {
+        responseContent += 'Reflexion konnte nicht durchgeführt werden.';
       }
 
       const assistantMessage: Message = {
@@ -401,46 +332,57 @@ export const AIGridSystem = () => {
         content: responseContent,
         timestamp: new Date(),
       };
-
       setMessages(prev => [...prev, assistantMessage]);
 
-      // Setze Worker zurück
-      setWorkers(prev => prev.map(w => 
-        selectedWorkerIds.includes(w.id)
-          ? { ...w, status: 'completed' as const, currentTask: 'Auftrag abgeschlossen' }
-          : w
-      ));
-
-      toast({
-        title: "Antwort erhalten! ✓",
-        description: `${successfulResults.length} Agenten haben geantwortet`,
-      });
-
-    } catch (error) {
-      console.error('❌ AIGridSystem Error:', error);
-      console.error('Error details:', {
-        message: error instanceof Error ? error.message : 'Unknown',
-        stack: error instanceof Error ? error.stack : undefined,
-      });
-      
-      const errorMsg: Message = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: `❌ **AI Grid Fehler:**\n\n${error instanceof Error ? error.message : 'Unbekannter Fehler'}\n\nBitte versuche es erneut.`,
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, errorMsg]);
-
-      toast({
-        title: "Fehler",
-        description: "Konnte keine Antwort von den Agenten erhalten.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-      console.log("🏁 AIGridSystem request completed");
+      setPendingRequest("");
+      setBackgroundResults([]);
     }
+
+    setWorkers(prev => prev.map(w => ({ 
+      ...w, 
+      status: 'completed' as const,
+      progress: 100,
+      currentTask: 'Abgeschlossen'
+    })));
+    
+    toast({
+      title: "Finale Antwort generiert! ✓",
+      description: "System-Reflexion abgeschlossen",
+    });
   };
+
+  const resetWork = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    setIsRunning(false);
+    setPendingRequest("");
+    setBackgroundResults([]);
+    setWorkers(prev => prev.map(w => ({ 
+      ...w, 
+      status: 'idle', 
+      progress: 0,
+      currentTask: 'Warten...'
+    })));
+    setTotalProgress(0);
+  };
+
+  const getEdgeFunctionForType = (type: string): string | null => {
+    const mapping: Record<string, string> = {
+      'semantic': 'semantic-reasoning',
+      'decision': 'decision-engine',
+      'resource': 'resource-orchestration',
+      'knowledge': 'knowledge-manager',
+      'web': 'web-interaction',
+      'visual': 'visual-concept-generator',
+      'skill': 'skill-manager',
+      'fusion': 'fusion-chat',
+      'meta': 'hierarchical-ai',
+    };
+    return mapping[type] || null;
+  };
+
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -577,11 +519,11 @@ export const AIGridSystem = () => {
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {messages.length === 0 && (
               <div className="text-center text-muted-foreground text-sm py-8">
-                Stelle Fragen an das KI-Grid...
+                Ergebnisse erscheinen hier nach Stop
               </div>
             )}
 
-            {messages.map((message) => (
+            {!isRunning && messages.map((message) => (
               <div
                 key={message.id}
                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -601,10 +543,12 @@ export const AIGridSystem = () => {
               </div>
             ))}
 
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="glass-card border-primary/20 rounded-lg p-3">
-                  <Loader2 className="h-4 w-4 animate-spin" />
+            {isRunning && (
+              <div className="flex justify-center items-center py-8">
+                <div className="text-center">
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-primary" />
+                  <p className="text-sm text-muted-foreground">System arbeitet im Hintergrund...</p>
+                  <p className="text-xs text-muted-foreground mt-1">Drücke Stop für finale Antwort</p>
                 </div>
               </div>
             )}
@@ -613,27 +557,17 @@ export const AIGridSystem = () => {
           </div>
 
           <div className="p-4 border-t border-border/50">
-            <div className="flex gap-2">
+            <div className="space-y-2">
               <Textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                  }
-                }}
-                placeholder="Nachricht..."
-                className="min-h-[60px] resize-none"
-                disabled={isLoading}
+                placeholder="Stelle deine Frage an das Betriebssystem..."
+                className="min-h-[80px] resize-none"
+                disabled={isRunning}
               />
-              <Button
-                onClick={sendMessage}
-                disabled={isLoading || !input.trim()}
-                className="gradient-primary"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
+              <p className="text-xs text-muted-foreground">
+                {pendingRequest ? `⏳ Verarbeite: "${pendingRequest}"` : "Gib deine Frage ein und drücke Start"}
+              </p>
             </div>
           </div>
         </Card>
