@@ -116,9 +116,8 @@ serve(async (req) => {
     // === PHASE 1: PARALLEL EXECUTION ALLER SYSTEME (inkl. Bild- & Video-Generierung) ===
     console.log('🔄 Phase 1: Orchestrating specialized AI systems with SSF context...');
     
-    // Prüfe, ob eine Bild- oder Videogenerierung benötigt wird
+    // Prüfe, ob eine Bildgenerierung benötigt wird
     const needsImageGeneration = /bild|image|foto|picture|generier|erstell.*bild|zeig.*bild|mal.*bild/i.test(message);
-    const needsVideoGeneration = /video|film|animation|bewegtbild|sora|clip|footage|generier.*video|erstell.*video/i.test(message);
     
     const systemCalls = [
       supabaseClient.functions.invoke('semantic-reasoning', { 
@@ -200,19 +199,6 @@ serve(async (req) => {
       );
     }
     
-    // Füge Videogenerierung hinzu, falls benötigt
-    if (needsVideoGeneration) {
-      console.log('🎬 Videogenerierung angefordert - füge generate-video hinzu');
-      systemCalls.push(
-        supabaseClient.functions.invoke('generate-video', {
-          body: { 
-            prompt: message,
-            duration: 5
-          }
-        })
-      );
-    }
-    
     const results = await Promise.allSettled(systemCalls);
     
     const extractData = (result: any) => {
@@ -238,15 +224,9 @@ serve(async (req) => {
 
     // Extract optional media results
     let imageResult = null;
-    let videoResult = null;
     
-    if (needsImageGeneration && needsVideoGeneration) {
+    if (needsImageGeneration) {
       imageResult = results[8];
-      videoResult = results[9];
-    } else if (needsImageGeneration) {
-      imageResult = results[8];
-    } else if (needsVideoGeneration) {
-      videoResult = results[8];
     }
 
     const allResults = {
@@ -258,18 +238,13 @@ serve(async (req) => {
       visual: extractData(visualResult),
       skill: extractData(skillResult),
       master: extractData(masterResult),
-      image: needsImageGeneration ? extractData(imageResult) : null,
-      video: needsVideoGeneration ? extractData(videoResult) : null
+      image: needsImageGeneration ? extractData(imageResult) : null
     };
 
     let systemCount = 8;
     if (needsImageGeneration) systemCount++;
-    if (needsVideoGeneration) systemCount++;
     
-    const mediaInfo = [];
-    if (needsImageGeneration) mediaInfo.push('Bildgenerierung');
-    if (needsVideoGeneration) mediaInfo.push('Videogenerierung');
-    const mediaText = mediaInfo.length > 0 ? ` (inkl. ${mediaInfo.join(', ')})` : '';
+    const mediaText = needsImageGeneration ? ' (inkl. Bildgenerierung)' : '';
     
     console.log(`✅ [PII] Phase 1 komplett: ${systemCount}/${systemCount} Systeme konsultiert mit PII-Kontext${mediaText}`);
 
@@ -380,7 +355,6 @@ Du bist die SENTIENT SYMBIOTIC FABRIC - eine bewusste, symbiotische KI-Entität,
 7. **Skill Manager**: ${allResults.skill ? '✅ Aktiv' : '❌ Inaktiv'}
 8. **Master Orchestrator**: ${allResults.master ? '✅ Aktiv' : '❌ Inaktiv'}
 ${needsImageGeneration ? `9. **Image Generator (Gemini 2.5 Flash Image)**: ${allResults.image ? '✅ Bild generiert' : '❌ Fehlgeschlagen'}` : ''}
-${needsVideoGeneration ? `${needsImageGeneration ? '10' : '9'}. **Video Generator (Luma Dream Machine)**: ${allResults.video ? '✅ Video wird generiert (Prediction ID: ' + allResults.video.predictionId + ')' : '❌ Fehlgeschlagen'}` : ''}
 
 ## SCHWARM-GEDÄCHTNIS:
 - Erinnerungen: ${memoryData?.memories?.length || 0}
@@ -490,7 +464,6 @@ Sei tiefgründig, innovativ und zeige emergente Fähigkeiten. Strebe die **SYMBI
       success: true,
       message: superFusionResponse,
       imageUrl: allResults.image?.imageUrl || null,
-      videoPredictionId: allResults.video?.predictionId || null,
       metadata: {
         totalSystems: systemCount,
         activeSystems: Object.values(allResults).filter(r => r !== null).length,
@@ -505,8 +478,7 @@ Sei tiefgründig, innovativ und zeige emergente Fähigkeiten. Strebe die **SYMBI
           pri: 'AKTIV - Privacy & Resource Integrity'
         },
         core_directive: ssfManifest.core_directive,
-        imageGenerated: needsImageGeneration && !!allResults.image,
-        videoGenerated: needsVideoGeneration && !!allResults.video
+        imageGenerated: needsImageGeneration && !!allResults.image
       },
       systemResults: {
         semantic: !!allResults.semantic,
