@@ -400,28 +400,32 @@ export const AIGridSystem = () => {
   const workingWorkers = workers.filter(w => w.status === 'working').length;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-12rem)]">
+    <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6">
       {/* Left: AI Grid */}
-      <div className="lg:col-span-2 space-y-4">
-        <Card className="p-6 glass-card border-primary/20">
-          <div className="flex items-center justify-between mb-6">
+      <div className="xl:col-span-2 space-y-4">
+        <Card className="p-4 md:p-6 glass-card border border-primary/20 shadow-xl hover:border-primary/30 transition-all">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg gradient-primary">
-                <Brain className="h-6 w-6 text-background" />
+              <div className="p-2.5 rounded-xl gradient-primary shadow-lg hover:scale-110 transition-transform">
+                <Brain className="h-6 w-6 text-primary-foreground" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold">KI-Schachbrett</h2>
-                <p className="text-sm text-muted-foreground">
-                  {workers.length} autonome KI-Arbeiter
+                <h2 className="text-xl md:text-2xl font-bold flex items-center gap-2">
+                  System-Kontrolle
+                  <div className={`w-2 h-2 rounded-full ${isRunning ? 'bg-success animate-pulse' : 'bg-muted'}`} />
+                </h2>
+                <p className="text-xs md:text-sm text-muted-foreground">
+                  {workers.length} KI-Arbeiter bereit
                 </p>
               </div>
             </div>
             
-            <div className="flex gap-2">
+            <div className="flex gap-2 w-full sm:w-auto">
               <Button
                 onClick={startWork}
                 disabled={isRunning}
-                className="gradient-primary"
+                className="flex-1 sm:flex-none gradient-primary shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+                size="sm"
               >
                 <Play className="h-4 w-4 mr-2" />
                 Start
@@ -430,6 +434,8 @@ export const AIGridSystem = () => {
                 onClick={stopWork}
                 disabled={!isRunning}
                 variant="outline"
+                size="sm"
+                className="flex-1 sm:flex-none border-primary/20 hover:border-primary/40"
               >
                 <Pause className="h-4 w-4 mr-2" />
                 Stop
@@ -437,6 +443,8 @@ export const AIGridSystem = () => {
               <Button
                 onClick={resetWork}
                 variant="ghost"
+                size="icon"
+                className="hover:bg-primary/10"
               >
                 <RotateCcw className="h-4 w-4" />
               </Button>
@@ -444,58 +452,62 @@ export const AIGridSystem = () => {
           </div>
 
           {/* Progress Overview */}
-          <div className="mb-6 space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="font-medium">Gesamtfortschritt</span>
-              <span className="font-bold text-primary">{totalProgress}%</span>
+          <div className="mb-6 p-4 rounded-lg bg-gradient-to-r from-primary/5 via-accent/5 to-secondary/5 border border-primary/10">
+            <div className="flex justify-between text-sm mb-2">
+              <span className="font-semibold">Gesamtfortschritt</span>
+              <span className="font-bold text-primary text-lg">{totalProgress}%</span>
             </div>
-            <Progress value={totalProgress} className="h-2" />
-            <div className="flex gap-4 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Zap className="h-3 w-3" />
-                Aktiv: {workingWorkers}
-              </span>
-              <span className="flex items-center gap-1">
-                <CheckCircle2 className="h-3 w-3" />
-                Fertig: {completedWorkers}
-              </span>
-              <span className="flex items-center gap-1">
-                <Brain className="h-3 w-3" />
-                Bereit: {workers.length - workingWorkers - completedWorkers}
-              </span>
+            <Progress value={totalProgress} className="h-3 mb-3" />
+            <div className="grid grid-cols-3 gap-2 text-xs">
+              <div className="flex items-center gap-1.5 p-2 rounded-md bg-primary/10">
+                <Zap className="h-3.5 w-3.5 text-primary" />
+                <span className="font-medium">Aktiv: <strong>{workingWorkers}</strong></span>
+              </div>
+              <div className="flex items-center gap-1.5 p-2 rounded-md bg-success/10">
+                <CheckCircle2 className="h-3.5 w-3.5 text-success" />
+                <span className="font-medium">Fertig: <strong>{completedWorkers}</strong></span>
+              </div>
+              <div className="flex items-center gap-1.5 p-2 rounded-md bg-muted/50">
+                <Brain className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="font-medium">Bereit: <strong>{workers.length - workingWorkers - completedWorkers}</strong></span>
+              </div>
             </div>
           </div>
 
           {/* AI Grid */}
-          <div className="grid grid-cols-4 gap-3 max-h-[calc(100vh-26rem)] overflow-y-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 md:gap-3 max-h-[calc(100vh-28rem)] overflow-y-auto pr-2 custom-scrollbar">
             {workers.map((worker) => (
               <Card
                 key={worker.id}
-                className={`p-3 transition-all duration-300 border-2 ${
+                className={`p-3 transition-all duration-300 border-2 hover:scale-105 hover:shadow-lg ${
                   worker.status === 'working' 
-                    ? 'border-primary animate-pulse-glow' 
+                    ? 'border-primary bg-primary/5 shadow-primary/20 shadow-lg animate-pulse-glow' 
                     : worker.status === 'completed'
-                    ? 'border-success'
-                    : 'border-border/50'
+                    ? 'border-success bg-success/5 shadow-success/20 shadow-md'
+                    : 'border-border/50 hover:border-border'
                 }`}
               >
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Badge className={`${getTypeColor(worker.type)} text-xs`}>
+                    <Badge className={`${getTypeColor(worker.type)} text-[10px] px-1.5 py-0.5 font-semibold`}>
                       {worker.type}
                     </Badge>
-                    {getStatusIcon(worker.status)}
+                    <div className="p-1 rounded-md bg-background/50">
+                      {getStatusIcon(worker.status)}
+                    </div>
                   </div>
                   
                   <div>
-                    <p className="text-xs font-semibold truncate">{worker.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">
+                    <p className="text-xs font-bold truncate">{worker.name}</p>
+                    <p className="text-[10px] text-muted-foreground truncate mt-0.5">
                       {worker.currentTask}
                     </p>
                   </div>
                   
-                  <Progress value={worker.progress} className="h-1" />
-                  <p className="text-xs text-right font-mono">{Math.round(worker.progress)}%</p>
+                  <div className="space-y-1">
+                    <Progress value={worker.progress} className="h-1.5" />
+                    <p className="text-[10px] text-right font-mono text-muted-foreground">{Math.round(worker.progress)}%</p>
+                  </div>
                 </div>
               </Card>
             ))}
@@ -504,39 +516,44 @@ export const AIGridSystem = () => {
       </div>
 
       {/* Right: Chat */}
-      <div className="lg:col-span-1">
-        <Card className="h-full flex flex-col glass-card border-primary/20">
-          <div className="p-4 border-b border-border/50 bg-gradient-to-r from-primary/10 to-accent/10">
-            <h3 className="font-bold flex items-center gap-2">
+      <div className="xl:col-span-1">
+        <Card className="h-full flex flex-col glass-card border border-primary/20 shadow-xl">
+          <div className="p-4 border-b border-primary/10 bg-gradient-to-r from-primary/10 via-accent/10 to-secondary/10">
+            <h3 className="font-bold flex items-center gap-2 text-lg">
               <Brain className="h-5 w-5 text-primary" />
-              Grid-Chat
+              System-Chat
             </h3>
-            <p className="text-xs text-muted-foreground">
-              Kommuniziere mit dem KI-Grid
+            <p className="text-xs text-muted-foreground mt-1">
+              Kommuniziere mit dem Multi-Agent OS
             </p>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {messages.length === 0 && (
-              <div className="text-center text-muted-foreground text-sm py-8">
-                Ergebnisse erscheinen hier nach Stop
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+            {messages.length === 0 && !isRunning && (
+              <div className="text-center py-12">
+                <div className="inline-flex p-4 rounded-full bg-primary/10 mb-4">
+                  <Brain className="h-8 w-8 text-primary" />
+                </div>
+                <p className="text-muted-foreground text-sm">
+                  Ergebnisse erscheinen hier nach Stop
+                </p>
               </div>
             )}
 
             {!isRunning && messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
               >
                 <div
-                  className={`max-w-[85%] rounded-lg p-3 text-sm ${
+                  className={`max-w-[90%] rounded-xl p-3 shadow-md ${
                     message.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'glass-card border-primary/20'
+                      ? 'bg-gradient-to-r from-primary to-accent text-primary-foreground'
+                      : 'glass-card border border-primary/20 bg-card'
                   }`}
                 >
-                  <p className="whitespace-pre-wrap">{message.content}</p>
-                  <p className="text-xs opacity-60 mt-1">
+                  <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                  <p className="text-[10px] opacity-60 mt-2">
                     {message.timestamp.toLocaleTimeString('de-DE')}
                   </p>
                 </div>
@@ -544,11 +561,15 @@ export const AIGridSystem = () => {
             ))}
 
             {isRunning && (
-              <div className="flex justify-center items-center py-8">
-                <div className="text-center">
-                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-primary" />
-                  <p className="text-sm text-muted-foreground">System arbeitet im Hintergrund...</p>
-                  <p className="text-xs text-muted-foreground mt-1">Drücke Stop für finale Antwort</p>
+              <div className="flex justify-center items-center py-12">
+                <div className="text-center space-y-4">
+                  <div className="inline-flex p-4 rounded-full bg-primary/10">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">System arbeitet im Hintergrund...</p>
+                    <p className="text-xs text-muted-foreground mt-1">Drücke Stop für finale Antwort</p>
+                  </div>
                 </div>
               </div>
             )}
@@ -556,18 +577,36 @@ export const AIGridSystem = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="p-4 border-t border-border/50">
-            <div className="space-y-2">
+          <div className="p-4 border-t border-primary/10 bg-gradient-to-r from-background/50 to-primary/5">
+            <div className="space-y-3">
               <Textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Stelle deine Frage an das Betriebssystem..."
-                className="min-h-[80px] resize-none"
+                className="min-h-[80px] resize-none border-primary/20 focus:border-primary/40"
                 disabled={isRunning}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (!isRunning && input.trim()) {
+                      startWork();
+                    }
+                  }
+                }}
               />
-              <p className="text-xs text-muted-foreground">
-                {pendingRequest ? `⏳ Verarbeite: "${pendingRequest}"` : "Gib deine Frage ein und drücke Start"}
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-muted-foreground">
+                  {pendingRequest ? (
+                    <span className="flex items-center gap-1.5">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Verarbeite: "{pendingRequest.substring(0, 30)}{pendingRequest.length > 30 ? '...' : ''}"
+                    </span>
+                  ) : (
+                    <span>Gib deine Frage ein und drücke Start</span>
+                  )}
+                </p>
+                <span className="text-[10px] text-muted-foreground">Enter = Start</span>
+              </div>
             </div>
           </div>
         </Card>

@@ -132,47 +132,47 @@ const Index = () => {
       <main className="container mx-auto p-4 md:p-6 space-y-6">
         {/* Header Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="p-5 glass-card border-primary/20 hover-lift shadow-lg">
+          <Card className="p-4 md:p-5 glass-card border-primary/20 hover-lift shadow-lg hover:shadow-xl transition-all">
             <div className="flex items-center gap-3">
-              <div className="p-3 rounded-xl bg-primary/10">
-                <Dna className="w-6 h-6 text-primary" />
+              <div className="p-2.5 md:p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 hover:scale-110 transition-transform">
+                <Dna className="w-5 h-5 md:w-6 md:h-6 text-primary" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground font-medium">SSF Status</p>
-                <p className="text-xl font-bold flex items-center gap-2">
-                  Genesis Aktiv
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                <p className="text-[10px] md:text-xs text-muted-foreground font-semibold uppercase tracking-wide">SSF Status</p>
+                <p className="text-lg md:text-xl font-bold flex items-center gap-2 mt-0.5">
+                  Genesis
+                  <div className="w-2 h-2 bg-success rounded-full animate-pulse shadow-lg shadow-success/50" />
                 </p>
               </div>
             </div>
           </Card>
           
-          <Card className="p-5 glass-card border-accent/20 hover-lift shadow-lg">
+          <Card className="p-4 md:p-5 glass-card border-accent/20 hover-lift shadow-lg hover:shadow-xl transition-all">
             <div className="flex items-center gap-3">
-              <div className="p-3 rounded-xl bg-accent/10">
-                <Brain className="w-6 h-6 text-accent" />
+              <div className="p-2.5 md:p-3 rounded-xl bg-gradient-to-br from-accent/20 to-accent/10 hover:scale-110 transition-transform">
+                <Brain className="w-5 h-5 md:w-6 md:h-6 text-accent" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground font-medium">Aktive Agenten</p>
-                <p className="text-xl font-bold">{activeAgents.length} · {agentCount}x</p>
+                <p className="text-[10px] md:text-xs text-muted-foreground font-semibold uppercase tracking-wide">Aktive Agenten</p>
+                <p className="text-lg md:text-xl font-bold mt-0.5">{activeAgents.length} · {agentCount}x</p>
               </div>
             </div>
           </Card>
           
-          <Card className="p-5 glass-card border-secondary/20 hover-lift shadow-lg">
+          <Card className="p-4 md:p-5 glass-card border-secondary/20 hover-lift shadow-lg hover:shadow-xl transition-all">
             <div className="flex items-center gap-3">
-              <div className="p-3 rounded-xl bg-secondary/10">
-                <Zap className="w-6 h-6 text-secondary" />
+              <div className="p-2.5 md:p-3 rounded-xl bg-gradient-to-br from-secondary/20 to-secondary/10 hover:scale-110 transition-transform">
+                <Zap className="w-5 h-5 md:w-6 md:h-6 text-secondary" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground font-medium">Total Power</p>
-                <p className="text-xl font-bold">{activeAgents.length * agentCount}</p>
+                <p className="text-[10px] md:text-xs text-muted-foreground font-semibold uppercase tracking-wide">Total Power</p>
+                <p className="text-lg md:text-xl font-bold mt-0.5">{activeAgents.length * agentCount}</p>
               </div>
             </div>
           </Card>
 
-          <Card className="p-5 glass-card border-primary/20 hover-lift shadow-lg">
-            <div className="flex items-center justify-center">
+          <Card className="p-4 md:p-5 glass-card border-primary/20 hover-lift shadow-lg hover:shadow-xl transition-all">
+            <div className="flex items-center justify-center h-full">
               <StatsPanel />
             </div>
           </Card>
@@ -187,24 +187,24 @@ const Index = () => {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 glass-card p-1">
-            <TabsTrigger value="main" className="gap-2">
+          <TabsList className="grid w-full grid-cols-5 glass-card p-1.5 gap-1">
+            <TabsTrigger value="main" className="gap-2 data-[state=active]:bg-primary/10 data-[state=active]:shadow-md transition-all">
               <Sparkles className="h-4 w-4" />
               <span className="hidden sm:inline">Haupt</span>
             </TabsTrigger>
-            <TabsTrigger value="orchestrator" className="gap-2">
+            <TabsTrigger value="orchestrator" className="gap-2 data-[state=active]:bg-primary/10 data-[state=active]:shadow-md transition-all">
               <Crown className="h-4 w-4" />
               <span className="hidden sm:inline">Master</span>
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="gap-2">
+            <TabsTrigger value="analytics" className="gap-2 data-[state=active]:bg-primary/10 data-[state=active]:shadow-md transition-all">
               <BarChart3 className="h-4 w-4" />
               <span className="hidden sm:inline">Analytics</span>
             </TabsTrigger>
-            <TabsTrigger value="evolution" className="gap-2">
+            <TabsTrigger value="evolution" className="gap-2 data-[state=active]:bg-primary/10 data-[state=active]:shadow-md transition-all">
               <Activity className="h-4 w-4" />
               <span className="hidden sm:inline">Evolution</span>
             </TabsTrigger>
-            <TabsTrigger value="agents" className="gap-2">
+            <TabsTrigger value="agents" className="gap-2 data-[state=active]:bg-primary/10 data-[state=active]:shadow-md transition-all">
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Agenten</span>
             </TabsTrigger>
