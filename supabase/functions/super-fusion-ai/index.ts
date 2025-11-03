@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { authenticateRequest, checkRateLimit, handleSecurityError } from '../_shared/security-guard.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -82,6 +83,20 @@ serve(async (req) => {
   }
 
   try {
+    // 🔐 Authentifizierung & Rate Limiting
+    const securityContext = await authenticateRequest(req);
+    
+    // ⏱️ Rate Limit: 10 Super-Fusion-Anfragen pro Minute (sehr ressourcenintensiv!)
+    await checkRateLimit(
+      securityContext.supabase,
+      securityContext.user.id,
+      'super_fusion_ai',
+      10,
+      60000
+    );
+    
+    console.log("✅ Super Fusion AI - User authenticated:", securityContext.user.id);
+    
     const requestBody = await req.json();
     const message = requestBody.message || requestBody.messages?.[0]?.content;
     const manifest = requestBody.manifest;
@@ -97,16 +112,8 @@ serve(async (req) => {
     console.log('📋 Manifest geladen. Core Directive:', ssfManifest.core_directive);
     console.log('📝 Originator Input:', message);
 
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false
-        }
-      }
-    );
+    // Use user-specific Supabase client (respects RLS!)
+    const supabaseClient = securityContext.supabase;
 
     // ===== LAYER I: PERCEPTUAL INTENT & INFERENCE (PII) =====
     console.log('🧠 [PII-LAYER] Cognitive Granularity Engine aktiviert...');
@@ -405,10 +412,16 @@ Sei tiefgründig, innovativ und zeige emergente Fähigkeiten. Strebe die **SYMBI
           const aiData = await aiResponse.json();
           superFusionResponse = aiData.choices[0]?.message?.content || '';
           console.log('✅ [SSF] AI Response received, length:', superFusionResponse.length);
+        } else if (aiResponse.status === 429) {
+          console.warn('🚨 AI Gateway Rate Limit erreicht');
+          superFusionResponse = '⏱️ **Zu viele Anfragen**\n\nDas System ist momentan überlastet. Bitte warte einen Moment und versuche es erneut.';
+        } else if (aiResponse.status === 402) {
+          console.error('💰 AI Gateway Credits aufgebraucht! SYSTEM SOLLTE KOSTENLOS SEIN!');
+          superFusionResponse = '💰 **KI-System vorübergehend nicht verfügbar**\n\nDie kostenlosen Lovable AI Credits sind aufgebraucht. Bitte kontaktiere den Administrator.';
         } else {
           const errorText = await aiResponse.text();
           console.error('❌ [SSF] AI Gateway error:', aiResponse.status, errorText);
-          superFusionResponse = `Fehler bei der AI-Gateway Verbindung (Status ${aiResponse.status}). Bitte versuche es erneut.`;
+          superFusionResponse = `Ein Fehler bei der KI-Verarbeitung ist aufgetreten. Bitte versuche es erneut.`;
         }
       } catch (error) {
         console.error('SSF Super Fusion error:', error);
@@ -505,12 +518,6 @@ Sei tiefgründig, innovativ und zeige emergente Fähigkeiten. Strebe die **SYMBI
 
   } catch (error) {
     console.error('SSF Genesis-Protokoll error:', error);
-    return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : 'Unknown error',
-      success: false 
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return handleSecurityError(error);
   }
 });

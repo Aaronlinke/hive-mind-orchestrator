@@ -26,6 +26,15 @@ export const useFusionChat = () => {
 
     try {
       console.log("🚀 Fusion Chat: Sending message with", activeNodes?.length || 0, "active nodes");
+      
+      // Get authenticated session
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error("Du musst angemeldet sein, um die KI zu nutzen.");
+      }
+      
       const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fusion-chat`;
       console.log("📡 Fusion Chat URL:", CHAT_URL);
       
@@ -33,7 +42,7 @@ export const useFusionChat = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           messages: [...messages, userMessage].map(m => ({
@@ -46,10 +55,25 @@ export const useFusionChat = () => {
 
       console.log("📥 Fusion Chat response status:", response.status);
       
-      if (!response.ok || !response.body) {
-        const errorText = await response.text().catch(() => "No details");
-        console.error("❌ Fusion Chat error:", response.status, errorText);
-        throw new Error(`Failed to start stream: ${response.status} - ${errorText}`);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: "Unbekannter Fehler" }));
+        console.error("❌ Fusion Chat error:", response.status, errorData);
+        
+        let errorMessage = "Ein Fehler ist aufgetreten.";
+        
+        if (response.status === 429) {
+          errorMessage = "⏱️ **Zu viele Anfragen**\n\nBitte warte einen Moment und versuche es dann erneut.";
+        } else if (response.status === 402 || response.status === 503) {
+          errorMessage = "💰 **KI-System vorübergehend nicht verfügbar**\n\nDie kostenlosen Lovable AI Credits sind aufgebraucht. Bitte kontaktiere den Administrator.";
+        } else if (errorData.error) {
+          errorMessage = `❌ **Fehler:** ${errorData.error}`;
+        }
+        
+        throw new Error(errorMessage);
+      }
+      
+      if (!response.body) {
+        throw new Error("Kein Stream verfügbar");
       }
       
       console.log("✅ Fusion Chat stream started");
@@ -113,16 +137,12 @@ export const useFusionChat = () => {
       }
     } catch (error) {
       console.error('❌ Fusion chat error:', error);
-      console.error('Error details:', {
-        message: error instanceof Error ? error.message : 'Unknown',
-        stack: error instanceof Error ? error.stack : undefined,
-      });
       
       // Add error message to chat
       const errorMessage: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: `❌ **Fusion Chat Fehler:**\n\n${error instanceof Error ? error.message : 'Unbekannter Fehler'}\n\nBitte versuche es erneut.`,
+        content: error instanceof Error ? error.message : '❌ Ein unbekannter Fehler ist aufgetreten.',
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, errorMessage]);

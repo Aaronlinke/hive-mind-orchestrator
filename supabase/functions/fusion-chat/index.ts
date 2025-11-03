@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { authenticateRequest, checkRateLimit, handleSecurityError } from '../_shared/security-guard.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,13 +12,24 @@ serve(async (req) => {
   }
 
   try {
+    // 🔐 Authentifizierung & Rate Limiting
+    const securityContext = await authenticateRequest(req);
+    
+    // ⏱️ Rate Limit: 20 AI-Anfragen pro Minute pro User (kostenlos bleiben!)
+    await checkRateLimit(
+      securityContext.supabase,
+      securityContext.user.id,
+      'fusion_chat_ai',
+      20,
+      60000
+    );
+
     const body = await req.json();
-    console.log("📥 Received request:", JSON.stringify(body));
+    console.log("📥 Received request from user:", securityContext.user.id);
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2.38.0");
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = securityContext.supabase;
     
     // Handle both old format (messages) and new format (request + context)
     let messages = body.messages || [];
@@ -45,10 +57,11 @@ serve(async (req) => {
     if (activeNodes.includes("semantic") && lastUserMessage) {
       try {
         console.log("🧠 Calling SEMANTIC agent...");
+        const authHeader = req.headers.get("Authorization")!;
         const semanticResp = await fetch(`${supabaseUrl}/functions/v1/semantic-reasoning`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${supabaseKey}`,
+            'Authorization': authHeader,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
@@ -70,10 +83,11 @@ serve(async (req) => {
     if (activeNodes.includes("decision") && lastUserMessage) {
       try {
         console.log("⚖️ Calling DECISION agent...");
+        const authHeader = req.headers.get("Authorization")!;
         const decisionResp = await fetch(`${supabaseUrl}/functions/v1/decision-engine`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${supabaseKey}`,
+            'Authorization': authHeader,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
@@ -96,10 +110,11 @@ serve(async (req) => {
     if (activeNodes.includes("visual") && lastUserMessage) {
       try {
         console.log("🎨 Calling VISUAL agent...");
+        const authHeader = req.headers.get("Authorization")!;
         const visualResp = await fetch(`${supabaseUrl}/functions/v1/visual-concept-generator`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${supabaseKey}`,
+            'Authorization': authHeader,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
@@ -187,20 +202,32 @@ WICHTIG: Antworte auf Deutsch, strukturiert und umsetzbar.`;
 
     if (!response.ok) {
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limits exceeded" }), {
+        console.warn("🚨 AI Gateway Rate Limit erreicht");
+        return new Response(JSON.stringify({ 
+          error: "Zu viele Anfragen. Bitte warte einen Moment und versuche es erneut.",
+          code: "RATE_LIMIT_EXCEEDED"
+        }), {
           status: 429,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Payment required" }), {
-          status: 402,
+        console.error("💰 AI Gateway Credits aufgebraucht! SYSTEM SOLLTE KOSTENLOS SEIN!");
+        return new Response(JSON.stringify({ 
+          error: "Das KI-System ist vorübergehend nicht verfügbar. Bitte kontaktiere den Administrator.",
+          code: "CREDITS_DEPLETED",
+          support_info: "Die kostenlosen Lovable AI Credits sind aufgebraucht."
+        }), {
+          status: 503, // Service Unavailable statt 402
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       const errorText = await response.text();
       console.error("AI gateway error:", response.status, errorText);
-      return new Response(JSON.stringify({ error: "AI gateway error" }), {
+      return new Response(JSON.stringify({ 
+        error: "Ein Fehler bei der KI-Verarbeitung ist aufgetreten.",
+        code: "AI_GATEWAY_ERROR"
+      }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -211,9 +238,6 @@ WICHTIG: Antworte auf Deutsch, strukturiert und umsetzbar.`;
     });
   } catch (error) {
     console.error("Fusion chat error:", error);
-    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return handleSecurityError(error);
   }
 });
