@@ -47,6 +47,15 @@ export const useMasterOrchestrator = () => {
       if (!response.ok || !response.body) {
         const errorText = await response.text().catch(() => "No details");
         console.error("❌ Master Orchestrator error:", response.status, errorText);
+        
+        if (response.status === 402) {
+          throw new Error('💳 Lovable AI Credits aufgebraucht!\n\nBitte gehe zu Settings → Workspace → Usage um Credits hinzuzufügen.');
+        }
+        
+        if (response.status === 429) {
+          throw new Error('⏱️ Rate Limit erreicht! Bitte warte einen Moment und versuche es erneut.');
+        }
+        
         throw new Error(`Failed to start stream: ${response.status} - ${errorText}`);
       }
       
