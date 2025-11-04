@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Play, 
   Pause, 
@@ -13,10 +14,12 @@ import {
   Zap, 
   CheckCircle2,
   AlertCircle,
-  Loader2
+  Loader2,
+  Crown
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { SupremeOrchestratorChat } from "@/components/SupremeOrchestratorChat";
 
 interface AIWorker {
   id: string;
@@ -400,7 +403,20 @@ export const AIGridSystem = () => {
   const workingWorkers = workers.filter(w => w.status === 'working').length;
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6">
+    <Tabs defaultValue="grid" className="w-full">
+      <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-6">
+        <TabsTrigger value="grid" className="flex items-center gap-2">
+          <Brain className="h-4 w-4" />
+          Multi-Agent Grid
+        </TabsTrigger>
+        <TabsTrigger value="supreme" className="flex items-center gap-2">
+          <Crown className="h-4 w-4" />
+          Supreme Orchestrator
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="grid" className="mt-0">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6">
       {/* Left: AI Grid */}
       <div className="xl:col-span-2 space-y-4">
         <Card className="p-4 md:p-6 glass-card border border-primary/20 shadow-xl hover:border-primary/30 transition-all">
@@ -611,6 +627,12 @@ export const AIGridSystem = () => {
           </div>
         </Card>
       </div>
-    </div>
+        </div>
+      </TabsContent>
+
+      <TabsContent value="supreme" className="mt-0">
+        <SupremeOrchestratorChat />
+      </TabsContent>
+    </Tabs>
   );
 };
