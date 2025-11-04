@@ -1,5 +1,5 @@
 // 🚪 Security Guard - Der "Türsteher-Bot" für alle Edge Functions
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 export interface SecurityContext {
   user: {

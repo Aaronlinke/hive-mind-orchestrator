@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { authenticateRequest, checkRateLimit, handleSecurityError } from "../_shared/security-guard.ts";
 
 const corsHeaders = {
@@ -16,7 +16,7 @@ serve(async (req) => {
   try {
     // Authentifizierung & Rate Limiting (5 Anfragen/Minute - sehr ressourcenintensiv)
     const securityContext = await authenticateRequest(req);
-    await checkRateLimit(securityContext.userId, 'supreme-orchestrator', 5);
+    await checkRateLimit(securityContext.supabase, securityContext.user.id, 'supreme-orchestrator', 5, 60000);
 
     const { messages } = await req.json();
     const userMessage = messages[messages.length - 1]?.content || '';
@@ -40,7 +40,7 @@ serve(async (req) => {
     const specialistPromises = specialists.map(specialist =>
       supabase.functions.invoke(specialist, {
         body: { request: userMessage, context: {} }
-      }).catch(e => ({
+      }).catch((e: Error) => ({
         data: null,
         error: { message: e.message, specialist }
       }))
@@ -81,7 +81,7 @@ serve(async (req) => {
     // Phase 4: Master Orchestrator aufrufen
     const masterResult = await supabase.functions.invoke('master-orchestrator', {
       body: { messages }
-    }).catch(e => ({ data: null, error: e }));
+    }).catch((e: Error) => ({ data: null, error: e }));
 
     // Phase 5: Zusätzliche spezialisierte Funktionen
     const [evolutionEngine, patternRecognition, temporalEngine, hierarchicalAI] = await Promise.allSettled([
@@ -180,6 +180,6 @@ User Anfrage: ${userMessage}`;
     });
 
   } catch (error) {
-    return handleSecurityError(error, corsHeaders);
+    return handleSecurityError(error);
   }
 });

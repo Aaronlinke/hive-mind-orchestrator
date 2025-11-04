@@ -28,7 +28,7 @@ serve(async (req) => {
     console.log("📥 Received request from user:", securityContext.user.id);
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2.38.0");
+    const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
     const supabase = securityContext.supabase;
     
     // Handle both old format (messages) and new format (request + context)
