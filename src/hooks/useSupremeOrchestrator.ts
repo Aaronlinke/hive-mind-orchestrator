@@ -61,18 +61,30 @@ export const useSupremeOrchestrator = () => {
       if (!response.ok) {
         if (response.status === 429) {
           toast({
-            title: "Rate Limit erreicht",
-            description: "Zu viele Anfragen. Bitte warte einen Moment.",
+            title: "⏱️ Rate Limit erreicht",
+            description: "Zu viele Anfragen. Bitte warte einen Moment und versuche es erneut.",
             variant: "destructive"
           });
         } else if (response.status === 402 || response.status === 503) {
           toast({
-            title: "Credits aufgebraucht",
-            description: "Bitte lade deine Credits auf.",
+            title: "💳 Lovable AI Credits aufgebraucht!",
+            description: "Bitte gehe zu Settings → Workspace → Usage um Credits hinzuzufügen.",
+            variant: "destructive",
+            duration: 10000,
+          });
+        } else if (response.status === 401) {
+          toast({
+            title: "🔐 Authentifizierung fehlgeschlagen",
+            description: "Bitte melde dich erneut an.",
             variant: "destructive"
           });
         } else {
-          throw new Error(`HTTP ${response.status}`);
+          const errorText = await response.text().catch(() => "");
+          toast({
+            title: "❌ Fehler",
+            description: errorText || `HTTP ${response.status}`,
+            variant: "destructive"
+          });
         }
         setIsLoading(false);
         return;
