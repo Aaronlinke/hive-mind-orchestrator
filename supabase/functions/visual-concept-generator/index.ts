@@ -12,7 +12,13 @@ serve(async (req) => {
   }
 
   try {
-    const { description, context, type } = await req.json();
+    const requestBody = await req.json();
+    const { description, context, type, request } = requestBody;
+    
+    // Support both direct calls (with description) and orchestrator calls (with request)
+    const effectiveDescription = description || request || 'Visual concept';
+    const effectiveContext = context || {};
+    const effectiveType = type || 'general';
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -20,7 +26,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Generate visual concept using AI
-    const conceptPrompt = buildConceptPrompt(description, context, type);
+    const conceptPrompt = buildConceptPrompt(effectiveDescription, effectiveContext, effectiveType);
     
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -43,17 +49,21 @@ serve(async (req) => {
       })
     });
 
+    if (!aiResponse.ok) {
+      throw new Error(`AI Gateway error: ${aiResponse.status}`);
+    }
+
     const aiResult = await aiResponse.json();
-    const concept = aiResult.choices[0].message.content;
+    const concept = aiResult.choices?.[0]?.message?.content || 'Visual concept generated';
 
     // Store visual concept
     const { data: visualConcept } = await supabase
       .from('visual_concepts')
       .insert({
-        description,
-        concept_type: type || 'general',
+        description: effectiveDescription,
+        concept_type: effectiveType,
         generated_concept: concept,
-        context_data: context || {}
+        context_data: effectiveContext
       })
       .select()
       .single();

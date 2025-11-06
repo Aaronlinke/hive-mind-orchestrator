@@ -13,9 +13,12 @@ serve(async (req) => {
 
   try {
     const requestBody = await req.json();
-    const { resourceType, endpoint, query, payload, costBudget, latencyTolerance } = requestBody;
+    const { resourceType, endpoint, query, payload, costBudget, latencyTolerance, request, context } = requestBody;
     
-    if (!resourceType) {
+    // Support both direct calls (with resourceType) and orchestrator calls (with request)
+    const effectiveResourceType = resourceType || (request ? 'DatabaseQuery' : undefined);
+    
+    if (!effectiveResourceType) {
       return new Response(
         JSON.stringify({ error: 'Missing resourceType parameter' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -31,7 +34,7 @@ serve(async (req) => {
     let cost = 0;
 
     // Execute resource request based on type
-    switch (resourceType) {
+    switch (effectiveResourceType) {
       case 'API':
         result = await executeAPIRequest(endpoint!, payload);
         cost = 0.01; // Example cost
@@ -48,12 +51,12 @@ serve(async (req) => {
         break;
       
       case 'DatabaseQuery':
-        result = await executeDatabaseQuery(supabase, query!);
+        result = await executeDatabaseQuery(supabase, query || request || '');
         cost = 0.001;
         break;
       
       default:
-        throw new Error(`Unknown resource type: ${resourceType}`);
+        throw new Error(`Unknown resource type: ${effectiveResourceType}`);
     }
 
     const latency = Date.now() - startTime;
@@ -71,7 +74,7 @@ serve(async (req) => {
     const { data: requestRecord } = await supabase
       .from('resource_requests')
       .insert({
-        resource_type: resourceType,
+        resource_type: effectiveResourceType,
         endpoint,
         query,
         status: 'completed',

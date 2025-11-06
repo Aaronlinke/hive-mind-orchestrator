@@ -12,22 +12,27 @@ serve(async (req) => {
   }
 
   try {
-    const { action, skillId, skillPath, input } = await req.json();
+    const requestBody = await req.json();
+    const { action, skillId, skillPath, input, request, context } = requestBody;
+    
+    // Support both direct calls (with action) and orchestrator calls (with request)
+    const effectiveAction = action || (request ? 'analyze' : undefined);
+    const effectiveInput = input || request;
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    if (action === 'load' || action === 'develop') {
+    if (effectiveAction === 'load' || effectiveAction === 'develop') {
       // Entwickle neue Skill
       const { data: newSkill, error } = await supabase
         .from('skill_development')
         .insert({
-          skill_name: input?.skillName || skillId,
-          skill_category: input?.category || 'general',
+          skill_name: effectiveInput?.skillName || skillId,
+          skill_category: effectiveInput?.category || 'general',
           proficiency_level: 0.5,
           usage_count: 0,
-          learning_resources: input?.learningResources || []
+          learning_resources: effectiveInput?.learningResources || []
         })
         .select()
         .single();
@@ -42,10 +47,10 @@ serve(async (req) => {
       );
     }
 
-    if (action === 'execute' || action === 'use') {
+    if (effectiveAction === 'execute' || effectiveAction === 'use') {
       // Führe Skill aus und verbessere Proficiency
-      const queryText = typeof input === 'string' ? input : (input?.query || '');
-      const category = input?.category || 'general';
+      const queryText = typeof effectiveInput === 'string' ? effectiveInput : (effectiveInput?.query || '');
+      const category = effectiveInput?.category || 'general';
       
       const { data: skills } = await supabase
         .from('skill_development')
@@ -72,7 +77,7 @@ serve(async (req) => {
         executed: true,
         skill: skill?.skill_name || 'general',
         proficiency: skill?.proficiency_level || 0.5,
-        input
+        input: effectiveInput
       };
 
       return new Response(
@@ -81,7 +86,7 @@ serve(async (req) => {
       );
     }
 
-    if (action === 'list') {
+    if (effectiveAction === 'list') {
       const { data: skills } = await supabase
         .from('skill_development')
         .select('*')
@@ -93,9 +98,9 @@ serve(async (req) => {
       );
     }
 
-    if (action === 'analyze') {
+    if (effectiveAction === 'analyze') {
       // Analysiere Skills und liefere Erkenntnisse
-      const queryText = typeof input === 'string' ? input.toLowerCase() : (input?.query || '').toLowerCase();
+      const queryText = typeof effectiveInput === 'string' ? effectiveInput.toLowerCase() : (effectiveInput?.query || '').toLowerCase();
       
       const { data: allSkills } = await supabase
         .from('skill_development')
@@ -130,7 +135,7 @@ serve(async (req) => {
       );
     }
 
-    throw new Error(`Unknown action: ${action}`);
+    throw new Error(`Unknown action: ${effectiveAction}`);
   } catch (error) {
     console.error('Skill manager error:', error);
     return new Response(

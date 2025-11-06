@@ -12,15 +12,20 @@ serve(async (req) => {
   }
 
   try {
-    const { action, query, knowledge, nodeId, edgeData } = await req.json();
+    const requestBody = await req.json();
+    const { action, query, knowledge, nodeId, edgeData, request, context } = requestBody;
+    
+    // Support both direct calls (with action) and orchestrator calls (with request)
+    const effectiveAction = action || (request ? 'search' : undefined);
+    const effectiveQuery = query || request;
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    if (action === 'search') {
+    if (effectiveAction === 'search') {
       // Durchsuche Wissensbasis
-      const searchText = typeof query === 'string' ? query.toLowerCase() : '';
+      const searchText = typeof effectiveQuery === 'string' ? effectiveQuery.toLowerCase() : '';
       const keywords = searchText.split(' ').filter((w: string) => w.length > 3);
       
       const { data: entries } = await supabase
@@ -67,7 +72,7 @@ serve(async (req) => {
       );
     }
 
-    if (action === 'add') {
+    if (effectiveAction === 'add') {
       // Füge Wissen hinzu
       const { data: entry, error } = await supabase
         .from('knowledge_entries')
@@ -92,7 +97,7 @@ serve(async (req) => {
       );
     }
 
-    if (action === 'update') {
+    if (effectiveAction === 'update') {
       // Aktualisiere Wissen
       const { data: entry, error } = await supabase
         .from('knowledge_entries')
@@ -117,7 +122,7 @@ serve(async (req) => {
       );
     }
 
-    if (action === 'analyze') {
+    if (effectiveAction === 'analyze') {
       // Analysiere Wissensbasis
       const { data: entries } = await supabase
         .from('knowledge_entries')
@@ -150,7 +155,7 @@ serve(async (req) => {
       );
     }
 
-    throw new Error(`Unknown action: ${action}`);
+    throw new Error(`Unknown action: ${effectiveAction}`);
   } catch (error) {
     console.error('Knowledge manager error:', error);
     return new Response(
