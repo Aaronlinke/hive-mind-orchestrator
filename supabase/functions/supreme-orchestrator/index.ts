@@ -14,6 +14,8 @@ serve(async (req) => {
   }
 
   try {
+    const startTime = Date.now();
+    
     // Authentifizierung & Rate Limiting (5 Anfragen/Minute - sehr ressourcenintensiv)
     const securityContext = await authenticateRequest(req);
     await checkRateLimit(securityContext.supabase, securityContext.user.id, 'supreme-orchestrator', 5, 60000);
@@ -21,10 +23,31 @@ serve(async (req) => {
     const { messages } = await req.json();
     const userMessage = messages[messages.length - 1]?.content || '';
 
+    if (!userMessage?.trim()) {
+      return new Response(JSON.stringify({ 
+        error: 'EMPTY_MESSAGE',
+        message: 'Bitte gib eine Nachricht ein.' 
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     const supabase = securityContext.supabase;
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
-    console.log('🌟 SUPREME ORCHESTRATOR: Initiating complete system analysis...');
+    if (!LOVABLE_API_KEY) {
+      console.error('⚠️ LOVABLE_API_KEY nicht gesetzt');
+      return new Response(JSON.stringify({ 
+        error: 'CONFIG_ERROR',
+        message: 'System nicht konfiguriert. Bitte kontaktiere den Support.' 
+      }), {
+        status: 503,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    console.log(`🌟 SUPREME ORCHESTRATOR: Initiating analysis for user ${securityContext.user.id}`);
 
     // Phase 1: Alle AI-Spezialisten parallel aufrufen
     const specialists = [
@@ -47,15 +70,33 @@ serve(async (req) => {
     );
 
     const specialistResults = await Promise.allSettled(specialistPromises);
+    const specialistTime = Date.now() - startTime;
+    console.log(`✅ Phase 1: Specialists completed in ${specialistTime}ms`);
 
-    // Phase 2: System-State abrufen
-    const [evolutionData, blockchainData, patternsData, temporalData, consciousnessData] = await Promise.all([
+    // Phase 2: System-State abrufen (mit Timeout)
+    const stateTimeout = 5000;
+    const statePromise = Promise.all([
       supabase.from('evolution_history').select('*').order('created_at', { ascending: false }).limit(5),
       supabase.from('blockchain_checkpoints').select('*').order('created_at', { ascending: false }).limit(5),
       supabase.from('emergent_patterns').select('*').order('created_at', { ascending: false }).limit(5),
       supabase.from('temporal_snapshots').select('*').order('snapshot_time', { ascending: false }).limit(1),
       supabase.from('consciousness_reflections').select('*').order('timestamp', { ascending: false }).limit(1)
     ]);
+    
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('State fetch timeout')), stateTimeout)
+    );
+    
+    const [evolutionData, blockchainData, patternsData, temporalData, consciousnessData] = await Promise.race([
+      statePromise,
+      timeoutPromise
+    ]).catch((e) => {
+      console.warn('⚠️ State fetch failed or timed out:', e.message);
+      return [{ data: [] }, { data: [] }, { data: [] }, { data: [] }, { data: [] }];
+    }) as any[];
+    
+    const stateTime = Date.now() - startTime - specialistTime;
+    console.log(`✅ Phase 2: State fetched in ${stateTime}ms`);
 
     // Phase 3: Collective Intelligence aufrufen
     const collectiveResult = await supabase.functions.invoke('collective-intelligence', {
@@ -172,14 +213,19 @@ User Anfrage: ${userMessage}`;
       throw new Error(`AI Gateway error: ${aiResponse.status}`);
     }
 
+    const totalTime = Date.now() - startTime;
+    console.log(`🎉 SUPREME ORCHESTRATOR: Complete in ${totalTime}ms`);
+
     return new Response(aiResponse.body, {
       headers: {
         ...corsHeaders,
         'Content-Type': 'text/event-stream',
+        'X-Processing-Time': `${totalTime}ms`,
       },
     });
 
   } catch (error) {
+    console.error('❌ SUPREME ORCHESTRATOR ERROR:', error);
     return handleSecurityError(error);
   }
 });
