@@ -29,10 +29,11 @@ export const useFusionChat = () => {
       
       // Get authenticated session
       const { supabase } = await import('@/integrations/supabase/client');
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
-      if (!session) {
-        throw new Error("Du musst angemeldet sein, um die KI zu nutzen.");
+      if (sessionError || !session) {
+        await supabase.auth.signOut();
+        throw new Error("Sitzung abgelaufen. Bitte neu anmelden.");
       }
       
       const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fusion-chat`;
@@ -58,6 +59,13 @@ export const useFusionChat = () => {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: "Unbekannter Fehler" }));
         console.error("❌ Fusion Chat error:", response.status, errorData);
+        
+        // Handle 401 - Session expired
+        if (response.status === 401) {
+          const { supabase } = await import('@/integrations/supabase/client');
+          await supabase.auth.signOut();
+          throw new Error("Sitzung abgelaufen. Bitte neu anmelden.");
+        }
         
         let errorMessage = "Ein Fehler ist aufgetreten.";
         

@@ -26,13 +26,23 @@ export const useMasterOrchestrator = () => {
 
     try {
       console.log("🎯 Master Orchestrator: Sending message");
+      
+      // Get authenticated session
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        await supabase.auth.signOut();
+        throw new Error("Sitzung abgelaufen. Bitte neu anmelden.");
+      }
+      
       const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/master-orchestrator`;
       
       const response = await fetch(CHAT_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           messages: [...messages, userMessage].map(m => ({
@@ -47,6 +57,13 @@ export const useMasterOrchestrator = () => {
       if (!response.ok || !response.body) {
         const errorText = await response.text().catch(() => "No details");
         console.error("❌ Master Orchestrator error:", response.status, errorText);
+        
+        // Handle 401 - Session expired
+        if (response.status === 401) {
+          const { supabase } = await import('@/integrations/supabase/client');
+          await supabase.auth.signOut();
+          throw new Error("Sitzung abgelaufen. Bitte neu anmelden.");
+        }
         
         if (response.status === 402) {
           throw new Error('💳 Lovable AI Credits aufgebraucht!\n\nBitte gehe zu Settings → Workspace → Usage um Credits hinzuzufügen.');
