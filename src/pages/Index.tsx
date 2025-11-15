@@ -108,11 +108,38 @@ const Index = () => {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => navigate("/swarm")}
+                onClick={() => navigate("/swarm-intelligence")}
                 className="h-9 px-3 hover-lift hidden md:flex"
               >
                 <span>🐝</span>
                 <span className="ml-2">Swarm</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate("/black-sultan-os")}
+                className="h-9 px-3 hover-lift hidden lg:flex"
+              >
+                <Brain className="w-4 h-4" />
+                <span className="ml-2">Black Sultan</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate("/aj-platform")}
+                className="h-9 px-3 hover-lift hidden lg:flex"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span className="ml-2">AJ Platform</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate("/meta-philosophy")}
+                className="h-9 px-3 hover-lift hidden lg:flex"
+              >
+                <Zap className="w-4 h-4" />
+                <span className="ml-2">Philosophy</span>
               </Button>
               <ThemeToggle />
               <Button 
