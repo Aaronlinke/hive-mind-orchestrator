@@ -10,6 +10,9 @@ import Index from "./pages/Index";
 import SwarmIntelligence from "./pages/SwarmIntelligence";
 import Evolution from "./pages/Evolution";
 import AIGrid from "./pages/AIGrid";
+import BlackSultanOS from "./pages/BlackSultanOS";
+import AJPlatform from "./pages/AJPlatform";
+import MetaPhilosophy from "./pages/MetaPhilosophy";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +30,9 @@ const App = () => (
               <Route path="/swarm-intelligence" element={<ProtectedRoute><SwarmIntelligence /></ProtectedRoute>} />
               <Route path="/evolution" element={<ProtectedRoute><Evolution /></ProtectedRoute>} />
               <Route path="/ai-grid" element={<ProtectedRoute><AIGrid /></ProtectedRoute>} />
+              <Route path="/black-sultan-os" element={<ProtectedRoute><BlackSultanOS /></ProtectedRoute>} />
+              <Route path="/aj-platform" element={<ProtectedRoute><AJPlatform /></ProtectedRoute>} />
+              <Route path="/meta-philosophy" element={<ProtectedRoute><MetaPhilosophy /></ProtectedRoute>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
