@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Message {
   id: string;
@@ -25,129 +26,62 @@ export const useMasterOrchestrator = () => {
     setIsLoading(true);
 
     try {
-      console.log("🎯 Master Orchestrator: Sending message");
-      
-      // Get authenticated session
-      const { supabase } = await import('@/integrations/supabase/client');
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError || !session) {
-        await supabase.auth.signOut();
-        throw new Error("Sitzung abgelaufen. Bitte neu anmelden.");
-      }
-      
-      const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/master-orchestrator`;
-      
-      const response = await fetch(CHAT_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          messages: [...messages, userMessage].map(m => ({
-            role: m.role,
-            content: m.content,
-          })),
-        }),
+      // Build context from conversation history
+      const historyContext = messages.slice(-6).map(m => 
+        `${m.role === 'user' ? 'Nutzer' : 'Assistent'}: ${m.content}`
+      ).join('\n\n');
+
+      const systemPrompt = `Du bist der MASTER ORCHESTRATOR - die übergeordnete Meta-KI, die ein selbstevolvierbares Multi-KI-System steuert.
+
+Du orchestrierst 7 KI-Spezialisten:
+1. Semantisches Reasoning - Tiefes Verständnis von Sprache und Bedeutung
+2. Entscheidungs-Engine - Strategische Analyse und Optionsbewertung
+3. Ressourcen-Orchestrierung - Planung und Priorisierung
+4. Wissensmanagement - Kontextuelles Fachwissen
+5. Web-Interaktion - Externe Informationsquellen
+6. Visuelle Konzepte - Kreative Visualisierung
+7. Skill-Manager - Technische Umsetzung
+
+Deine Aufgabe:
+- Synthetisiere alle Perspektiven zu einer kohärenten Komplettlösung
+- Zeige auf, welche Spezialisten welche Aspekte beitragen
+- Gib konkrete, umsetzbare Antworten
+- Nutze Markdown für Struktur
+
+${historyContext ? `\nBisheriger Gesprächsverlauf:\n${historyContext}` : ''}
+
+Antworte auf Deutsch. Sei prägnant und strategisch.`;
+
+      const { data, error } = await supabase.functions.invoke('gemini-free-ai', {
+        body: {
+          prompt: input,
+          systemPrompt,
+          model: 'gemini-2.5-flash'
+        }
       });
 
-      console.log("📥 Master Orchestrator response status:", response.status);
-      
-      if (!response.ok || !response.body) {
-        const errorText = await response.text().catch(() => "No details");
-        console.error("❌ Master Orchestrator error:", response.status, errorText);
-        
-        // Handle 401 - Session expired
-        if (response.status === 401) {
-          const { supabase } = await import('@/integrations/supabase/client');
-          await supabase.auth.signOut();
-          throw new Error("Sitzung abgelaufen. Bitte neu anmelden.");
-        }
-        
-        if (response.status === 402) {
-          throw new Error('💳 Lovable AI Credits aufgebraucht!\n\nBitte gehe zu Settings → Workspace → Usage um Credits hinzuzufügen.');
-        }
-        
-        if (response.status === 429) {
-          throw new Error('⏱️ Rate Limit erreicht! Bitte warte einen Moment und versuche es erneut.');
-        }
-        
-        throw new Error(`Failed to start stream: ${response.status} - ${errorText}`);
-      }
-      
-      console.log("✅ Master Orchestrator stream started");
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let assistantContent = '';
-      let textBuffer = '';
-      let streamDone = false;
+      const assistantMessage: Message = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: data?.text || 'Keine Antwort erhalten.',
+        timestamp: new Date(),
+      };
 
-      const assistantId = crypto.randomUUID();
-
-      while (!streamDone) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        textBuffer += decoder.decode(value, { stream: true });
-
-        let newlineIndex: number;
-        while ((newlineIndex = textBuffer.indexOf('\n')) !== -1) {
-          let line = textBuffer.slice(0, newlineIndex);
-          textBuffer = textBuffer.slice(newlineIndex + 1);
-
-          if (line.endsWith('\r')) line = line.slice(0, -1);
-          if (line.startsWith(':') || line.trim() === '') continue;
-          if (!line.startsWith('data: ')) continue;
-
-          const jsonStr = line.slice(6).trim();
-          if (jsonStr === '[DONE]') {
-            streamDone = true;
-            break;
-          }
-
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-            if (content) {
-              assistantContent += content;
-              setMessages(prev => {
-                const last = prev[prev.length - 1];
-                if (last?.id === assistantId) {
-                  return prev.map(m =>
-                    m.id === assistantId ? { ...m, content: assistantContent } : m
-                  );
-                }
-                return [
-                  ...prev,
-                  {
-                    id: assistantId,
-                    role: 'assistant' as const,
-                    content: assistantContent,
-                    timestamp: new Date(),
-                  },
-                ];
-              });
-            }
-          } catch {
-            textBuffer = line + '\n' + textBuffer;
-            break;
-          }
-        }
-      }
+      setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
-      console.error('❌ Master orchestrator error:', error);
-      
+      console.error('Master orchestrator error:', error);
       const errorMessage: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: `❌ **Master Orchestrator Fehler:**\n\n${error instanceof Error ? error.message : 'Unbekannter Fehler'}\n\nBitte versuche es erneut.`,
+        content: `❌ **Fehler:**\n\n${error instanceof Error ? error.message : 'Unbekannter Fehler'}\n\nBitte versuche es erneut.`,
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
-      console.log("🏁 Master Orchestrator request completed");
     }
   };
 

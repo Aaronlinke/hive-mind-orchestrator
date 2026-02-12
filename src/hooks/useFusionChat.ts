@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Message {
   id: string;
@@ -25,138 +26,47 @@ export const useFusionChat = () => {
     setIsLoading(true);
 
     try {
-      console.log("🚀 Fusion Chat: Sending message with", activeNodes?.length || 0, "active nodes");
-      
-      // Get authenticated session
-      const { supabase } = await import('@/integrations/supabase/client');
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError || !session) {
-        await supabase.auth.signOut();
-        throw new Error("Sitzung abgelaufen. Bitte neu anmelden.");
-      }
-      
-      const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fusion-chat`;
-      console.log("📡 Fusion Chat URL:", CHAT_URL);
-      
-      const response = await fetch(CHAT_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          messages: [...messages, userMessage].map(m => ({
-            role: m.role,
-            content: m.content,
-          })),
-          activeNodes: activeNodes || [],
-        }),
+      const nodesContext = activeNodes?.length 
+        ? `\nAktive KI-Knoten: ${activeNodes.join(', ')}` 
+        : '';
+
+      const historyContext = messages.slice(-6).map(m => 
+        `${m.role === 'user' ? 'Nutzer' : 'Assistent'}: ${m.content}`
+      ).join('\n\n');
+
+      const { data, error } = await supabase.functions.invoke('gemini-free-ai', {
+        body: {
+          prompt: input,
+          systemPrompt: `Du bist ein Multi-KI-Fusionssystem. Du kombinierst mehrere KI-Perspektiven zu einer kohärenten Antwort.${nodesContext}
+
+${historyContext ? `\nBisheriger Kontext:\n${historyContext}` : ''}
+
+Antworte auf Deutsch. Nutze Markdown für Struktur. Sei präzise und hilfreich.`,
+          model: 'gemini-2.5-flash'
+        }
       });
 
-      console.log("📥 Fusion Chat response status:", response.status);
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: "Unbekannter Fehler" }));
-        console.error("❌ Fusion Chat error:", response.status, errorData);
-        
-        // Handle 401 - Session expired
-        if (response.status === 401) {
-          const { supabase } = await import('@/integrations/supabase/client');
-          await supabase.auth.signOut();
-          throw new Error("Sitzung abgelaufen. Bitte neu anmelden.");
-        }
-        
-        let errorMessage = "Ein Fehler ist aufgetreten.";
-        
-        if (response.status === 429) {
-          errorMessage = "⏱️ **Zu viele Anfragen**\n\nBitte warte einen Moment und versuche es dann erneut.";
-        } else if (response.status === 402 || response.status === 503) {
-          errorMessage = "💰 **KI-System vorübergehend nicht verfügbar**\n\nDie kostenlosen Lovable AI Credits sind aufgebraucht. Bitte kontaktiere den Administrator.";
-        } else if (errorData.error) {
-          errorMessage = `❌ **Fehler:** ${errorData.error}`;
-        }
-        
-        throw new Error(errorMessage);
-      }
-      
-      if (!response.body) {
-        throw new Error("Kein Stream verfügbar");
-      }
-      
-      console.log("✅ Fusion Chat stream started");
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let assistantContent = '';
-      let textBuffer = '';
-      let streamDone = false;
-
-      const assistantId = crypto.randomUUID();
-
-      while (!streamDone) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        textBuffer += decoder.decode(value, { stream: true });
-
-        let newlineIndex: number;
-        while ((newlineIndex = textBuffer.indexOf('\n')) !== -1) {
-          let line = textBuffer.slice(0, newlineIndex);
-          textBuffer = textBuffer.slice(newlineIndex + 1);
-
-          if (line.endsWith('\r')) line = line.slice(0, -1);
-          if (line.startsWith(':') || line.trim() === '') continue;
-          if (!line.startsWith('data: ')) continue;
-
-          const jsonStr = line.slice(6).trim();
-          if (jsonStr === '[DONE]') {
-            streamDone = true;
-            break;
-          }
-
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-            if (content) {
-              assistantContent += content;
-              setMessages(prev => {
-                const last = prev[prev.length - 1];
-                if (last?.id === assistantId) {
-                  return prev.map(m =>
-                    m.id === assistantId ? { ...m, content: assistantContent } : m
-                  );
-                }
-                return [
-                  ...prev,
-                  {
-                    id: assistantId,
-                    role: 'assistant' as const,
-                    content: assistantContent,
-                    timestamp: new Date(),
-                  },
-                ];
-              });
-            }
-          } catch {
-            textBuffer = line + '\n' + textBuffer;
-            break;
-          }
-        }
-      }
+      const assistantMessage: Message = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: data?.text || 'Keine Antwort erhalten.',
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
-      console.error('❌ Fusion chat error:', error);
-      
-      // Add error message to chat
+      console.error('Fusion chat error:', error);
       const errorMessage: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: error instanceof Error ? error.message : '❌ Ein unbekannter Fehler ist aufgetreten.',
+        content: `❌ ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`,
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
-      console.log("🏁 Fusion Chat request completed");
     }
   };
 
