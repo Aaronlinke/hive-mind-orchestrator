@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -6,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Layers, Sparkles, Database, Cpu, Code, Eye, Wand2, Plus, Trash2, Copy, Play } from 'lucide-react';
+import { Layers, Sparkles, Database, Cpu, Code, Eye, Wand2, Plus, Trash2, Copy, Play, ArrowLeft } from 'lucide-react';
 import { useGeminiAI } from '@/hooks/useGeminiAI';
 import { toast } from 'sonner';
 

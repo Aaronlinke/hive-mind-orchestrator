@@ -338,10 +338,15 @@ const BlackSultanOS = () => {
       <div className="max-w-7xl mx-auto space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <h1 className="text-3xl font-bold font-mono terminal-text flex items-center gap-2">
-            <Brain className="w-8 h-8 text-green-400" />
-            BLACK SULTAN OS
-          </h1>
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="gap-2 hover:bg-primary/10">
+              <ArrowLeft className="w-4 h-4" /> Zurück
+            </Button>
+            <h1 className="text-3xl font-bold font-mono terminal-text flex items-center gap-2">
+              <Brain className="w-8 h-8 text-primary" />
+              BLACK SULTAN OS
+            </h1>
+          </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => { initNetwork(); toast.success('Netzwerk zurückgesetzt'); }}>
               <RotateCcw className="w-4 h-4 mr-1" /> Reset
