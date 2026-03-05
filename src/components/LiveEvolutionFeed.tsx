@@ -146,7 +146,7 @@ export const LiveEvolutionFeed = () => {
                     <div className="text-xs">
                       <span className="font-medium">{event.event_data?.agentName || 'Neuer Agent'}</span>
                       {event.event_data?.fitness && (
-                        <span className="ml-2 text-green-400">Fitness: {(event.event_data.fitness * 100).toFixed(0)}%</span>
+                        <span className="ml-2 text-primary">Fitness: {(event.event_data.fitness * 100).toFixed(0)}%</span>
                       )}
                     </div>
                   )}
