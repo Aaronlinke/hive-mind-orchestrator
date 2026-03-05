@@ -7,8 +7,8 @@ const corsHeaders = {
 
 // Model mapping: translate simplified names to actual Gemini API models
 const MODEL_MAP: Record<string, string> = {
-  'gemini-2.5-flash': 'gemini-2.5-flash-preview-05-20',
-  'gemini-2.5-pro': 'gemini-2.5-pro-preview-06-05',
+  'gemini-2.5-flash': 'gemini-2.0-flash',
+  'gemini-2.5-pro': 'gemini-1.5-pro',
   'gemini-2.0-flash': 'gemini-2.0-flash',
   'gemini-1.5-pro': 'gemini-1.5-pro',
   'gemini-1.5-flash': 'gemini-1.5-flash',
@@ -93,7 +93,7 @@ serve(async (req) => {
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      if (response.status === 400) {
+      if (response.status === 400 || response.status === 404) {
         // Try fallback model
         console.log('Trying fallback model gemini-1.5-pro...');
         const fallbackResponse = await fetch(

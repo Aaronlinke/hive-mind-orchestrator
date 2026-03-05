@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Brain, Zap, Activity, Pause, Play, Sparkles, Network, RotateCcw, MessageSquare } from 'lucide-react';
+import { Brain, Zap, Activity, Pause, Play, Sparkles, Network, RotateCcw, MessageSquare, ArrowLeft } from 'lucide-react';
 import { useGeminiAI } from '@/hooks/useGeminiAI';
 import { toast } from 'sonner';
 
@@ -41,6 +42,7 @@ const CLUSTER_COLORS = [
 ];
 
 const BlackSultanOS = () => {
+  const navigate = useNavigate();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
   const neuronsRef = useRef<Neuron[]>([]);
@@ -336,10 +338,15 @@ const BlackSultanOS = () => {
       <div className="max-w-7xl mx-auto space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <h1 className="text-3xl font-bold font-mono terminal-text flex items-center gap-2">
-            <Brain className="w-8 h-8 text-green-400" />
-            BLACK SULTAN OS
-          </h1>
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="gap-2 hover:bg-primary/10">
+              <ArrowLeft className="w-4 h-4" /> Zurück
+            </Button>
+            <h1 className="text-3xl font-bold font-mono terminal-text flex items-center gap-2">
+              <Brain className="w-8 h-8 text-primary" />
+              BLACK SULTAN OS
+            </h1>
+          </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => { initNetwork(); toast.success('Netzwerk zurückgesetzt'); }}>
               <RotateCcw className="w-4 h-4 mr-1" /> Reset

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -6,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Layers, Sparkles, Database, Cpu, Code, Eye, Wand2, Plus, Trash2, Copy, Play } from 'lucide-react';
+import { Layers, Sparkles, Database, Cpu, Code, Eye, Wand2, Plus, Trash2, Copy, Play, ArrowLeft } from 'lucide-react';
 import { useGeminiAI } from '@/hooks/useGeminiAI';
 import { toast } from 'sonner';
 
@@ -27,6 +28,7 @@ interface GeneratedComponent {
 }
 
 const AJPlatform = () => {
+  const navigate = useNavigate();
   const [layers, setLayers] = useState<MetaLayer[]>([
     { id: 'l1', name: 'Benutzer-Daten', type: 'data', content: '{ "users": [], "sessions": [] }', connections: ['l2'] },
     { id: 'l2', name: 'Auth-Logik', type: 'logic', content: 'validateToken(token) → bool', connections: ['l3'] },
@@ -129,12 +131,17 @@ Kontext: Die AJ Platform nutzt Meta-Layer mit ${layers.length} aktiven Schichten
       <div className="max-w-7xl mx-auto space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <div>
-            <h1 className="text-3xl font-bold font-mono terminal-text flex items-center gap-2">
-              <Layers className="w-8 h-8 text-purple-400" />
-              AJ PLATTFORM
-            </h1>
-            <p className="text-muted-foreground">Quanten-Holographische Informations-Architektur</p>
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="gap-2 hover:bg-primary/10">
+              <ArrowLeft className="w-4 h-4" /> Zurück
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold font-mono terminal-text flex items-center gap-2">
+                <Layers className="w-8 h-8 text-accent" />
+                AJ PLATTFORM
+              </h1>
+              <p className="text-muted-foreground">Quanten-Holographische Informations-Architektur</p>
+            </div>
           </div>
           <div className="flex gap-2">
             <Badge variant="outline">{layers.length} Layer</Badge>

@@ -39,17 +39,10 @@ export const MasterOrchestratorChat = () => {
     try {
       await navigator.clipboard.writeText(content);
       setCopiedId(id);
-      toast({
-        title: "Kopiert!",
-        description: "Nachricht wurde in die Zwischenablage kopiert.",
-      });
+      toast({ title: "Kopiert!", description: "Nachricht wurde in die Zwischenablage kopiert." });
       setTimeout(() => setCopiedId(null), 2000);
-    } catch (error) {
-      toast({
-        title: "Fehler",
-        description: "Konnte nicht kopieren.",
-        variant: "destructive",
-      });
+    } catch {
+      toast({ title: "Fehler", description: "Konnte nicht kopieren.", variant: "destructive" });
     }
   };
 
@@ -85,7 +78,7 @@ export const MasterOrchestratorChat = () => {
           </Button>
         </div>
 
-        {/* Quick Actions */}
+        {/* Quick Actions — bug fixed: send directly via sendMessage */}
         <div className="mt-2 md:mt-4 flex flex-wrap gap-1 md:gap-2">
           {quickActions.map((action, idx) => (
             <Button
@@ -93,8 +86,7 @@ export const MasterOrchestratorChat = () => {
               variant="outline"
               size="sm"
               onClick={() => {
-                setInput(action.prompt);
-                handleSend();
+                if (!isLoading) sendMessage(action.prompt);
               }}
               className="text-[10px] md:text-xs hover:bg-primary/10 hover:border-primary/30 h-7 md:h-8 px-2 md:px-3"
               disabled={isLoading}
@@ -119,13 +111,13 @@ export const MasterOrchestratorChat = () => {
                 </h3>
                 <p className="text-muted-foreground leading-relaxed text-xs md:text-sm">
                   Ich orchestriere ALLE 7 KI-Spezialisten:
-                  <br/>
+                  <br />
                   <strong className="text-[10px] md:text-xs">Semantik · Decision · Resource · Knowledge · Web · Visual · Skill</strong>
-                  <br/><br/>
+                  <br /><br />
                   <span className="hidden md:inline">
-                  Ich konsultiere alle Spezialisten parallel,
-                  lasse sie "debattieren" und synthetisiere ihre Erkenntnisse zu einer
-                  vollständigen Komplettlösung mit evolutionärem System im Hintergrund.
+                    Ich konsultiere alle Spezialisten parallel,
+                    lasse sie "debattieren" und synthetisiere ihre Erkenntnisse zu einer
+                    vollständigen Komplettlösung mit evolutionärem System im Hintergrund.
                   </span>
                 </p>
               </div>
@@ -197,9 +189,7 @@ export const MasterOrchestratorChat = () => {
                   <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
                   <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-secondary rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                 </div>
-                <span className="text-xs md:text-sm text-muted-foreground">
-                  Analysiere...
-                </span>
+                <span className="text-xs md:text-sm text-muted-foreground">Analysiere...</span>
               </div>
             </div>
           </div>

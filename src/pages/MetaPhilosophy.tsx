@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Brain, Infinity, Network, Sparkles, MessageSquare, Atom, Eye, Zap } from 'lucide-react';
+import { Brain, Infinity, Network, Sparkles, MessageSquare, Atom, Eye, Zap, ArrowLeft } from 'lucide-react';
 import { useGeminiAI } from '@/hooks/useGeminiAI';
 import { toast } from 'sonner';
 
@@ -20,6 +21,7 @@ interface EmergentNode {
 }
 
 const MetaPhilosophy = () => {
+  const navigate = useNavigate();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
   const nodesRef = useRef<EmergentNode[]>([]);
@@ -181,12 +183,17 @@ das Meta-Internet als lebendes Informationsnetzwerk, und die Verschmelzung von B
     <div className="min-h-screen bg-background p-4">
       <div className="max-w-7xl mx-auto space-y-4">
         {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold font-mono terminal-text flex items-center justify-center gap-3">
-            <Infinity className="w-10 h-10 text-purple-400" />
-            META PHILOSOPHY
-          </h1>
-          <p className="text-muted-foreground text-lg">Emergenz, Bewusstsein und das Meta-Internet</p>
+        <div className="flex items-start gap-3">
+          <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="gap-2 hover:bg-primary/10 mt-1 flex-shrink-0">
+            <ArrowLeft className="w-4 h-4" /> Zurück
+          </Button>
+          <div className="text-center flex-1 space-y-2">
+            <h1 className="text-4xl font-bold font-mono terminal-text flex items-center justify-center gap-3">
+              <Infinity className="w-10 h-10 text-accent" />
+              META PHILOSOPHY
+            </h1>
+            <p className="text-muted-foreground text-lg">Emergenz, Bewusstsein und das Meta-Internet</p>
+          </div>
         </div>
 
         {/* Emergence Canvas */}
