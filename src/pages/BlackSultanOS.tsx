@@ -42,6 +42,7 @@ const CLUSTER_COLORS = [
 ];
 
 const BlackSultanOS = () => {
+  const navigate = useNavigate();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
   const neuronsRef = useRef<Neuron[]>([]);
