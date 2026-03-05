@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Brain, Zap, Activity, Pause, Play, Sparkles, Network, RotateCcw, MessageSquare } from 'lucide-react';
+import { Brain, Zap, Activity, Pause, Play, Sparkles, Network, RotateCcw, MessageSquare, ArrowLeft } from 'lucide-react';
 import { useGeminiAI } from '@/hooks/useGeminiAI';
 import { toast } from 'sonner';
 
