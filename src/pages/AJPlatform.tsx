@@ -131,12 +131,17 @@ Kontext: Die AJ Platform nutzt Meta-Layer mit ${layers.length} aktiven Schichten
       <div className="max-w-7xl mx-auto space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <div>
-            <h1 className="text-3xl font-bold font-mono terminal-text flex items-center gap-2">
-              <Layers className="w-8 h-8 text-purple-400" />
-              AJ PLATTFORM
-            </h1>
-            <p className="text-muted-foreground">Quanten-Holographische Informations-Architektur</p>
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="gap-2 hover:bg-primary/10">
+              <ArrowLeft className="w-4 h-4" /> Zurück
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold font-mono terminal-text flex items-center gap-2">
+                <Layers className="w-8 h-8 text-accent" />
+                AJ PLATTFORM
+              </h1>
+              <p className="text-muted-foreground">Quanten-Holographische Informations-Architektur</p>
+            </div>
           </div>
           <div className="flex gap-2">
             <Badge variant="outline">{layers.length} Layer</Badge>
