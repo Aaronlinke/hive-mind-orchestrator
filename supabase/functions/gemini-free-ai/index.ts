@@ -93,7 +93,7 @@ serve(async (req) => {
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      if (response.status === 400) {
+      if (response.status === 400 || response.status === 404) {
         // Try fallback model
         console.log('Trying fallback model gemini-1.5-pro...');
         const fallbackResponse = await fetch(
