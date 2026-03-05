@@ -136,7 +136,7 @@ export const LiveEvolutionFeed = () => {
                       {event.event_data?.patternNames && (
                         <div className="mt-1 flex flex-wrap gap-1">
                           {event.event_data.patternNames.map((p: string, i: number) => (
-                            <span key={i} className="bg-blue-500/10 text-blue-400 rounded px-1.5 py-0.5">{p}</span>
+                            <span key={i} className="bg-primary/10 text-primary rounded px-1.5 py-0.5">{p}</span>
                           ))}
                         </div>
                       )}
