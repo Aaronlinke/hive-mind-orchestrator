@@ -28,6 +28,7 @@ interface GeneratedComponent {
 }
 
 const AJPlatform = () => {
+  const navigate = useNavigate();
   const [layers, setLayers] = useState<MetaLayer[]>([
     { id: 'l1', name: 'Benutzer-Daten', type: 'data', content: '{ "users": [], "sessions": [] }', connections: ['l2'] },
     { id: 'l2', name: 'Auth-Logik', type: 'logic', content: 'validateToken(token) → bool', connections: ['l3'] },
