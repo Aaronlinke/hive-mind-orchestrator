@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Brain, Infinity, Network, Sparkles, MessageSquare, Atom, Eye, Zap } from 'lucide-react';
+import { Brain, Infinity, Network, Sparkles, MessageSquare, Atom, Eye, Zap, ArrowLeft } from 'lucide-react';
 import { useGeminiAI } from '@/hooks/useGeminiAI';
 import { toast } from 'sonner';
 
@@ -20,6 +21,7 @@ interface EmergentNode {
 }
 
 const MetaPhilosophy = () => {
+  const navigate = useNavigate();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
   const nodesRef = useRef<EmergentNode[]>([]);
