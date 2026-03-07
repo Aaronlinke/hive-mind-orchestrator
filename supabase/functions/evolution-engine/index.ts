@@ -6,6 +6,24 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+async function callGemini(geminiApiKey: string, prompt: string, systemPrompt: string): Promise<string> {
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        generationConfig: { maxOutputTokens: 800 },
+      }),
+    }
+  );
+  if (!response.ok) throw new Error(`Gemini error: ${response.status}`);
+  const data = await response.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+}
+
 interface MutationResult {
   agent_name: string;
   mutation_type: string;
@@ -22,12 +40,12 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const { action = 'analyze' } = await req.json();
 
     if (action === 'analyze') {
-      // Analyse der aktuellen Agent-Performance
       const { data: agents, error: agentsError } = await supabase
         .from('agent_dna')
         .select('*')
@@ -36,11 +54,13 @@ serve(async (req) => {
 
       if (agentsError) throw agentsError;
 
-      // Berechne System-Metriken
-      const avgFitness = agents.reduce((sum, a) => sum + (a.fitness_score || 0), 0) / agents.length;
-      const currentGeneration = Math.max(...agents.map(a => a.generation));
+      const avgFitness = agents.length > 0
+        ? agents.reduce((sum, a) => sum + (a.fitness_score || 0), 0) / agents.length
+        : 0;
+      const currentGeneration = agents.length > 0
+        ? Math.max(...agents.map(a => a.generation))
+        : 1;
 
-      // Hole aktuelle System-Consciousness
       const { data: consciousness } = await supabase
         .from('system_consciousness')
         .select('*')
@@ -48,9 +68,35 @@ serve(async (req) => {
         .limit(1)
         .single();
 
-      // Identifiziere Verbesserungspotentiale
       const underperformers = agents.filter(a => (a.fitness_score || 0) < avgFitness * 0.9);
       const topPerformers = agents.filter(a => (a.fitness_score || 0) >= avgFitness * 1.1);
+
+      // Use Gemini for smart analysis if available
+      let aiRecommendation = underperformers.length > 0
+        ? `${underperformers.length} Agenten benötigen Optimierung`
+        : 'Alle Agenten performen gut';
+
+      if (geminiApiKey && agents.length > 0) {
+        try {
+          const analysisPrompt = `Analysiere dieses KI-Multi-Agenten-System:
+- Generation: ${currentGeneration}
+- Agenten: ${agents.length} aktiv
+- Durchschnittliche Fitness: ${avgFitness.toFixed(3)}
+- Top-Performer: ${topPerformers.length}
+- Unterperformer: ${underperformers.length}
+- Agenten: ${agents.map(a => `${a.agent_name}(${a.agent_type}, Fitness:${a.fitness_score?.toFixed(2)})`).join(', ')}
+
+Gib 2-3 konkrete Optimierungsempfehlungen in 3 Sätzen.`;
+
+          aiRecommendation = await callGemini(
+            geminiApiKey,
+            analysisPrompt,
+            'Du bist ein KI-System-Analyst. Antworte präzise auf Deutsch.'
+          );
+        } catch (e) {
+          console.warn('Gemini analysis failed, using fallback:', e);
+        }
+      }
 
       return new Response(JSON.stringify({
         success: true,
@@ -68,18 +114,17 @@ serve(async (req) => {
           capabilities: a.capabilities
         })),
         consciousness: consciousness?.reflection_text,
-        recommendations: underperformers.length > 0 
-          ? `${underperformers.length} Agenten benötigen Optimierung`
-          : 'Alle Agenten performen gut'
+        recommendations: aiRecommendation
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
     if (action === 'mutate') {
-      const { agentName, mutationType = 'parameter_tuned' } = await req.json();
+      const body = await req.json().catch(() => ({}));
+      const agentName = body.agentName;
+      const mutationType = body.mutationType || 'parameter_tuned';
 
-      // Hole Agent-DNA
       const { data: agent, error: agentError } = await supabase
         .from('agent_dna')
         .select('*')
@@ -88,33 +133,28 @@ serve(async (req) => {
 
       if (agentError) throw agentError;
 
-      // Generiere Mutation basierend auf Typ
       let newTraits = { ...agent.genetic_traits };
       let mutationDescription = '';
 
       switch (mutationType) {
-        case 'parameter_tuned':
-          // Optimiere Temperature
+        case 'parameter_tuned': {
           const currentTemp = newTraits.temperature || 0.7;
           newTraits.temperature = Math.max(0.1, Math.min(1.0, currentTemp + (Math.random() - 0.5) * 0.2));
           mutationDescription = `Temperature angepasst: ${currentTemp.toFixed(2)} → ${newTraits.temperature.toFixed(2)}`;
           break;
-
+        }
         case 'prompt_evolved':
-          // Verbessere System-Prompt (hier simplified)
           newTraits.prompt_version = (newTraits.prompt_version || 1) + 1;
           mutationDescription = `System-Prompt zu Version ${newTraits.prompt_version} evolviert`;
           break;
-
-        case 'capability_evolved':
-          // Füge neue Capability hinzu (simplified)
+        case 'capability_evolved': {
           const newCapability = `evolved-capability-${Date.now()}`;
-          agent.capabilities.push(newCapability);
+          agent.capabilities = [...(agent.capabilities || []), newCapability];
           mutationDescription = `Neue Capability hinzugefügt: ${newCapability}`;
           break;
+        }
       }
 
-      // Update Agent mit neuer DNA
       const { data: updatedAgent, error: updateError } = await supabase
         .from('agent_dna')
         .update({
@@ -123,7 +163,7 @@ serve(async (req) => {
           generation: agent.generation + 1,
           last_mutation: new Date().toISOString(),
           mutation_history: [
-            ...agent.mutation_history,
+            ...(agent.mutation_history || []),
             {
               type: mutationType,
               timestamp: new Date().toISOString(),
@@ -139,7 +179,6 @@ serve(async (req) => {
 
       if (updateError) throw updateError;
 
-      // Log Evolution
       await supabase.from('evolution_history').insert({
         generation_number: updatedAgent.generation,
         mutation_type: mutationType,
@@ -163,7 +202,6 @@ serve(async (req) => {
     }
 
     if (action === 'evolve-generation') {
-      // Vollständiger Evolution-Cycle
       const { data: agents } = await supabase
         .from('agent_dna')
         .select('*')
@@ -174,35 +212,61 @@ serve(async (req) => {
       const avgFitness = agents.reduce((sum, a) => sum + (a.fitness_score || 0), 0) / agents.length;
       const mutations: MutationResult[] = [];
 
-      // Mutiere underperforming Agenten
       for (const agent of agents) {
         if ((agent.fitness_score || 0) < avgFitness * 0.85) {
           const mutationType = Math.random() > 0.5 ? 'parameter_tuned' : 'prompt_evolved';
-          
-          // Rekursiver Aufruf für Mutation
-          const mutationResult = await fetch(`${req.url}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'mutate', agentName: agent.agent_name, mutationType })
+          let newTraits = { ...agent.genetic_traits };
+          let mutationDescription = '';
+
+          if (mutationType === 'parameter_tuned') {
+            const currentTemp = newTraits.temperature || 0.7;
+            newTraits.temperature = Math.max(0.1, Math.min(1.0, currentTemp + (Math.random() - 0.5) * 0.2));
+            mutationDescription = `Temperature angepasst: ${currentTemp.toFixed(2)} → ${newTraits.temperature.toFixed(2)}`;
+          } else {
+            newTraits.prompt_version = (newTraits.prompt_version || 1) + 1;
+            mutationDescription = `System-Prompt zu Version ${newTraits.prompt_version} evolviert`;
+          }
+
+          await supabase.from('agent_dna').update({
+            genetic_traits: newTraits,
+            generation: agent.generation + 1,
+            last_mutation: new Date().toISOString(),
+            mutation_history: [...(agent.mutation_history || []), {
+              type: mutationType, timestamp: new Date().toISOString(),
+              old_traits: agent.genetic_traits, new_traits: newTraits, description: mutationDescription
+            }]
+          }).eq('agent_name', agent.agent_name);
+
+          await supabase.from('evolution_history').insert({
+            generation_number: agent.generation + 1, mutation_type: mutationType,
+            parent_generation: agent.generation, genetic_code: newTraits,
+            description: mutationDescription, fitness_score: agent.fitness_score
           });
 
-          const result = await mutationResult.json();
           mutations.push({
-            agent_name: agent.agent_name,
-            mutation_type: mutationType,
-            old_traits: agent.genetic_traits,
-            new_traits: result.mutation,
-            expected_improvement: 0.05
+            agent_name: agent.agent_name, mutation_type: mutationType,
+            old_traits: agent.genetic_traits, new_traits: newTraits, expected_improvement: 0.05
           });
+        }
+      }
+
+      // Use Gemini for generation summary if available
+      let summary = `Evolution abgeschlossen: ${mutations.length} Agenten mutiert`;
+      if (geminiApiKey && mutations.length > 0) {
+        try {
+          summary = await callGemini(
+            geminiApiKey,
+            `Fasse diese Evolution in 2 Sätzen zusammen: ${mutations.length} Agenten wurden mutiert. Mutationen: ${mutations.map(m => m.agent_name + '(' + m.mutation_type + ')').join(', ')}`,
+            'Du bist ein KI-Evolutions-System. Antworte auf Deutsch.'
+          );
+        } catch (e) {
+          console.warn('Gemini summary failed:', e);
         }
       }
 
       return new Response(JSON.stringify({
         success: true,
-        evolutionCycle: {
-          mutatedAgents: mutations.length,
-          mutations
-        }
+        evolutionCycle: { mutatedAgents: mutations.length, mutations, summary }
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -212,8 +276,8 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Evolution engine error:', error);
-    return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : 'Unknown error' 
+    return new Response(JSON.stringify({
+      error: error instanceof Error ? error.message : 'Unknown error'
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }

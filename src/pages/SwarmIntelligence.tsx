@@ -87,11 +87,12 @@ export default function SwarmIntelligence() {
     if (!problemInput.trim()) return;
     
     setIsAnalyzing(true);
+    setMetaAnalysis("");
     addLog(`Kollektive Analyse gestartet: "${problemInput}"`);
     addLog("🧠 Schwarm-System aktiviert - Alle 8 Spezialisten verschmelzen...");
 
     try {
-      // Start collective intelligence analysis
+      // Start collective intelligence analysis — returns the collective result directly
       const results = await orchestrateAnalysis(problemInput, brainCount, {
         creativity: creativityLevel,
         depth: analysisDepth,
@@ -107,23 +108,24 @@ export default function SwarmIntelligence() {
         }
       });
 
-      // Use collective metrics
-      if (collectiveResult) {
-        const { consensusLevel: collConsensus, activeAgents, convergenceRate } = collectiveResult.collectiveMetrics;
-        setConsensusLevel(collConsensus);
-        setMetaAnalysis(collectiveResult.metaAnalysis);
-        
-        addLog(`🎯 Kollektiver Konsens: ${collConsensus.toFixed(1)}%`);
-        addLog(`⚡ Konvergenz-Rate: ${convergenceRate.toFixed(1)}% (${activeAgents}/${brainCount} Agenten aktiv)`);
-        addLog(`🔮 Meta-Analyse abgeschlossen - ${collectiveResult.collectiveInsights.recommendations.length} Empfehlungen generiert`);
-      }
-      
     } catch (error) {
       addLog(`⚠️ Kollektive Analyse fehlgeschlagen: ${error}`);
     } finally {
       setIsAnalyzing(false);
     }
   };
+
+  // Sync collectiveResult into local state whenever it changes
+  useEffect(() => {
+    if (collectiveResult) {
+      const { consensusLevel: collConsensus, activeAgents, convergenceRate } = collectiveResult.collectiveMetrics;
+      setConsensusLevel(collConsensus);
+      setMetaAnalysis(collectiveResult.metaAnalysis || "");
+      addLog(`🎯 Kollektiver Konsens: ${collConsensus.toFixed(1)}%`);
+      addLog(`⚡ Konvergenz-Rate: ${convergenceRate.toFixed(1)}% (${activeAgents}/${brainCount} Agenten aktiv)`);
+      addLog(`🔮 Meta-Analyse abgeschlossen - ${collectiveResult.collectiveInsights.recommendations.length} Empfehlungen generiert`);
+    }
+  }, [collectiveResult]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 p-4 md:p-8">
@@ -151,15 +153,15 @@ export default function SwarmIntelligence() {
 
           <div className="flex flex-wrap gap-3">
             <div className="flex items-center gap-2 px-4 py-2 bg-card rounded-full border border-border">
-              <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
+              <div className="w-2.5 h-2.5 rounded-full bg-success animate-pulse" />
               <span className="text-sm">{brainCount} Gehirne aktiv</span>
             </div>
             <div className="flex items-center gap-2 px-4 py-2 bg-card rounded-full border border-border">
-              <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+              <div className="w-2.5 h-2.5 rounded-full bg-primary" />
               <span className="text-sm">Konsens: {Math.round(consensusLevel)}%</span>
             </div>
             <div className="flex items-center gap-2 px-4 py-2 bg-card rounded-full border border-border">
-              <div className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
+              <div className="w-2.5 h-2.5 rounded-full bg-accent" />
               <span className="text-sm">Energie: 92%</span>
             </div>
           </div>
@@ -339,7 +341,7 @@ export default function SwarmIntelligence() {
                     <p className="text-sm text-muted-foreground mb-3">Der Schwarm nähert sich einer einheitlichen Lösung...</p>
                     <div className="h-4 bg-muted rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-gradient-to-r from-green-500 to-blue-500 transition-all duration-1000"
+                        className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-1000"
                         style={{ width: `${consensusLevel}%` }}
                       />
                     </div>
