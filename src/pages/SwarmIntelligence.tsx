@@ -87,11 +87,12 @@ export default function SwarmIntelligence() {
     if (!problemInput.trim()) return;
     
     setIsAnalyzing(true);
+    setMetaAnalysis("");
     addLog(`Kollektive Analyse gestartet: "${problemInput}"`);
     addLog("🧠 Schwarm-System aktiviert - Alle 8 Spezialisten verschmelzen...");
 
     try {
-      // Start collective intelligence analysis
+      // Start collective intelligence analysis — returns the collective result directly
       const results = await orchestrateAnalysis(problemInput, brainCount, {
         creativity: creativityLevel,
         depth: analysisDepth,
@@ -107,23 +108,24 @@ export default function SwarmIntelligence() {
         }
       });
 
-      // Use collective metrics
-      if (collectiveResult) {
-        const { consensusLevel: collConsensus, activeAgents, convergenceRate } = collectiveResult.collectiveMetrics;
-        setConsensusLevel(collConsensus);
-        setMetaAnalysis(collectiveResult.metaAnalysis);
-        
-        addLog(`🎯 Kollektiver Konsens: ${collConsensus.toFixed(1)}%`);
-        addLog(`⚡ Konvergenz-Rate: ${convergenceRate.toFixed(1)}% (${activeAgents}/${brainCount} Agenten aktiv)`);
-        addLog(`🔮 Meta-Analyse abgeschlossen - ${collectiveResult.collectiveInsights.recommendations.length} Empfehlungen generiert`);
-      }
-      
     } catch (error) {
       addLog(`⚠️ Kollektive Analyse fehlgeschlagen: ${error}`);
     } finally {
       setIsAnalyzing(false);
     }
   };
+
+  // Sync collectiveResult into local state whenever it changes
+  useEffect(() => {
+    if (collectiveResult) {
+      const { consensusLevel: collConsensus, activeAgents, convergenceRate } = collectiveResult.collectiveMetrics;
+      setConsensusLevel(collConsensus);
+      setMetaAnalysis(collectiveResult.metaAnalysis || "");
+      addLog(`🎯 Kollektiver Konsens: ${collConsensus.toFixed(1)}%`);
+      addLog(`⚡ Konvergenz-Rate: ${convergenceRate.toFixed(1)}% (${activeAgents}/${brainCount} Agenten aktiv)`);
+      addLog(`🔮 Meta-Analyse abgeschlossen - ${collectiveResult.collectiveInsights.recommendations.length} Empfehlungen generiert`);
+    }
+  }, [collectiveResult]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 p-4 md:p-8">

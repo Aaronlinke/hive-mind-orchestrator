@@ -14,6 +14,7 @@ import { AgentMetricsPanel } from "@/components/AgentMetricsPanel";
 import { AdvancedAnalytics } from "@/components/AdvancedAnalytics";
 import { LiveEvolutionFeed } from "@/components/LiveEvolutionFeed";
 import { FusionChat } from "@/components/FusionChat";
+import { PromptLab } from "@/components/PromptLab";
 import StatsPanel from "@/components/StatsPanel";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMultiAgentOrchestrator } from "@/hooks/useMultiAgentOrchestrator";
