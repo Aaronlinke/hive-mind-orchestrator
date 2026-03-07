@@ -50,8 +50,8 @@ export const CodeGenerator = () => {
       setGeneratedCode(code || "// Keine Antwort vom Modell");
       
       toast({
-        title: "Code generiert! 🆓",
-        description: `${LANGUAGES.find(l => l.value === language)?.label} Code wurde lokal erstellt (kostenlos)`,
+        title: "✅ Code generiert!",
+        description: `${LANGUAGES.find(l => l.value === language)?.label} Code via Gemini AI erstellt`,
       });
 
     } catch (error: any) {
