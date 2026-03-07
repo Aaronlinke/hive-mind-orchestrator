@@ -24,7 +24,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { LogOut, Sparkles, Dna, Brain, Zap, BarChart3, Activity, Users, Crown, Grid3x3, Menu } from "lucide-react";
+import { LogOut, Sparkles, Dna, Brain, Zap, BarChart3, Activity, Users, Crown, Grid3x3, Menu, FlaskConical } from "lucide-react";
 
 const NAV_LINKS = [
   { label: "Schachbrett", icon: <Grid3x3 className="w-4 h-4" />, path: "/ai-grid" },
@@ -198,26 +198,30 @@ const Index = () => {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 glass-card p-1.5 gap-1">
-            <TabsTrigger value="main" className="gap-2 data-[state=active]:bg-primary/10 data-[state=active]:shadow-md transition-all">
+          <TabsList className="grid w-full grid-cols-6 glass-card p-1.5 gap-1">
+            <TabsTrigger value="main" className="gap-1 data-[state=active]:bg-primary/10 data-[state=active]:shadow-md transition-all">
               <Sparkles className="h-4 w-4" />
-              <span className="hidden sm:inline">Haupt</span>
+              <span className="hidden sm:inline text-xs">Haupt</span>
             </TabsTrigger>
-            <TabsTrigger value="orchestrator" className="gap-2 data-[state=active]:bg-primary/10 data-[state=active]:shadow-md transition-all">
+            <TabsTrigger value="orchestrator" className="gap-1 data-[state=active]:bg-primary/10 data-[state=active]:shadow-md transition-all">
               <Crown className="h-4 w-4" />
-              <span className="hidden sm:inline">Master</span>
+              <span className="hidden sm:inline text-xs">Master</span>
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="gap-2 data-[state=active]:bg-primary/10 data-[state=active]:shadow-md transition-all">
+            <TabsTrigger value="analytics" className="gap-1 data-[state=active]:bg-primary/10 data-[state=active]:shadow-md transition-all">
               <BarChart3 className="h-4 w-4" />
-              <span className="hidden sm:inline">Analytics</span>
+              <span className="hidden sm:inline text-xs">Analytics</span>
             </TabsTrigger>
-            <TabsTrigger value="evolution" className="gap-2 data-[state=active]:bg-primary/10 data-[state=active]:shadow-md transition-all">
+            <TabsTrigger value="evolution" className="gap-1 data-[state=active]:bg-primary/10 data-[state=active]:shadow-md transition-all">
               <Activity className="h-4 w-4" />
-              <span className="hidden sm:inline">Evolution</span>
+              <span className="hidden sm:inline text-xs">Evolution</span>
             </TabsTrigger>
-            <TabsTrigger value="agents" className="gap-2 data-[state=active]:bg-primary/10 data-[state=active]:shadow-md transition-all">
+            <TabsTrigger value="agents" className="gap-1 data-[state=active]:bg-primary/10 data-[state=active]:shadow-md transition-all">
               <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">Agenten</span>
+              <span className="hidden sm:inline text-xs">Agenten</span>
+            </TabsTrigger>
+            <TabsTrigger value="promptlab" className="gap-1 data-[state=active]:bg-primary/10 data-[state=active]:shadow-md transition-all">
+              <FlaskConical className="h-4 w-4" />
+              <span className="hidden sm:inline text-xs">Lab</span>
             </TabsTrigger>
           </TabsList>
 
