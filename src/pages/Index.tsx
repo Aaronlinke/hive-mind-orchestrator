@@ -303,6 +303,11 @@ const Index = () => {
             </div>
             <FusionChat />
           </TabsContent>
+
+          {/* Prompt Lab Tab */}
+          <TabsContent value="promptlab" className="space-y-6 mt-6">
+            <PromptLab />
+          </TabsContent>
         </Tabs>
       </main>
     </div>
