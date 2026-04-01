@@ -40,7 +40,7 @@ export const CodeGenerator = () => {
     setGeneratedCode("");
 
     try {
-      // ✅ KOSTENLOS: Nutze lokales Code-Modell
+      // Generiere Code via Gemini AI
       const code = await generateCode({
         prompt,
         language: LANGUAGES.find(l => l.value === language)?.label || language,
