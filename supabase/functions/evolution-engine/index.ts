@@ -6,9 +6,41 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-async function callGemini(geminiApiKey: string, prompt: string, systemPrompt: string): Promise<string> {
+async function callAI(prompt: string, systemPrompt: string): Promise<string> {
+  // Try Lovable AI Gateway first (more reliable)
+  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+  if (LOVABLE_API_KEY) {
+    try {
+      const res = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: prompt },
+          ],
+          max_tokens: 800,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return data.choices?.[0]?.message?.content || '';
+      }
+    } catch (e) {
+      console.warn('Lovable AI failed, trying Gemini direct:', e);
+    }
+  }
+
+  // Fallback to direct Gemini API
+  const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+  if (!GEMINI_API_KEY) throw new Error('No AI provider available');
+
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -76,7 +108,7 @@ serve(async (req) => {
         ? `${underperformers.length} Agenten benötigen Optimierung`
         : 'Alle Agenten performen gut';
 
-      if (geminiApiKey && agents.length > 0) {
+      if (agents.length > 0) {
         try {
           const analysisPrompt = `Analysiere dieses KI-Multi-Agenten-System:
 - Generation: ${currentGeneration}
@@ -88,13 +120,12 @@ serve(async (req) => {
 
 Gib 2-3 konkrete Optimierungsempfehlungen in 3 Sätzen.`;
 
-          aiRecommendation = await callGemini(
-            geminiApiKey,
+          aiRecommendation = await callAI(
             analysisPrompt,
             'Du bist ein KI-System-Analyst. Antworte präzise auf Deutsch.'
           );
         } catch (e) {
-          console.warn('Gemini analysis failed, using fallback:', e);
+          console.warn('AI analysis failed, using fallback:', e);
         }
       }
 
@@ -250,17 +281,16 @@ Gib 2-3 konkrete Optimierungsempfehlungen in 3 Sätzen.`;
         }
       }
 
-      // Use Gemini for generation summary if available
+      // Use AI for generation summary
       let summary = `Evolution abgeschlossen: ${mutations.length} Agenten mutiert`;
-      if (geminiApiKey && mutations.length > 0) {
+      if (mutations.length > 0) {
         try {
-          summary = await callGemini(
-            geminiApiKey,
+          summary = await callAI(
             `Fasse diese Evolution in 2 Sätzen zusammen: ${mutations.length} Agenten wurden mutiert. Mutationen: ${mutations.map(m => m.agent_name + '(' + m.mutation_type + ')').join(', ')}`,
             'Du bist ein KI-Evolutions-System. Antworte auf Deutsch.'
           );
         } catch (e) {
-          console.warn('Gemini summary failed:', e);
+          console.warn('AI summary failed:', e);
         }
       }
 

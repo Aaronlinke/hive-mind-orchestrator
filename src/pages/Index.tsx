@@ -154,10 +154,10 @@ const Index = () => {
               </div>
               <div>
                 <p className="text-[10px] md:text-xs text-muted-foreground font-semibold uppercase tracking-wide">SSF Status</p>
-                <p className="text-lg md:text-xl font-bold flex items-center gap-2 mt-0.5">
+                <span className="text-lg md:text-xl font-bold flex items-center gap-2 mt-0.5">
                   Genesis
-                  <div className="w-2 h-2 bg-success rounded-full animate-pulse shadow-lg" />
-                </p>
+                  <span className="w-2 h-2 bg-success rounded-full animate-pulse shadow-lg inline-block" />
+                </span>
               </div>
             </div>
           </Card>

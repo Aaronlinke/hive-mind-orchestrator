@@ -40,7 +40,7 @@ export const CodeGenerator = () => {
     setGeneratedCode("");
 
     try {
-      // ✅ KOSTENLOS: Nutze lokales Code-Modell
+      // Generiere Code via Gemini AI
       const code = await generateCode({
         prompt,
         language: LANGUAGES.find(l => l.value === language)?.label || language,
@@ -59,7 +59,7 @@ export const CodeGenerator = () => {
       
       toast({
         title: "Fehler",
-        description: error?.message || "Lokales KI-Modell konnte nicht laden. Bitte Seite neu laden.",
+        description: error?.message || "KI-Anfrage fehlgeschlagen. Bitte erneut versuchen.",
         variant: "destructive",
       });
     } finally {
