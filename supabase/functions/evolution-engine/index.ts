@@ -108,7 +108,7 @@ serve(async (req) => {
         ? `${underperformers.length} Agenten benötigen Optimierung`
         : 'Alle Agenten performen gut';
 
-      if (geminiApiKey && agents.length > 0) {
+      if (agents.length > 0) {
         try {
           const analysisPrompt = `Analysiere dieses KI-Multi-Agenten-System:
 - Generation: ${currentGeneration}
@@ -120,13 +120,12 @@ serve(async (req) => {
 
 Gib 2-3 konkrete Optimierungsempfehlungen in 3 Sätzen.`;
 
-          aiRecommendation = await callGemini(
-            geminiApiKey,
+          aiRecommendation = await callAI(
             analysisPrompt,
             'Du bist ein KI-System-Analyst. Antworte präzise auf Deutsch.'
           );
         } catch (e) {
-          console.warn('Gemini analysis failed, using fallback:', e);
+          console.warn('AI analysis failed, using fallback:', e);
         }
       }
 
