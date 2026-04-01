@@ -281,17 +281,16 @@ Gib 2-3 konkrete Optimierungsempfehlungen in 3 Sätzen.`;
         }
       }
 
-      // Use Gemini for generation summary if available
+      // Use AI for generation summary
       let summary = `Evolution abgeschlossen: ${mutations.length} Agenten mutiert`;
-      if (geminiApiKey && mutations.length > 0) {
+      if (mutations.length > 0) {
         try {
-          summary = await callGemini(
-            geminiApiKey,
+          summary = await callAI(
             `Fasse diese Evolution in 2 Sätzen zusammen: ${mutations.length} Agenten wurden mutiert. Mutationen: ${mutations.map(m => m.agent_name + '(' + m.mutation_type + ')').join(', ')}`,
             'Du bist ein KI-Evolutions-System. Antworte auf Deutsch.'
           );
         } catch (e) {
-          console.warn('Gemini summary failed:', e);
+          console.warn('AI summary failed:', e);
         }
       }
 
