@@ -247,6 +247,7 @@ const Index = () => {
           {/* Master Orchestrator Tab */}
           <TabsContent value="orchestrator" className="space-y-6 mt-6">
             <MasterOrchestratorChat />
+            <DualBrainDebate />
           </TabsContent>
 
           {/* Nexus Mathematics Tab */}
