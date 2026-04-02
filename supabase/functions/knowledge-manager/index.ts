@@ -26,7 +26,7 @@ serve(async (req) => {
     if (effectiveAction === 'search') {
       // Durchsuche Wissensbasis
       const searchText = typeof effectiveQuery === 'string' ? effectiveQuery.toLowerCase() : '';
-      const keywords = searchText.split(' ').filter((w: string) => w.length > 3);
+      const keywords = searchText.split(' ').filter((w: string) => w.length > 2);
       
       const { data: entries } = await supabase
         .from('knowledge_entries')
