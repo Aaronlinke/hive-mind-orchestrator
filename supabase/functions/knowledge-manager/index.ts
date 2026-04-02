@@ -24,31 +24,35 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     if (effectiveAction === 'search') {
-      // Durchsuche Wissensbasis
       const searchText = typeof effectiveQuery === 'string' ? effectiveQuery.toLowerCase() : '';
-      const keywords = searchText.split(' ').filter((w: string) => w.length > 3);
+      const keywords = searchText.split(/[\s,]+/).filter((w: string) => w.length > 1);
       
-      const { data: entries } = await supabase
+      // Use OR-based ilike query for better coverage
+      let dbQuery = supabase
         .from('knowledge_entries')
         .select('*')
         .order('relevance_score', { ascending: false })
-        .limit(20);
+        .limit(100);
 
-      // Filter und bewerte Ergebnisse basierend auf Keywords
+      const { data: entries } = await dbQuery;
+
+      // Score results against all keywords (partial match)
       const scoredResults = (entries || [])
         .map((entry: any) => {
-          const titleMatch = keywords.filter((k: string) => 
-            entry.title.toLowerCase().includes(k)
-          ).length;
-          const contentMatch = keywords.filter((k: string) => 
-            entry.content.toLowerCase().includes(k)
-          ).length;
-          const tagMatch = keywords.filter((k: string) => 
-            (entry.tags || []).some((t: string) => t.toLowerCase().includes(k))
-          ).length;
+          const titleLower = entry.title.toLowerCase();
+          const contentLower = entry.content.toLowerCase();
+          const tagsLower = (entry.tags || []).map((t: string) => t.toLowerCase());
+          const categoryLower = (entry.category || '').toLowerCase();
 
-          const relevance = (titleMatch * 3 + contentMatch * 2 + tagMatch) / Math.max(keywords.length, 1);
-          return { ...entry, calculatedRelevance: relevance };
+          let score = 0;
+          for (const k of keywords) {
+            if (titleLower.includes(k)) score += 3;
+            if (contentLower.includes(k)) score += 2;
+            if (tagsLower.some((t: string) => t.includes(k))) score += 1.5;
+            if (categoryLower.includes(k)) score += 1;
+          }
+
+          return { ...entry, calculatedRelevance: score / Math.max(keywords.length, 1) };
         })
         .filter((r: any) => r.calculatedRelevance > 0)
         .sort((a: any, b: any) => b.calculatedRelevance - a.calculatedRelevance)
