@@ -248,6 +248,11 @@ const Index = () => {
             <MasterOrchestratorChat />
           </TabsContent>
 
+          {/* Nexus Mathematics Tab */}
+          <TabsContent value="nexus" className="space-y-6 mt-6">
+            <NexusMathExplorer />
+          </TabsContent>
+
           {/* Analytics Tab */}
           <TabsContent value="analytics" className="space-y-6 mt-6">
             <AgentMetricsPanel metrics={systemMetrics} />
