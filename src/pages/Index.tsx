@@ -199,7 +199,7 @@ const Index = () => {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-6 glass-card p-1.5 gap-1">
+          <TabsList className="grid w-full grid-cols-7 glass-card p-1.5 gap-1">
             <TabsTrigger value="main" className="gap-1 data-[state=active]:bg-primary/10 data-[state=active]:shadow-md transition-all">
               <Sparkles className="h-4 w-4" />
               <span className="hidden sm:inline text-xs">Haupt</span>
@@ -207,6 +207,10 @@ const Index = () => {
             <TabsTrigger value="orchestrator" className="gap-1 data-[state=active]:bg-primary/10 data-[state=active]:shadow-md transition-all">
               <Crown className="h-4 w-4" />
               <span className="hidden sm:inline text-xs">Master</span>
+            </TabsTrigger>
+            <TabsTrigger value="nexus" className="gap-1 data-[state=active]:bg-primary/10 data-[state=active]:shadow-md transition-all">
+              <BookOpen className="h-4 w-4" />
+              <span className="hidden sm:inline text-xs">Nexus</span>
             </TabsTrigger>
             <TabsTrigger value="analytics" className="gap-1 data-[state=active]:bg-primary/10 data-[state=active]:shadow-md transition-all">
               <BarChart3 className="h-4 w-4" />
