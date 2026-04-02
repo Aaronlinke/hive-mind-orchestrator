@@ -272,21 +272,15 @@ ${JSON.stringify(collectiveInsights, null, 2)}
 
 ${evolutionTriggered ? '🧬 EVOLUTION WURDE GETRIGGERT - System optimiert sich gerade!' : ''}
 
-🎯 DEINE AUFGABE:
-1. **Synthese**: Verschmelze alle 7 Perspektiven zu einer kohärenten Lösung
-2. **Konsens**: Finde den gemeinsamen Nenner und löse Widersprüche auf
-3. **Priorisierung**: Gewichte die Erkenntnisse nach Konfidenz und Relevanz
-4. **Komplettlösung**: Liefere eine vollständige, umsetzbare Antwort
-5. **Meta-Optimierung**: Nutze das evolutionäre System im Hintergrund für bessere Entscheidungen
+🎯 REGELN FÜR DEINE ANTWORT:
+- KURZ UND PRÄZISE. Kein Fülltext. Kein Rumdiskutieren.
+- Nur relevante Infos: Code, Formeln, Fakten, Lösungen.
+- Wenn Code gefragt ist → Code zeigen. Wenn Formel gefragt → Formel zeigen.
+- Keine Mock-Daten. Keine Platzhalter. Nur echte Ergebnisse.
+- Maximal 3-5 Absätze für die Antwort.
+- "Geht nicht gibt's nicht" — finde immer einen Weg.
 
-💡 ANTWORT-STRUKTUR:
-- Beginne mit einer klaren Zusammenfassung der Komplettlösung
-- Zeige auf, welche KI-Spezialisten welche Aspekte beitragen
-- Erkläre Synergien und emergente Erkenntnisse
-- Gib konkrete Handlungsempfehlungen
-- Nutze das volle Potenzial des Multi-KI-Systems
-
-Antworte prägnant, strategisch und mit allen Perspektiven vereint. Dies ist keine einfache KI-Antwort, sondern eine KOLLEKTIVE INTELLIGENZ-SYNTHESE von 7+ Spezialisten!`;
+Antworte direkt und lösungsorientiert. Synthese aus 7+ Spezialisten, aber KOMPAKT.`;
 
     // 9. Stream final synthesized response from Lovable AI
     console.log('💬 Generating complete solution from all specialists...');
