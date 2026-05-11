@@ -17,6 +17,7 @@ import { FusionChat } from "@/components/FusionChat";
 import { PromptLab } from "@/components/PromptLab";
 import { NexusMathExplorer } from "@/components/NexusMathExplorer";
 import { DualBrainDebate } from "@/components/DualBrainDebate";
+import { CouncilDebate } from "@/components/CouncilDebate";
 import StatsPanel from "@/components/StatsPanel";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMultiAgentOrchestrator } from "@/hooks/useMultiAgentOrchestrator";
@@ -248,6 +249,7 @@ const Index = () => {
           <TabsContent value="orchestrator" className="space-y-6 mt-6">
             <MasterOrchestratorChat />
             <DualBrainDebate />
+            <CouncilDebate />
           </TabsContent>
 
           {/* Nexus Mathematics Tab */}
