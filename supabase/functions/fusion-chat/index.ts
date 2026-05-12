@@ -12,17 +12,26 @@ serve(async (req) => {
   }
 
   try {
-    // 🔐 Authentifizierung & Rate Limiting
-    const securityContext = await authenticateRequest(req);
-    
-    // ⏱️ Rate Limit: 20 AI-Anfragen pro Minute pro User (kostenlos bleiben!)
-    await checkRateLimit(
-      securityContext.supabase,
-      securityContext.user.id,
-      'fusion_chat_ai',
-      20,
-      60000
-    );
+    // 🔐 Auth optional — bei ungültigem Token als anonym fortfahren
+    let securityContext;
+    try {
+      securityContext = await authenticateRequest(req, { requireAuth: false });
+    } catch (_e) {
+      securityContext = await authenticateRequest(req, { requireAuth: false }).catch(() => null);
+    }
+    if (securityContext && securityContext.user.id !== "anonymous") {
+      try {
+        await checkRateLimit(
+          securityContext.supabase,
+          securityContext.user.id,
+          'fusion_chat_ai',
+          20,
+          60000
+        );
+      } catch (e) {
+        return handleSecurityError(e);
+      }
+    }
 
     const body = await req.json();
     console.log("📥 Received request from user:", securityContext.user.id);
