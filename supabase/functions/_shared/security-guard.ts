@@ -54,7 +54,7 @@ export async function authenticateRequest(
     throw new SecurityError("Ungültiges oder abgelaufenes Token", 401);
   }
 
-  if (!user && !requireAuth) {
+  if (!user) {
     // Anonymous access erlaubt
     return {
       user: { id: "anonymous", roles: [] },
