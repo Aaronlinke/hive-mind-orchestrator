@@ -147,12 +147,23 @@ serve(async (req) => {
           const lovResult = await callLovableAI(prompt, systemPrompt, model, temperature);
           result = { text: lovResult.text, model: `${lovResult.model} (gateway)` };
         } catch (lovError: any) {
-          // If Lovable AI also fails, return the error
+          // Both providers failed. For rate-limit/quota errors, return a friendly 200
+          // response so the chat UI shows the message instead of a generic non-2xx error.
           const errMsg = lovError.message || 'KI-Anfrage fehlgeschlagen';
-          const status = errMsg.includes('Rate-Limit') ? 429 : errMsg.includes('Kontingent') ? 402 : 500;
+          const isRate = errMsg.includes('Rate-Limit') || errMsg.includes('429');
+          const isQuota = errMsg.includes('Kontingent') || errMsg.includes('402');
+          if (isRate || isQuota) {
+            const friendly = isRate
+              ? '⏳ **Beide KI-Provider sind aktuell ratenlimitiert.**\n\nGemini Free-Tier und Lovable AI Gateway haben gleichzeitig ihr Limit erreicht. Bitte ca. 30 Sekunden warten und erneut senden.'
+              : '💳 **KI-Kontingent erschöpft.**\n\nBitte Lovable Credits aufladen oder einen eigenen GEMINI_API_KEY hinterlegen.';
+            return new Response(
+              JSON.stringify({ text: friendly, model: 'fallback-notice', rateLimited: true }),
+              { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
           return new Response(
             JSON.stringify({ error: errMsg }),
-            { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
       } else if (msg === 'SAFETY_BLOCKED') {
