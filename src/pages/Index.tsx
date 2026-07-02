@@ -327,6 +327,10 @@ const Index = () => {
           <TabsContent value="promptlab" className="space-y-6 mt-6">
             <PromptLab />
           </TabsContent>
+
+          <TabsContent value="termux" className="space-y-6 mt-6">
+            <TermuxBots />
+          </TabsContent>
         </Tabs>
       </main>
     </div>
