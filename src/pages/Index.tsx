@@ -16,6 +16,7 @@ import { LiveEvolutionFeed } from "@/components/LiveEvolutionFeed";
 import { FusionChat } from "@/components/FusionChat";
 import { PromptLab } from "@/components/PromptLab";
 import { NexusMathExplorer } from "@/components/NexusMathExplorer";
+import { TermuxBots } from "@/components/TermuxBots";
 import { DualBrainDebate } from "@/components/DualBrainDebate";
 import { CouncilDebate } from "@/components/CouncilDebate";
 import StatsPanel from "@/components/StatsPanel";
@@ -27,7 +28,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { LogOut, Sparkles, Dna, Brain, Zap, BarChart3, Activity, Users, Crown, Grid3x3, Menu, FlaskConical, BookOpen } from "lucide-react";
+import { LogOut, Sparkles, Dna, Brain, Zap, BarChart3, Activity, Users, Crown, Grid3x3, Menu, FlaskConical, BookOpen, Terminal } from "lucide-react";
 
 const NAV_LINKS = [
   { label: "Schachbrett", icon: <Grid3x3 className="w-4 h-4" />, path: "/ai-grid" },
@@ -201,7 +202,7 @@ const Index = () => {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-7 glass-card p-1.5 gap-1">
+          <TabsList className="grid w-full grid-cols-4 md:grid-cols-8 glass-card p-1.5 gap-1">
             <TabsTrigger value="main" className="gap-1 data-[state=active]:bg-primary/10 data-[state=active]:shadow-md transition-all">
               <Sparkles className="h-4 w-4" />
               <span className="hidden sm:inline text-xs">Haupt</span>
@@ -229,6 +230,10 @@ const Index = () => {
             <TabsTrigger value="promptlab" className="gap-1 data-[state=active]:bg-primary/10 data-[state=active]:shadow-md transition-all">
               <FlaskConical className="h-4 w-4" />
               <span className="hidden sm:inline text-xs">Lab</span>
+            </TabsTrigger>
+            <TabsTrigger value="termux" className="gap-1 data-[state=active]:bg-primary/10 data-[state=active]:shadow-md transition-all">
+              <Terminal className="h-4 w-4" />
+              <span className="hidden sm:inline text-xs">Termux</span>
             </TabsTrigger>
           </TabsList>
 
