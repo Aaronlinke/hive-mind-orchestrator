@@ -5,25 +5,30 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Terminal, Send, Trash2, Copy, Check } from "lucide-react";
+import { Terminal, Send, Trash2, Copy, Check, Users } from "lucide-react";
 import { BOT_LIST, BOTS, type BotId } from "@/lib/termuxBots";
 import { useGeminiAI } from "@/hooks/useGeminiAI";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 type Msg = { id: string; role: "user" | "assistant"; content: string };
+type Mode = "council" | BotId;
 
 export const TermuxBots = () => {
-  const [botId, setBotId] = useState<BotId>("allrounder");
-  const [messagesByBot, setMessagesByBot] = useState<Record<BotId, Msg[]>>(
-    () => Object.fromEntries(BOT_LIST.map(b => [b.id, []])) as Record<BotId, Msg[]>
+  const [mode, setMode] = useState<Mode>("council");
+  const [messagesByMode, setMessagesByMode] = useState<Record<string, Msg[]>>(
+    () => ({ council: [], ...Object.fromEntries(BOT_LIST.map(b => [b.id, []])) })
   );
   const [input, setInput] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const { generate, isLoading } = useGeminiAI();
+  const [councilLoading, setCouncilLoading] = useState(false);
+  const { generate, isLoading: singleLoading } = useGeminiAI();
   const endRef = useRef<HTMLDivElement>(null);
 
-  const bot = BOTS[botId];
-  const messages = messagesByBot[botId];
+  const isCouncil = mode === "council";
+  const bot = !isCouncil ? BOTS[mode as BotId] : null;
+  const messages = messagesByMode[mode];
+  const isLoading = isCouncil ? councilLoading : singleLoading;
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
@@ -31,21 +36,42 @@ export const TermuxBots = () => {
     const text = input.trim();
     if (!text || isLoading) return;
     const userMsg: Msg = { id: crypto.randomUUID(), role: "user", content: text };
-    setMessagesByBot(m => ({ ...m, [botId]: [...m[botId], userMsg] }));
+    setMessagesByMode(m => ({ ...m, [mode]: [...m[mode], userMsg] }));
     setInput("");
-    try {
-      const history = [...messages, userMsg]
-        .map(m => `${m.role === "user" ? "USER" : "ASSISTANT"}: ${m.content}`)
-        .join("\n\n");
-      const reply = await generate(history, { systemPrompt: bot.systemPrompt, model: "gemini-2.5-flash" });
-      const asst: Msg = { id: crypto.randomUUID(), role: "assistant", content: reply };
-      setMessagesByBot(m => ({ ...m, [botId]: [...m[botId], asst] }));
-    } catch {
-      // hook already toasts
+
+    if (isCouncil) {
+      setCouncilLoading(true);
+      try {
+        const history = [...messages, userMsg]
+          .map(m => `${m.role === "user" ? "USER" : "ASSISTANT"}: ${m.content}`)
+          .join("\n\n");
+        const { data, error } = await supabase.functions.invoke("termux-council", {
+          body: { query: history },
+        });
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+        const botsList = (data?.bots ?? []).map((b: any) => `${b.name}`).join(" · ");
+        const header = botsList ? `_Council: ${botsList}_\n\n` : "";
+        const asst: Msg = { id: crypto.randomUUID(), role: "assistant", content: header + (data?.final ?? "(leer)") };
+        setMessagesByMode(m => ({ ...m, [mode]: [...m[mode], asst] }));
+      } catch (e: any) {
+        toast.error(e.message || "Council fehlgeschlagen");
+      } finally {
+        setCouncilLoading(false);
+      }
+    } else {
+      try {
+        const history = [...messages, userMsg]
+          .map(m => `${m.role === "user" ? "USER" : "ASSISTANT"}: ${m.content}`)
+          .join("\n\n");
+        const reply = await generate(history, { systemPrompt: bot!.systemPrompt, model: "gemini-2.5-flash" });
+        const asst: Msg = { id: crypto.randomUUID(), role: "assistant", content: reply };
+        setMessagesByMode(m => ({ ...m, [mode]: [...m[mode], asst] }));
+      } catch { /* hook toasts */ }
     }
   };
 
-  const clear = () => setMessagesByBot(m => ({ ...m, [botId]: [] }));
+  const clear = () => setMessagesByMode(m => ({ ...m, [mode]: [] }));
 
   const copy = async (id: string, content: string) => {
     await navigator.clipboard.writeText(content);
@@ -63,12 +89,29 @@ export const TermuxBots = () => {
           <h3 className="font-semibold text-sm">Termux Bots</h3>
         </div>
         <div className="space-y-1.5">
+          <button
+            onClick={() => setMode("council")}
+            className={`w-full text-left p-2.5 rounded-lg border transition-colors ${
+              isCouncil
+                ? "border-primary/60 bg-primary/15"
+                : "border-primary/20 hover:bg-muted/50"
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-primary" />
+              <span className="font-semibold text-xs">Council (alle)</span>
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-0.5 ml-6 leading-tight">
+              Dirigent wählt Spezialisten → 1 Endresultat
+            </p>
+          </button>
+          <div className="h-px bg-border/50 my-2" />
           {BOT_LIST.map(b => (
             <button
               key={b.id}
-              onClick={() => setBotId(b.id)}
+              onClick={() => setMode(b.id)}
               className={`w-full text-left p-2.5 rounded-lg border transition-colors ${
-                botId === b.id
+                mode === b.id
                   ? "border-primary/40 bg-primary/10"
                   : "border-transparent hover:bg-muted/50"
               }`}
@@ -87,12 +130,14 @@ export const TermuxBots = () => {
       <Card className="flex flex-col glass-card overflow-hidden">
         <div className="p-3 border-b border-border/50 flex items-center justify-between bg-muted/20">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="text-xl">{bot.emoji}</span>
+            <span className="text-xl">{isCouncil ? "🎛️" : bot!.emoji}</span>
             <div className="min-w-0">
-              <h2 className="font-semibold text-sm truncate">{bot.name}</h2>
-              <p className="text-[10px] text-muted-foreground truncate">{bot.tagline}</p>
+              <h2 className="font-semibold text-sm truncate">{isCouncil ? "Termux Council" : bot!.name}</h2>
+              <p className="text-[10px] text-muted-foreground truncate">
+                {isCouncil ? "Router → parallele Bots → 1 Endresultat" : bot!.tagline}
+              </p>
             </div>
-            <Badge variant="outline" className="ml-2 text-[9px]">Gemini 2.5</Badge>
+            <Badge variant="outline" className="ml-2 text-[9px]">{isCouncil ? "Multi-Bot" : "Gemini 2.5"}</Badge>
           </div>
           <Button variant="ghost" size="sm" onClick={clear} disabled={!messages.length} className="h-7">
             <Trash2 className="h-3.5 w-3.5" />
@@ -104,7 +149,7 @@ export const TermuxBots = () => {
             {messages.length === 0 && (
               <div className="text-center py-12 text-muted-foreground text-sm">
                 <Terminal className="h-8 w-8 mx-auto mb-3 opacity-50" />
-                <p>Frag <strong>{bot.name}</strong> nach Termux-Commands, Scripts oder Fixes.</p>
+                <p>Frag <strong>{isCouncil ? "den Council" : bot!.name}</strong> nach Termux-Commands, Scripts oder Fixes.</p>
                 <p className="text-xs mt-2 opacity-70">Antworten sind copy-paste-ready für Termux.</p>
               </div>
             )}
@@ -150,7 +195,7 @@ export const TermuxBots = () => {
             {isLoading && (
               <div className="flex gap-1 text-muted-foreground text-xs pl-2">
                 <span className="animate-bounce">▍</span>
-                <span>Bot tippt…</span>
+                <span>{isCouncil ? "Council tagt (Router → Bots → Synthese)…" : "Bot tippt…"}</span>
               </div>
             )}
             <div ref={endRef} />
@@ -162,7 +207,7 @@ export const TermuxBots = () => {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-            placeholder={`Frage an ${bot.name}…`}
+            placeholder={`Frage an ${isCouncil ? "den Council" : bot!.name}…`}
             disabled={isLoading}
             className="min-h-[52px] resize-none text-sm"
           />
