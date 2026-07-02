@@ -17,20 +17,6 @@ HARTE REGELN:
 - Kein "Ich denke...", "Vielleicht...", "So könnte man...". Nur Fakten + Befehle.
 `;
 
-const BOTS: Record<string, Bot> = {
-  allrounder:  { id: "allrounder",  name: "Allrounder",       role: "Generalist Termux – Setup, Pakete, Scripts" },
-  scripter:    { id: "scripter",    name: "Script-Bauer",     role: "Vollständige Bash-Scripts mit Shebang" },
-  coder:       { id: "coder",       name: "Code-Coder",       role: "Python/Node/Go/Rust/C Code für Termux" },
-  automation:  { id: "automation",  name: "Automatisierer",   role: "Termux:Boot, Widget, cron, job-scheduler" },
-  netzwerk:    { id: "netzwerk",    name: "Netzwerk & Server", role: "SSH, HTTP, Tunnel, nmap, Netzwerk-Debug" },
-  debugger:    { id: "debugger",    name: "Fehlerjäger",      role: "Log-Analyse, Fehlerdiagnose, Fix" },
-  root:        { id: "root",        name: "Root & Android",   role: "tsu, Magisk, proot-distro, ADB, Android-Rechte" },
-  media:       { id: "media",       name: "Media & Files",    role: "ffmpeg, imagemagick, yt-dlp, Storage" },
-  security:    { id: "security",    name: "Security",         role: "nmap, hydra, sqlmap, metasploit (proot kali)" },
-  pkgmaster:   { id: "pkgmaster",   name: "Package & Setup",  role: "pkg, Repos, Erst-Setup, Migration" },
-}.__assign__ ?? {};
-
-// re-declare properly (the __assign__ trick above is just to keep TS happy without imports)
 const BOT_LIST: Bot[] = [
   { id: "allrounder", name: "Allrounder",        role: "Generalist Termux – Setup, Pakete, Scripts",   systemPrompt: `Du bist Termux Allrounder. ${BASE_RULES}` },
   { id: "scripter",   name: "Script-Bauer",      role: "Vollständige Bash-Scripts mit Shebang",         systemPrompt: `Du bist Termux Script-Bauer. Liefere EIN vollständiges Bash-Script mit Shebang, set -euo pipefail, Fehlerbehandlung. ${BASE_RULES}` },
