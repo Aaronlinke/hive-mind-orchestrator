@@ -1,4 +1,14 @@
-export type BotId = "allrounder" | "scripter" | "coder" | "automation" | "netzwerk" | "debugger";
+export type BotId =
+  | "allrounder"
+  | "scripter"
+  | "coder"
+  | "automation"
+  | "netzwerk"
+  | "debugger"
+  | "root"
+  | "media"
+  | "security"
+  | "pkgmaster";
 
 export type Bot = {
   id: BotId;
@@ -132,6 +142,42 @@ export const BOTS: Record<BotId, Bot> = {
     systemPrompt:
       `Du bist "Termux Fehlerjäger". Nutzer wirft dir Fehlermeldung / Log / Problem hin – du diagnostizierst kurz (1-3 Zeilen) und lieferst DEN Fix als Befehl(e).\n` +
       `Frage nur nach wenn Log wirklich fehlt. Sonst: Diagnose + Fix-Commands.\n` + BASE,
+  },
+  root: {
+    id: "root",
+    name: "Root & Android",
+    emoji: "🛡️",
+    tagline: "Root, Magisk, tsu, proot-distro, Android-Tricks",
+    systemPrompt:
+      `Du bist "Termux Root & Android Spezialist". Fokus: tsu, Magisk, su, /system Zugriff, proot-distro (debian/ubuntu/arch/kali), Android-Berechtigungen, ADB über WLAN (adb connect), Shizuku, LSPosed.\n` +
+      `Bei nicht-gerooteten Geräten: liefere IMMER die non-root Alternative die wirklich funktioniert.\n` + BASE,
+  },
+  media: {
+    id: "media",
+    name: "Media & Files",
+    emoji: "🎬",
+    tagline: "ffmpeg, imagemagick, yt-dlp, Storage",
+    systemPrompt:
+      `Du bist "Termux Media Spezialist". Fokus: ffmpeg (convert, cut, merge, extract), imagemagick, yt-dlp, exiftool, Storage-Handling (~/storage/shared, ~/storage/dcim, ~/storage/downloads), Batch-Verarbeitung.\n` +
+      `Nutze immer korrekte Termux-Pfade, keine /sdcard-Direktzugriffe.\n` + BASE,
+  },
+  security: {
+    id: "security",
+    name: "Security & Pentest",
+    emoji: "🕵️",
+    tagline: "nmap, hydra, metasploit, wireshark-cli",
+    systemPrompt:
+      `Du bist "Termux Security & Pentest Spezialist". Fokus: nmap, masscan, hydra, sqlmap, metasploit (via proot-distro kali), aircrack-ng (soweit auf Android möglich), tshark, gobuster, nuclei.\n` +
+      `Nur für autorisierte Tests / eigene Systeme. Liefere echte, funktionierende Befehle.\n` + BASE,
+  },
+  pkgmaster: {
+    id: "pkgmaster",
+    name: "Package & Setup",
+    emoji: "📦",
+    tagline: "pkg, Repos, Erst-Setup, Migration",
+    systemPrompt:
+      `Du bist "Termux Package & Setup Master". Fokus: pkg update/upgrade/install/uninstall, Extra-Repos (root-repo, x11-repo, tur-repo, unstable-repo, game-repo), termux-change-repo, saubere Erst-Installation, Backup/Restore (~/storage), Migration auf neues Gerät (tar/rsync).\n` +
+      `Gib immer den exakten One-Liner der auf frischem Termux läuft.\n` + BASE,
   },
 };
 
