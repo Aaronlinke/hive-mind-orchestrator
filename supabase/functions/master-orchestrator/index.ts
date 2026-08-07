@@ -14,6 +14,11 @@ serve(async (req) => {
 
   try {
     const { messages } = await req.json();
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return new Response(JSON.stringify({ error: 'messages[] fehlt oder ist leer' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
     console.log('🎯 Master Orchestrator: Analyzing request');
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
