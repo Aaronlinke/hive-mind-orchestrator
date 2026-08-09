@@ -16,22 +16,40 @@ export const generateText = async ({
 
   if (error) throw error;
   if (data?.error) throw new Error(data.error);
-  return data?.text || 'Keine Antwort erhalten.';
+  if (!data?.text) throw new Error('Die KI hat eine leere Antwort geliefert. Bitte erneut versuchen.');
+  return data.text;
+};
+
+// Entfernt Markdown-Code-Fences, damit reiner Code zurückkommt
+export const stripCodeFences = (raw: string): string => {
+  const text = (raw ?? '').trim();
+  const fenced = text.match(/```[a-zA-Z0-9+#._-]*\s*\n([\s\S]*?)```/);
+  if (fenced) return fenced[1].trim();
+  return text.replace(/^```[a-zA-Z0-9+#._-]*\s*/, '').replace(/```$/, '').trim();
 };
 
 // Real code generation via Gemini
 export const generateCode = async ({
   prompt,
   language = "typescript",
+  systemPrompt,
 }: {
   prompt: string;
   language?: string;
   maxTokens?: number;
+  systemPrompt?: string;
 }): Promise<string> => {
-  return generateText({
-    prompt: `Generiere ${language} Code für: ${prompt}\n\nGib NUR den Code zurück, keine Erklärungen.`,
-    systemPrompt: `Du bist ein Code-Generator. Generiere sauberen, funktionalen ${language} Code. Gib NUR den Code zurück.`,
+  const raw = await generateText({
+    prompt: `Aufgabe: ${prompt}\n\nSchreibe die vollständige, lauffähige ${language}-Implementierung. Keine Erklärungen, kein Fließtext, nur die Datei.`,
+    systemPrompt:
+      systemPrompt ??
+      `Du bist ein Code-Generator für ${language}. Regeln (unverhandelbar):
+- Gib AUSSCHLIESSLICH Code zurück, keinen Fließtext, keine Erklärungen davor oder danach.
+- Vollständige, direkt lauffähige Datei. Keine Platzhalter, kein TODO, keine "..."-Auslassungen, keine Demo-Daten.
+- Kommentare nur im Code selbst, kurz und sachlich.
+- Bei ${language}: idiomatischer, produktionsreifer Stil inkl. Fehlerbehandlung.`,
   });
+  return stripCodeFences(raw);
 };
 
 // Real SSF Super Fusion response via Gemini
