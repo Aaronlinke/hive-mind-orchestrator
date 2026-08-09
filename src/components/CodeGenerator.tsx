@@ -4,23 +4,34 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Code, Copy, Download, Loader2, CheckCircle2 } from "lucide-react";
+import { Code, Copy, Download, Loader2, CheckCircle2, Terminal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { generateCode } from "@/lib/localAI";
 
 const LANGUAGES = [
   { value: 'typescript', label: 'TypeScript', icon: '📘' },
   { value: 'javascript', label: 'JavaScript', icon: '📙' },
   { value: 'python', label: 'Python', icon: '🐍' },
+  { value: 'bash', label: 'Bash / Termux', icon: '🖥️' },
   { value: 'react', label: 'React', icon: '⚛️' },
   { value: 'html', label: 'HTML', icon: '🌐' },
   { value: 'css', label: 'CSS', icon: '🎨' },
   { value: 'sql', label: 'SQL', icon: '🗄️' },
 ];
 
+const TERMUX_CONTEXT = `ZIELUMGEBUNG: Termux auf Android (kein Root, kein sudo, kein systemd).
+- Prefix: /data/data/com.termux/files/usr, HOME: /data/data/com.termux/files/home
+- Shebang für Bash: #!/data/data/com.termux/files/usr/bin/bash und danach set -euo pipefail
+- Shebang für Python: #!/data/data/com.termux/files/usr/bin/env python3
+- Speicher nur über ~/storage/... (nach termux-setup-storage), niemals /sdcard direkt.
+- Pakete via pkg install (nicht apt-get), Python-Libs via pip; nenne benötigte Installs als Kommentar in Zeile 2.
+- Der Code muss ohne jede Änderung per Copy&Paste in Termux laufen.`;
+
 export const CodeGenerator = () => {
   const [prompt, setPrompt] = useState("");
   const [language, setLanguage] = useState("typescript");
+  const [termuxMode, setTermuxMode] = useState(false);
   const [generatedCode, setGeneratedCode] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -40,18 +51,37 @@ export const CodeGenerator = () => {
     setGeneratedCode("");
 
     try {
-      // Generiere Code via Gemini AI
-      const code = await generateCode({
-        prompt,
-        language: LANGUAGES.find(l => l.value === language)?.label || language,
-        maxTokens: 1024,
-      });
+      const langLabel = LANGUAGES.find(l => l.value === language)?.label || language;
+      const baseSystem = `Du bist ein Code-Generator für ${langLabel}. Regeln (unverhandelbar):
+- Gib AUSSCHLIESSLICH Code zurück, keinen Fließtext, keine Erklärung davor oder danach.
+- Vollständige, direkt lauffähige Datei. Keine Platzhalter, kein TODO, keine "..."-Auslassungen, keine Demo-/Mock-Daten.
+- Immer echte Fehlerbehandlung. "Geht nicht" gibt es nicht – liefere die funktionierende Lösung.`;
 
-      setGeneratedCode(code || "// Keine Antwort vom Modell");
-      
+      const run = () =>
+        generateCode({
+          prompt,
+          language: langLabel,
+          systemPrompt: termuxMode ? `${baseSystem}\n\n${TERMUX_CONTEXT}` : baseSystem,
+        });
+
+      let code = "";
+      try {
+        code = await run();
+      } catch (firstError) {
+        // Ein automatischer Retry, z.B. bei leerer Antwort oder kurzem Rate-Limit
+        await new Promise(r => setTimeout(r, 1200));
+        code = await run();
+      }
+
+      if (!code.trim()) {
+        throw new Error("Die KI hat keinen Code geliefert. Bitte Beschreibung konkretisieren und erneut versuchen.");
+      }
+
+      setGeneratedCode(code);
+
       toast({
-        title: "✅ Code generiert!",
-        description: `${LANGUAGES.find(l => l.value === language)?.label} Code via Gemini AI erstellt`,
+        title: "✅ Code generiert",
+        description: `${langLabel}${termuxMode ? " (Termux-ready)" : ""} · ${code.split("\n").length} Zeilen`,
       });
 
     } catch (error: any) {
@@ -94,6 +124,7 @@ export const CodeGenerator = () => {
       typescript: 'ts',
       javascript: 'js',
       python: 'py',
+      bash: 'sh',
       react: 'tsx',
       html: 'html',
       css: 'css',
@@ -121,7 +152,7 @@ export const CodeGenerator = () => {
           <Code className="h-5 w-5 text-primary" />
           <h3 className="text-lg font-semibold">Code-Generator</h3>
         </div>
-        <Badge variant="outline">KI-gestützt</Badge>
+        <Badge variant="outline">{termuxMode ? "Termux-Modus" : "KI-gestützt"}</Badge>
       </div>
 
       <div className="space-y-4">
@@ -144,10 +175,23 @@ export const CodeGenerator = () => {
           </Select>
         </div>
 
+        <div className="flex items-center justify-between rounded-lg border border-border/50 bg-muted/20 p-3">
+          <div className="flex items-center gap-2">
+            <Terminal className="h-4 w-4 text-primary" />
+            <div>
+              <p className="text-sm font-medium">Termux-Modus</p>
+              <p className="text-xs text-muted-foreground">Android/Termux-Pfade, pkg-Installs, Shebang, kein Root</p>
+            </div>
+          </div>
+          <Switch checked={termuxMode} onCheckedChange={setTermuxMode} disabled={isGenerating} />
+        </div>
+
         <div className="space-y-2">
           <label className="text-sm font-medium">Code-Beschreibung</label>
           <Textarea
-            placeholder="Beschreibe, welchen Code du generieren möchtest... z.B. 'Eine React-Komponente für einen Image Slider mit Thumbnails'"
+            placeholder={termuxMode
+              ? "z.B. 'Script das alle Fotos aus ~/storage/dcim nach webp konvertiert und in ~/storage/shared/webp ablegt'"
+              : "Beschreibe, welchen Code du generieren möchtest... z.B. 'Eine React-Komponente für einen Image Slider mit Thumbnails'"}
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             disabled={isGenerating}
