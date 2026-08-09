@@ -25,9 +25,10 @@ export const useGeminiAI = () => {
       });
 
       if (functionError) throw functionError;
-      if (data.error) throw new Error(data.error);
+      if (data?.error) throw new Error(data.error);
+      if (!data?.text) throw new Error('Leere Antwort von der KI. Bitte erneut versuchen.');
 
-      return data.text;
+      return data.text as string;
     } catch (err: any) {
       const errorMessage = err.message || 'KI-Anfrage fehlgeschlagen';
       setError(errorMessage);
