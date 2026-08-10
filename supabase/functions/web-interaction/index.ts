@@ -145,50 +145,64 @@ async function fillForm(url: string, formData: any) {
 }
 
 async function conductResearch(query: any) {
-  const q = typeof query === 'string' ? query : JSON.stringify(query ?? '');
-  if (!q.trim()) {
+  const q = (typeof query === 'string' ? query : JSON.stringify(query ?? '')).trim();
+  if (!q) {
     return { query: q, sources: [], findings: 'Keine Suchanfrage übergeben.', timestamp: new Date().toISOString() };
   }
 
-  // Real search against DuckDuckGo's HTML endpoint — no simulated results.
-  const res = await fetch(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(q)}`, {
-    method: 'POST',
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (compatible; AI-Bot/1.0)',
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-  });
+  const strip = (t: string) => t.replace(/<[^>]+>/g, '').replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
+  const sources: Array<{ title: string; url: string; snippet: string; source: string }> = [];
 
-  if (!res.ok) {
-    return { query: q, sources: [], findings: `Suche fehlgeschlagen (HTTP ${res.status}).`, timestamp: new Date().toISOString() };
+  // 1) DuckDuckGo Instant Answer API (real data, no key required)
+  try {
+    const r = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(q)}&format=json&no_html=1&skip_disambig=1`, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; AI-Bot/1.0)' },
+    });
+    if (r.ok) {
+      const d = await r.json();
+      if (d.AbstractText && d.AbstractURL) {
+        sources.push({ title: d.Heading || q, url: d.AbstractURL, snippet: d.AbstractText, source: d.AbstractSource || 'DuckDuckGo' });
+      }
+      for (const t of (d.RelatedTopics ?? []).slice(0, 4)) {
+        if (t?.Text && t?.FirstURL) sources.push({ title: t.Text.split(' - ')[0], url: t.FirstURL, snippet: t.Text, source: 'DuckDuckGo' });
+      }
+    }
+  } catch (e) {
+    console.warn('DDG lookup failed:', e instanceof Error ? e.message : e);
   }
 
-  const html = await res.text();
-  const strip = (t: string) => t.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#x27;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/\s+/g, ' ').trim();
-
-  const snippets: string[] = [];
-  const snippetRe = /<a[^>]+class="[^"]*result__snippet[^"]*"[^>]*>([\s\S]*?)<\/a>/g;
-  let m: RegExpExecArray | null;
-  while ((m = snippetRe.exec(html)) !== null && snippets.length < 8) snippets.push(strip(m[1]));
-
-  const sources: Array<{ title: string; url: string; snippet: string }> = [];
-  const linkRe = /<a[^>]+class="[^"]*result__a[^"]*"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g;
-  let i = 0;
-  while ((m = linkRe.exec(html)) !== null && sources.length < 6) {
-    let href = m[1];
-    const uddg = href.match(/uddg=([^&]+)/);
-    if (uddg) href = decodeURIComponent(uddg[1]);
-    sources.push({ title: strip(m[2]), url: href, snippet: snippets[i] ?? '' });
-    i++;
+  // 2) Wikipedia full-text search (DE, fallback EN) — real article snippets
+  for (const lang of ['de', 'en']) {
+    if (sources.length >= 6) break;
+    try {
+      const r = await fetch(
+        `https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&format=json&srlimit=4&origin=*`,
+        { headers: { 'User-Agent': 'AI-Bot/1.0 (research)' } },
+      );
+      if (!r.ok) continue;
+      const d = await r.json();
+      for (const hit of d?.query?.search ?? []) {
+        if (sources.length >= 6) break;
+        sources.push({
+          title: hit.title,
+          url: `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(hit.title.replace(/ /g, '_'))}`,
+          snippet: strip(hit.snippet ?? ''),
+          source: `Wikipedia (${lang})`,
+        });
+      }
+      if (sources.length > 0) break;
+    } catch (e) {
+      console.warn(`Wikipedia ${lang} lookup failed:`, e instanceof Error ? e.message : e);
+    }
   }
 
   return {
     query: q,
     sources,
+    resultCount: sources.length,
     findings: sources.length
       ? sources.map((s, n) => `${n + 1}. ${s.title} — ${s.snippet} (${s.url})`).join('\n')
-      : 'Keine Treffer gefunden.',
-    resultCount: sources.length,
+      : `Keine externen Treffer für "${q}".`,
     timestamp: new Date().toISOString(),
   };
 }
