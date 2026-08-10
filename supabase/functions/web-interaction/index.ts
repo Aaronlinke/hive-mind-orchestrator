@@ -12,7 +12,13 @@ serve(async (req) => {
   }
 
   try {
-    const { action, url, selector, data, credentials } = await req.json();
+    const body = await req.json();
+    const { url, selector, credentials } = body;
+    const query = body.query ?? body.request ?? body.data;
+    // Default to real web research when no explicit action is given
+    // (orchestrators call this function with just `request`/`query`).
+    const action = body.action && body.action !== 'search' ? body.action : (url ? 'fetch' : 'research');
+    const data = body.data ?? query;
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -46,8 +52,13 @@ serve(async (req) => {
         result = await monitorWebsite(url, data);
         break;
       
+      case 'search':
+        result = await conductResearch(query);
+        break;
+
       default:
-        throw new Error(`Unknown action: ${action}`);
+        result = await conductResearch(query ?? action);
+        break;
     }
 
     const executionTime = Date.now() - startTime;
@@ -134,21 +145,51 @@ async function fillForm(url: string, formData: any) {
 }
 
 async function conductResearch(query: any) {
-  // Simuliere Research-Ergebnisse für die Query
-  const keywords = typeof query === 'string' 
-    ? query.toLowerCase().split(' ').slice(0, 5) 
-    : [];
-  
+  const q = typeof query === 'string' ? query : JSON.stringify(query ?? '');
+  if (!q.trim()) {
+    return { query: q, sources: [], findings: 'Keine Suchanfrage übergeben.', timestamp: new Date().toISOString() };
+  }
+
+  // Real search against DuckDuckGo's HTML endpoint — no simulated results.
+  const res = await fetch(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(q)}`, {
+    method: 'POST',
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (compatible; AI-Bot/1.0)',
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+  });
+
+  if (!res.ok) {
+    return { query: q, sources: [], findings: `Suche fehlgeschlagen (HTTP ${res.status}).`, timestamp: new Date().toISOString() };
+  }
+
+  const html = await res.text();
+  const strip = (t: string) => t.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#x27;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/\s+/g, ' ').trim();
+
+  const snippets: string[] = [];
+  const snippetRe = /<a[^>]+class="[^"]*result__snippet[^"]*"[^>]*>([\s\S]*?)<\/a>/g;
+  let m: RegExpExecArray | null;
+  while ((m = snippetRe.exec(html)) !== null && snippets.length < 8) snippets.push(strip(m[1]));
+
+  const sources: Array<{ title: string; url: string; snippet: string }> = [];
+  const linkRe = /<a[^>]+class="[^"]*result__a[^"]*"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g;
+  let i = 0;
+  while ((m = linkRe.exec(html)) !== null && sources.length < 6) {
+    let href = m[1];
+    const uddg = href.match(/uddg=([^&]+)/);
+    if (uddg) href = decodeURIComponent(uddg[1]);
+    sources.push({ title: strip(m[2]), url: href, snippet: snippets[i] ?? '' });
+    i++;
+  }
+
   return {
-    query,
-    keywords,
-    sources: [
-      { title: 'Research Source 1', relevance: 0.9, summary: 'Hochrelevante Informationen gefunden' },
-      { title: 'Research Source 2', relevance: 0.75, summary: 'Zusätzliche Erkenntnisse' }
-    ],
-    findings: 'Umfassende Research-Ergebnisse zu: ' + (typeof query === 'string' ? query : JSON.stringify(query)),
-    researched: true,
-    timestamp: new Date().toISOString()
+    query: q,
+    sources,
+    findings: sources.length
+      ? sources.map((s, n) => `${n + 1}. ${s.title} — ${s.snippet} (${s.url})`).join('\n')
+      : 'Keine Treffer gefunden.',
+    resultCount: sources.length,
+    timestamp: new Date().toISOString(),
   };
 }
 
