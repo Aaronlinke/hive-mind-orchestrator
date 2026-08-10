@@ -87,7 +87,7 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({
-        resourceId: requestRecord.id,
+        resourceId: requestRecord?.id ?? null,
         result,
         metrics: {
           latency,
@@ -139,8 +139,50 @@ async function executeCloudService(endpoint: string, payload: any) {
 }
 
 async function executeDatabaseQuery(supabase: any, query: string) {
-  // Safe query execution through Supabase client
-  const { data, error } = await supabase.rpc('custom_query', { query_string: query });
-  if (error) throw error;
-  return data;
+  // Real, safe system inventory via the typed client (no raw SQL, no RPC).
+  const TABLES = [
+    'knowledge_entries',
+    'chat_sessions',
+    'chat_messages',
+    'evolution_history',
+    'emergent_patterns',
+    'resource_requests',
+    'web_interactions',
+    'visual_concepts',
+    'skill_development',
+  ];
+
+  const counts: Record<string, number> = {};
+  await Promise.all(TABLES.map(async (t) => {
+    const { count, error } = await supabase.from(t).select('*', { count: 'exact', head: true });
+    counts[t] = error ? -1 : (count ?? 0);
+  }));
+
+  const q = (query || '').toLowerCase().trim();
+  let matchedKnowledge: any[] = [];
+  if (q) {
+    const { data } = await supabase
+      .from('knowledge_entries')
+      .select('title, category, content')
+      .or(`title.ilike.%${q}%,content.ilike.%${q}%`)
+      .limit(5);
+    matchedKnowledge = data ?? [];
+  }
+
+  const { data: recentRequests } = await supabase
+    .from('resource_requests')
+    .select('resource_type, status, latency_ms, created_at')
+    .order('created_at', { ascending: false })
+    .limit(5);
+
+  const available = Object.values(counts).filter((c) => c >= 0).length;
+
+  return {
+    query: query || null,
+    inventory: counts,
+    availableSources: available,
+    matchedKnowledge,
+    recentRequests: recentRequests ?? [],
+    timestamp: new Date().toISOString(),
+  };
 }

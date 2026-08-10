@@ -12,7 +12,13 @@ serve(async (req) => {
   }
 
   try {
-    const { action, url, selector, data, credentials } = await req.json();
+    const body = await req.json();
+    const { url, selector, credentials } = body;
+    const query = body.query ?? body.request ?? body.data;
+    // Default to real web research when no explicit action is given
+    // (orchestrators call this function with just `request`/`query`).
+    const action = body.action && body.action !== 'search' ? body.action : (url ? 'fetch' : 'research');
+    const data = body.data ?? query;
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -46,8 +52,13 @@ serve(async (req) => {
         result = await monitorWebsite(url, data);
         break;
       
+      case 'search':
+        result = await conductResearch(query);
+        break;
+
       default:
-        throw new Error(`Unknown action: ${action}`);
+        result = await conductResearch(query ?? action);
+        break;
     }
 
     const executionTime = Date.now() - startTime;
@@ -134,21 +145,65 @@ async function fillForm(url: string, formData: any) {
 }
 
 async function conductResearch(query: any) {
-  // Simuliere Research-Ergebnisse für die Query
-  const keywords = typeof query === 'string' 
-    ? query.toLowerCase().split(' ').slice(0, 5) 
-    : [];
-  
+  const q = (typeof query === 'string' ? query : JSON.stringify(query ?? '')).trim();
+  if (!q) {
+    return { query: q, sources: [], findings: 'Keine Suchanfrage übergeben.', timestamp: new Date().toISOString() };
+  }
+
+  const strip = (t: string) => t.replace(/<[^>]+>/g, '').replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
+  const sources: Array<{ title: string; url: string; snippet: string; source: string }> = [];
+
+  // 1) DuckDuckGo Instant Answer API (real data, no key required)
+  try {
+    const r = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(q)}&format=json&no_html=1&skip_disambig=1`, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; AI-Bot/1.0)' },
+    });
+    if (r.ok) {
+      const d = await r.json();
+      if (d.AbstractText && d.AbstractURL) {
+        sources.push({ title: d.Heading || q, url: d.AbstractURL, snippet: d.AbstractText, source: d.AbstractSource || 'DuckDuckGo' });
+      }
+      for (const t of (d.RelatedTopics ?? []).slice(0, 4)) {
+        if (t?.Text && t?.FirstURL) sources.push({ title: t.Text.split(' - ')[0], url: t.FirstURL, snippet: t.Text, source: 'DuckDuckGo' });
+      }
+    }
+  } catch (e) {
+    console.warn('DDG lookup failed:', e instanceof Error ? e.message : e);
+  }
+
+  // 2) Wikipedia full-text search (DE, fallback EN) — real article snippets
+  for (const lang of ['de', 'en']) {
+    if (sources.length >= 6) break;
+    try {
+      const r = await fetch(
+        `https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&format=json&srlimit=4&origin=*`,
+        { headers: { 'User-Agent': 'AI-Bot/1.0 (research)' } },
+      );
+      if (!r.ok) continue;
+      const d = await r.json();
+      for (const hit of d?.query?.search ?? []) {
+        if (sources.length >= 6) break;
+        sources.push({
+          title: hit.title,
+          url: `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(hit.title.replace(/ /g, '_'))}`,
+          snippet: strip(hit.snippet ?? ''),
+          source: `Wikipedia (${lang})`,
+        });
+      }
+      if (sources.length > 0) break;
+    } catch (e) {
+      console.warn(`Wikipedia ${lang} lookup failed:`, e instanceof Error ? e.message : e);
+    }
+  }
+
   return {
-    query,
-    keywords,
-    sources: [
-      { title: 'Research Source 1', relevance: 0.9, summary: 'Hochrelevante Informationen gefunden' },
-      { title: 'Research Source 2', relevance: 0.75, summary: 'Zusätzliche Erkenntnisse' }
-    ],
-    findings: 'Umfassende Research-Ergebnisse zu: ' + (typeof query === 'string' ? query : JSON.stringify(query)),
-    researched: true,
-    timestamp: new Date().toISOString()
+    query: q,
+    sources,
+    resultCount: sources.length,
+    findings: sources.length
+      ? sources.map((s, n) => `${n + 1}. ${s.title} — ${s.snippet} (${s.url})`).join('\n')
+      : `Keine externen Treffer für "${q}".`,
+    timestamp: new Date().toISOString(),
   };
 }
 
