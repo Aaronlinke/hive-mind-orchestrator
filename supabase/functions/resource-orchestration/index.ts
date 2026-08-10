@@ -87,7 +87,7 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({
-        resourceId: requestRecord.id,
+        resourceId: requestRecord?.id ?? null,
         result,
         metrics: {
           latency,
