@@ -27,7 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { LogOut, Sparkles, Dna, Brain, Zap, BarChart3, Activity, Users, Crown, Grid3x3, Menu, FlaskConical, BookOpen, Terminal } from "lucide-react";
 
 const NAV_LINKS = [
@@ -116,6 +116,10 @@ const Index = () => {
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="right" className="w-64 glass-card">
+                  <SheetHeader className="sr-only">
+                    <SheetTitle>Navigation</SheetTitle>
+                    <SheetDescription>Hauptnavigation der Plattform</SheetDescription>
+                  </SheetHeader>
                   <div className="flex flex-col gap-2 mt-6">
                     <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wide mb-2 px-1">Navigation</p>
                     {NAV_LINKS.map((link) => (
