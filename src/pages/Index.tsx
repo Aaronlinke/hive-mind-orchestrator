@@ -28,7 +28,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { LogOut, Sparkles, Dna, Brain, Zap, BarChart3, Activity, Users, Crown, Grid3x3, Menu, FlaskConical, BookOpen, Terminal } from "lucide-react";
+import { LogOut, Sparkles, Dna, Brain, Zap, BarChart3, Activity, Users, Crown, Grid3x3, Menu, FlaskConical, BookOpen, Terminal, MessageSquare } from "lucide-react";
 
 const NAV_LINKS = [
   { label: "Schachbrett", icon: <Grid3x3 className="w-4 h-4" />, path: "/ai-grid" },
@@ -92,6 +92,10 @@ const Index = () => {
             </div>
 
             <div className="flex items-center gap-2">
+              <Button variant="default" size="sm" className="gap-2" onClick={() => navigate("/")}>
+                <MessageSquare className="h-4 w-4" />
+                <span className="hidden sm:inline">Solver-Chat</span>
+              </Button>
               {/* Desktop nav */}
               <div className="hidden lg:flex items-center gap-2">
                 {NAV_LINKS.map((link) => (
