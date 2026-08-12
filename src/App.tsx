@@ -7,6 +7,7 @@ import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
+import OmniChat from "./pages/OmniChat";
 import SwarmIntelligence from "./pages/SwarmIntelligence";
 import Evolution from "./pages/Evolution";
 import AIGrid from "./pages/AIGrid";
@@ -26,7 +27,9 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+              <Route path="/" element={<ProtectedRoute><OmniChat /></ProtectedRoute>} />
+              <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+              <Route path="/index" element={<ProtectedRoute><Index /></ProtectedRoute>} />
               <Route path="/swarm-intelligence" element={<ProtectedRoute><SwarmIntelligence /></ProtectedRoute>} />
               <Route path="/evolution" element={<ProtectedRoute><Evolution /></ProtectedRoute>} />
               <Route path="/ai-grid" element={<ProtectedRoute><AIGrid /></ProtectedRoute>} />
