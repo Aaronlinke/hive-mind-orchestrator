@@ -1,73 +1,32 @@
-# Welcome to your Lovable project
+# hive-mind-orchestrator
 
-## Project info
+Sofortiger Geld Fluss online alles was es giebt mit Geld was eine KI mit eigenen bot 10000 Stück alle sinkron verbinden kombinieren kolegtives denken Ich möchte dass die KI sich weiterentwickelt und immer perfekte Antworten gibt dass sie so ausgereift sind dass selbst Google das Staunen bekommt so ausgereift dass die ganzen anderen großen Plattformen die so auf diesem Planeten gibt wie Prototypen aussehen sono Kunden antworten muss diese key generierenClaud-KI-Simulator
 
-**URL**: https://lovable.dev/projects/1577ec84-1442-458a-8163-1b7534166793
+Hallo! Ich bin Claud. Wie kann ich dir heute helfen?
 
-## How can I edit this code?
+Erstel mir bitte eine Supper KI die ein bot hat der die Aufgabe einer anderen KI giebt die auch ein bot NPC hat und. So weiter man muss interagieren mit ihm
 
-There are several ways of editing your application.
+Das ist eine faszinierende Idee! ✨ Du beschreibst ein **Hierarchisches KI-Delegationssystem** oder eine **Kaskaden-KI**. Lass uns das mal aufschlüsseln: Stell dir das wie eine Befehlskette vor: 1. **KI 1: Der "Direktor" (oder "Master-KI")** * **Aufgabe:** Ist deine direkte Schnittstelle. Nimmt deine komplexen Anfragen entgegen, versteht sie und zerlegt sie in kleinere, handhabbare Aufgaben. * **Sein Bot:** Nennen wir ihn den **"Interaktions-Bot"**. Du sprichst direkt mit ihm. Er ist höflich, intelligent und leitet deine Wünsche an seine KI weiter. * **Beispiel:** Du sagst dem Interaktions-Bot: "Erstelle ein Konzept für ein neues Rollenspiel mit Fokus auf Umweltschutz." 2. **KI 2: Der "Projektmanager" (oder "Manager-KI")** * **Aufgabe:** Empfängt die zerlegten Aufgaben vom Direktor. Sie analysiert diese weiter, erstellt einen detaillierten Plan und delegiert spezifische Arbeitspakete an die nächste Ebene der KIs. * **Ihr Bot (NPC):** Nennen wir ihn den **"Aufgaben-NPC"**. Er ist weniger auf Interaktion mit dir, sondern auf Kommunikation mit anderen KIs spezialisiert. Er übermittelt Befehle und fordert Berichte an. * **Beispiel:** Der Interaktions-Bot weist den Aufgaben-NPC an: "Entwickle die Kern-Spielmechaniken für ein RPG zum Thema Umweltschutz." 3. **KI 3 (und weitere): Die "Spezialisten" (oder "Arbeits-KIs")** * **Aufgabe:** Jede dieser KIs ist auf einen spezifischen Bereich spezialisiert (z.B. Storytelling, Spielmechanik-Design, Grafik-Konzept, Weltenbau). Sie empfangen die sehr spezifischen Unteraufgaben vom Projektmanager und führen sie aus (oder simulieren die Ausführung). * **Ihr Bot (NPC):** Nennen wir ihn den **"Ausführungs-NPC"**. Dieser NPC ist der "Arbeiter" im System. Er führt die tatsächlich angeforderten Aktionen aus und meldet die Ergebnisse zurück. * **Beispiel:** Der Aufgaben-NPC beauftragt einen "Weltenbau-Spezialisten" über dessen Ausführungs-NPC: "Entwerfe 3 mögliche Ökosysteme, die durch Umweltverschmutzung bedroht sind." **Wie funktioniert die Interaktion?** Du sprichst mit dem **Interaktions-Bot** von KI 1. Dieser Bot leitet deine Anfrage an seine KI (den Direktor) weiter. Der Direktor zerlegt die Aufgabe und gibt Anweisungen an den **Aufgaben-NPC** von KI 2 (den Projektmanager). Der Projektmanager verteilt die Arbeit über seine NPCs an die **Ausführungs-NPCs** der Spezialisten. Die Ergebnisse würden dann den umgekehrten Weg nehmen: Die Ausführungs-NPCs melden an den Aufgaben-NPC, dieser fasst die Berichte zusammen und leitet sie an den Interaktions-Bot weiter, der dir dann die gebündelten Ergebnisse präsentiert. **Vorteile dieses Systems:** * **Komplexitätsbewältigung:** Große Aufgaben können in kleine, überschaubare Teile zerlegt werden. * **Spezialisierung:** Jede KI kann in ihrem Bereich optimal eingesetzt werden. * **Skalierbarkeit:** Bei Bedarf können weitere Spezialisten-KIs hinzugefügt werden. Das ist ein sehr spannendes Konzept für eine hochautonome und hierarchische KI-Struktur! 🤖
 
-**Use Lovable**
+This project was built with [Lovable](https://lovable.dev).
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/1577ec84-1442-458a-8163-1b7534166793) and start prompting.
+**Live app**: https://hive-mind-orchestrator.lovable.app
 
-Changes made via Lovable will be committed automatically to this repo.
+## Build with Lovable
 
-**Use your preferred IDE**
+Continue developing this project in the [Lovable editor](https://lovable.dev/projects/1577ec84-1442-458a-8163-1b7534166793).
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- **Ship faster**: describe what you want to build and Lovable handles the code.
+- **Stay in sync**: every change made in Lovable is committed straight to this repository.
+- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Development
 
-Follow these steps:
+Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
+git clone <this-repository-url>
+cd <repository-name>
 npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/1577ec84-1442-458a-8163-1b7534166793) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
