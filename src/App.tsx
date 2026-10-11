@@ -15,6 +15,7 @@ import BlackSultanOS from "./pages/BlackSultanOS";
 import AJPlatform from "./pages/AJPlatform";
 import MetaPhilosophy from "./pages/MetaPhilosophy";
 import NotFound from "./pages/NotFound";
+import OAuthConsent from "./pages/OAuthConsent";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="/black-sultan-os" element={<ProtectedRoute><BlackSultanOS /></ProtectedRoute>} />
               <Route path="/aj-platform" element={<ProtectedRoute><AJPlatform /></ProtectedRoute>} />
               <Route path="/meta-philosophy" element={<ProtectedRoute><MetaPhilosophy /></ProtectedRoute>} />
+              <Route path="/.lovable/oauth/consent" element={<ProtectedRoute><OAuthConsent /></ProtectedRoute>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
