@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { oauthReturnPath } from "@/lib/oauth-return-path";
 
 export const Auth = () => {
   const [email, setEmail] = useState("");
@@ -16,9 +17,11 @@ export const Auth = () => {
     e.preventDefault();
     setLoading(true);
     
+    const next = oauthReturnPath(window.location.pathname + window.location.search);
     const { error } = await supabase.auth.signUp({
       email,
       password,
+      options: { emailRedirectTo: new URL(next, window.location.origin).href },
     });
 
     if (error) {
